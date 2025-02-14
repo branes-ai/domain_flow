@@ -24,20 +24,36 @@ int main() {
 
     {
         auto builder = DependencyGraph::create();
-        builder = builder.variable("A", 3);
+        builder.variable("A", 3);
         auto graph = builder.build();
 		std::cout << graph << '\n';
     }
 
+    std::cout << "-----------------------------------------------\n";
     {
         auto builder = DependencyGraph::create();
-        builder = builder.variable("X", 2);
-        builder = builder.variable("Y", 2);
-        builder = builder.edge("X", "Y", AffineMap({ {1, 0}, {0, 1} }, { 1, 0 }));
+        builder.variable("X", 2);
+        builder.variable("Y", 2);
+        builder.edge("X", "Y", AffineMap({ {1, 0}, {0, 1} }, { 1, 0 }));
         auto graph = builder.build();
         std::cout << graph << '\n';
     }
 
+    std::cout << "-----------------------------------------------\n";
+    {
+        auto graph = DependencyGraph::create()
+            .variable("X", 2)
+            .variable("Y", 2)
+            .variable("Z", 2)
+            .edge("X", "Y", AffineMap({ {1, 0}, {0, 1} }, { 1, 0 }))
+            .edge("Y", "Z", AffineMap({ {1, 0}, {0, 1} }, { 0, 1 }))
+            .variable("A", 2)
+            .build();
+
+        std::cout << graph << '\n';
+    }
+
+    std::cout << "-----------------------------------------------\n";
     {
         auto graph = DependencyGraph::create()
                 .variable("X", 2)
@@ -47,6 +63,7 @@ int main() {
         std::cout << graph << '\n';
     }
 
+    std::cout << "-----------------------------------------------\n";
     {
         auto graph = DependencyGraph::create()
             // Add individual variables

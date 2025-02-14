@@ -16,7 +16,6 @@
 #include <dfa/recurrence_var.hpp>
 #include <dfa/dependency_graph.hpp>
 
-
 std::ostream& operator<<(std::ostream& os, const DependencyGraph* graph) {
 	os << "Dependency Graph:\n";
 	for (const auto& var : graph->variables) {

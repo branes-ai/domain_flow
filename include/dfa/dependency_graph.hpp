@@ -138,7 +138,7 @@ public:
     // Builder pattern interface
     class Builder {
     private:
-        DependencyGraph* graph;
+        std::unique_ptr<DependencyGraph> graph;
         std::unordered_set<std::string> definedVariables;
 
         // Validate variable name
@@ -165,12 +165,12 @@ public:
             auto* toVar = graph->variableMap[to];
 
             // Check if the affine map's dimensions match the variables
-            // This is a placeholder - implement based on your AffineMap representation
+            // This is a placeholder - implementation TBD
             return true;  // Replace with actual validation
         }
 
     public:
-        Builder() : graph(new DependencyGraph()) {}
+        Builder() : graph(std::make_unique<DependencyGraph>()) {}
 
         // Add a variable to the graph
         Builder& variable(const std::string& name, int dimension) {
@@ -187,18 +187,17 @@ public:
             }
 
             // Create and store the variable
-            std::cout << graph << '\n';
             auto var = std::make_unique<RecurrenceVariable>(name, dimension);
             graph->variableMap[name] = var.get();
             graph->variables.push_back(std::move(var));
             definedVariables.insert(name);
-            std::cout << graph << '\n';
 
             return *this;
         }
 
         // Add an edge (dependency) between variables
         Builder& edge(const std::string& from, const std::string& to, const AffineMap<int>& map) {
+         
             // Validate variables exist
             if (definedVariables.find(from) == definedVariables.end()) {
                 throw std::invalid_argument("Source variable not defined: " + from);
@@ -238,7 +237,7 @@ public:
         }
 
         // Build and validate the graph
-        DependencyGraph* build() {
+        std::unique_ptr<DependencyGraph> build() {
             // Validate the graph structure
             if (graph->variables.empty()) {
                 throw std::runtime_error("Graph has no variables");
@@ -247,12 +246,9 @@ public:
             // Optional: validate other graph properties
             // For example, check if all variables are reachable
 
-            return graph;
+            return std::move(graph);
         }
 
-        ~Builder() {
-            if (graph) delete graph;
-        }
     };
     
     static Builder create() {
