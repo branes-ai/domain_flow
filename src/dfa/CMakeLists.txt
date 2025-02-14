@@ -1,10 +1,10 @@
-set(DFA_LIBRARY dfalib)
+set(DFA_LIBRARY dfatoolslib)
 file(GLOB SRCS *.cpp *.hpp)
 
 add_library(${DFA_LIBRARY} ${SRCS})
 
 target_include_directories(${DFA_LIBRARY} PUBLIC
-    ${DFA_TOOLS_ROOT}/include
+    ${DFATOOLS_ROOT}/include
 )
 
 target_compile_definitions(${DFA_LIBRARY} PUBLIC

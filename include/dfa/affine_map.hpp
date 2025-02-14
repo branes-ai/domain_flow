@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 #include <stdexcept>
+#include <dfa/vector.hpp>
+#include <dfa/matrix.hpp>
 
 // Represents an affine transformation between recurrence variables
 //class AffineMap {
@@ -24,16 +26,151 @@
 //    std::vector<int> translate;  // Translation vector
 //};
 
-
+template<typename Scalar = int>
 class AffineMap {
+public:
+    // Constructor
+    AffineMap(const Matrix<Scalar>& coeffs, const Vector<Scalar>& consts)
+        : coefficients(coeffs), constants(consts) {
+        inputDimension = coefficients.cols();
+        outputDimension = coefficients.rows();
+        validateDimensions();
+    }
+
+    // Composition of affine maps (operator*)
+    // If f(x) = Ax + b and g(x) = Cx + d, then (g ∘ f)(x) = C(Ax + b) + d = CAx + (Cb + d)
+    AffineMap operator*(const AffineMap& other) const {
+        // Check dimension compatibility
+        if (other.outputDimension != inputDimension) {
+            throw std::invalid_argument(
+                "Incompatible dimensions for composition: " +
+                std::to_string(other.outputDimension) + " != " +
+                std::to_string(inputDimension)
+            );
+        }
+
+        // Initialize result matrices
+        Matrix<Scalar> resultCoeffs(other.inputDimension, outputDimension, 0);
+        Vector<Scalar> resultConsts(outputDimension, 0);
+
+        // Compute CA (matrix multiplication)
+        for (int i = 0; i < outputDimension; i++) {
+            for (int j = 0; j < other.inputDimension; j++) {
+                int sum = 0;
+                for (int k = 0; k < inputDimension; k++) {
+                    sum += getCoefficient(i, k) * other.getCoefficient(k, j);
+                }
+                resultCoeffs[i][j] = sum;
+            }
+        }
+
+        // Compute Cb + d
+        for (int i = 0; i < outputDimension; i++) {
+            int sum = constants[i];  // d term
+            for (int j = 0; j < inputDimension; j++) {
+                sum += getCoefficient(i, j) * other.constants[j];  // Cb term
+            }
+            resultConsts[i] = sum;
+        }
+
+		return AffineMap(resultCoeffs, resultConsts);
+    }
+
+    // Apply the affine transformation to a point
+    Vector<Scalar> apply(const Vector<Scalar>& point) const {
+        // Validate input dimension
+        if (point.size() != inputDimension) {
+            throw std::invalid_argument(
+                "Input point dimension (" + std::to_string(point.size()) +
+                ") does not match map input dimension (" +
+                std::to_string(inputDimension) + ")"
+            );
+        }
+
+        // Initialize result vector
+        Vector<Scalar> result(outputDimension);
+
+        // Compute Ax + b
+        for (int i = 0; i < outputDimension; i++) {
+            int sum = constants[i];  // b term
+            for (int j = 0; j < inputDimension; j++) {
+                sum += getCoefficient(i, j) * point[j];  // Ax term
+            }
+            result[i] = sum;
+        }
+
+        return result;
+    }
+
+    // Builder pattern interface for fluent API
+    AffineMap& addCoefficient(Scalar coeff, int row, int col) {
+        // Validate indices
+        if (row < 0 || row >= outputDimension ||
+            col < 0 || col >= inputDimension) {
+            throw std::out_of_range(
+                "Invalid coefficient position: (" + std::to_string(row) +
+                "," + std::to_string(col) + ")"
+            );
+        }
+
+        setCoefficient(row, col, coeff);
+        return *this;
+    }
+
+    AffineMap& addConstant(Scalar constant, int index) {
+        // Validate index
+        if (index < 0 || index >= outputDimension) {
+            throw std::out_of_range(
+                "Invalid constant index: " + std::to_string(index)
+            );
+        }
+
+        constants[index] = constant;
+        return *this;
+    }
+
+    // Getters
+    int getInputDimension() const { return inputDimension; }
+    int getOutputDimension() const { return outputDimension; }
+    const Matrix<Scalar>& getCoefficients() const { return coefficients; }
+    const Vector<Scalar>& getConstants() const { return constants; }
+
+    // Create identity map
+    static AffineMap identity(int dimension) {
+        Matrix<Scalar> coeffs(dimension, dimension, 0);
+        Vector<Scalar> consts(dimension, 0);
+
+        // Set diagonal elements to 1
+        for (int i = 0; i < dimension; i++) {
+            coeffs[i][i] = 1;
+        }
+
+        return AffineMap(coeffs, consts);
+    }
+
+    // Create translation map
+    static AffineMap translation(const std::vector<int>& translation) {
+        int dim = translation.size();
+        Matrix<Scalar> coeffs(dim, dim, 0);
+		Vector<Scalar> consts(translation);
+
+        // Set diagonal elements to 1
+        for (int i = 0; i < dim; i++) {
+            coeffs[i][i] = 1;
+        }
+
+        return AffineMap(coeffs, consts);
+    }
+
 private:
-    std::vector<int> coefficients;  // Linear coefficients stored in row-major order
-    std::vector<int> constants;     // Translation vector
-    int inputDimension;            // Dimension of input space
-    int outputDimension;           // Dimension of output space
+    Matrix<Scalar> coefficients;  // Linear coefficients stored in row-major order
+    Vector<Scalar> constants;     // Translation vector
+    size_t inputDimension;        // Dimension of input space
+    size_t outputDimension;       // Dimension of output space
 
     // Helper to validate dimensions
     void validateDimensions() const {
+        /*
         // Check if coefficients vector size matches input and output dimensions
         if (coefficients.size() != inputDimension * outputDimension) {
             throw std::invalid_argument(
@@ -51,155 +188,22 @@ private:
                 std::to_string(outputDimension) + ")"
             );
         }
+        */
     }
 
     // Helper to get coefficient at specific matrix position
     int getCoefficient(int row, int col) const {
-        return coefficients[row * inputDimension + col];
+        return coefficients[row][col];
     }
 
     // Helper to set coefficient at specific matrix position
     void setCoefficient(int row, int col, int value) {
-        coefficients[row * inputDimension + col] = value;
-    }
-
-public:
-    // Constructor
-    AffineMap(const std::vector<int>& coeffs, const std::vector<int>& consts,
-        int inDim, int outDim)
-        : coefficients(coeffs), constants(consts),
-        inputDimension(inDim), outputDimension(outDim) {
-        validateDimensions();
-    }
-
-    // Composition of affine maps (operator*)
-    // If f(x) = Ax + b and g(x) = Cx + d, then (g ∘ f)(x) = C(Ax + b) + d = CAx + (Cb + d)
-    AffineMap operator*(const AffineMap& other) const {
-        // Check dimension compatibility
-        if (other.outputDimension != inputDimension) {
-            throw std::invalid_argument(
-                "Incompatible dimensions for composition: " +
-                std::to_string(other.outputDimension) + " != " +
-                std::to_string(inputDimension)
-            );
-        }
-
-        // Initialize result matrices
-        std::vector<int> resultCoeffs(other.inputDimension * outputDimension, 0);
-        std::vector<int> resultConsts(outputDimension);
-
-        // Compute CA (matrix multiplication)
-        for (int i = 0; i < outputDimension; i++) {
-            for (int j = 0; j < other.inputDimension; j++) {
-                int sum = 0;
-                for (int k = 0; k < inputDimension; k++) {
-                    sum += getCoefficient(i, k) * other.getCoefficient(k, j);
-                }
-                resultCoeffs[i * other.inputDimension + j] = sum;
-            }
-        }
-
-        // Compute Cb + d
-        for (int i = 0; i < outputDimension; i++) {
-            int sum = constants[i];  // d term
-            for (int j = 0; j < inputDimension; j++) {
-                sum += getCoefficient(i, j) * other.constants[j];  // Cb term
-            }
-            resultConsts[i] = sum;
-        }
-
-        return AffineMap(resultCoeffs, resultConsts,
-            other.inputDimension, outputDimension);
-    }
-
-    // Apply the affine transformation to a point
-    std::vector<int> apply(const std::vector<int>& point) const {
-        // Validate input dimension
-        if (point.size() != inputDimension) {
-            throw std::invalid_argument(
-                "Input point dimension (" + std::to_string(point.size()) +
-                ") does not match map input dimension (" +
-                std::to_string(inputDimension) + ")"
-            );
-        }
-
-        // Initialize result vector
-        std::vector<int> result(outputDimension);
-
-        // Compute Ax + b
-        for (int i = 0; i < outputDimension; i++) {
-            int sum = constants[i];  // b term
-            for (int j = 0; j < inputDimension; j++) {
-                sum += getCoefficient(i, j) * point[j];  // Ax term
-            }
-            result[i] = sum;
-        }
-
-        return result;
-    }
-
-    // Builder pattern interface for fluent API
-    AffineMap& addCoefficient(int coeff, int row, int col) {
-        // Validate indices
-        if (row < 0 || row >= outputDimension ||
-            col < 0 || col >= inputDimension) {
-            throw std::out_of_range(
-                "Invalid coefficient position: (" + std::to_string(row) +
-                "," + std::to_string(col) + ")"
-            );
-        }
-
-        setCoefficient(row, col, coeff);
-        return *this;
-    }
-
-    AffineMap& addConstant(int constant, int index) {
-        // Validate index
-        if (index < 0 || index >= outputDimension) {
-            throw std::out_of_range(
-                "Invalid constant index: " + std::to_string(index)
-            );
-        }
-
-        constants[index] = constant;
-        return *this;
-    }
-
-    // Getters
-    int getInputDimension() const { return inputDimension; }
-    int getOutputDimension() const { return outputDimension; }
-    const std::vector<int>& getCoefficients() const { return coefficients; }
-    const std::vector<int>& getConstants() const { return constants; }
-
-    // Create identity map
-    static AffineMap identity(int dimension) {
-        std::vector<int> coeffs(dimension * dimension, 0);
-        std::vector<int> consts(dimension, 0);
-
-        // Set diagonal elements to 1
-        for (int i = 0; i < dimension; i++) {
-            coeffs[i * dimension + i] = 1;
-        }
-
-        return AffineMap(coeffs, consts, dimension, dimension);
-    }
-
-    // Create translation map
-    static AffineMap translation(const std::vector<int>& translation) {
-        int dim = translation.size();
-        std::vector<int> coeffs(dim * dim, 0);
-
-        // Set diagonal elements to 1
-        for (int i = 0; i < dim; i++) {
-            coeffs[i * dim + i] = 1;
-        }
-
-        return AffineMap(coeffs, translation, dim, dim);
+		coefficients[row][col] = value;
     }
 };
 
-
-inline std::string formatAffineMap(const AffineMap& map) {
+template<typename Scalar>
+std::string formatAffineMap(const AffineMap<Scalar>& map) {
 	std::string str("TBD");
 	return str;
 }

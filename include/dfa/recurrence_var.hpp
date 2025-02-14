@@ -56,7 +56,7 @@ public:
     }
 
     // DSL interface for building dependencies
-    RecurrenceVariable& dependsOn(RecurrenceVariable* var, const AffineMap& map) {
+    RecurrenceVariable& dependsOn(RecurrenceVariable* var, const AffineMap<int>& map) {
         // Validate input
         if (!var) {
             throw std::invalid_argument("Dependency variable cannot be null");
@@ -116,7 +116,7 @@ public:
 
     // Add multiple dependencies at once
     RecurrenceVariable& dependsOnAll(
-        const std::vector<std::pair<RecurrenceVariable*, AffineMap>>& deps) {
+        const std::vector<std::pair<RecurrenceVariable*, AffineMap<int>>>& deps) {
         for (const auto& [var, map] : deps) {
             dependsOn(var, map);
         }
@@ -152,7 +152,7 @@ public:
 private:
     std::string name;
     int dimension;
-    std::vector<std::pair<RecurrenceVariable*, AffineMap>> dependencies;
+    std::vector<std::pair<RecurrenceVariable*, AffineMap<int>>> dependencies;
 
     // Tarjan's algorithm metadata
     int index = -1;
@@ -160,7 +160,7 @@ private:
     bool onStack = false;
 
     // Helper function to validate affine map compatibility
-    bool isValidAffineMap(const AffineMap& map, const RecurrenceVariable* target) const {
+    bool isValidAffineMap(const AffineMap<int>& map, const RecurrenceVariable* target) const {
         // Check if the affine map dimensions are compatible with this variable and the target
         // This is a placeholder - implement based on your AffineMap representation
         // Should verify that the map can transform from this variable's space to target's space

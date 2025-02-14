@@ -17,6 +17,17 @@
 #include <dfa/dependency_graph.hpp>
 
 
+std::ostream& operator<<(std::ostream& os, const DependencyGraph* graph) {
+	os << "Dependency Graph:\n";
+	for (const auto& var : graph->variables) {
+		os << "  " << var->getName() << " (dim=" << var->getDimension() << "): ";
+		for (const auto& [dep, map] : var->getDependencies()) {
+			os << dep->getName() << " ";
+		}
+		os << '\n';
+	}
+	return os;
+}
 // Graph analysis methods
 bool DependencyGraph::isStronglyConnected() {
     auto sccs = getStronglyConnectedComponents();
@@ -146,14 +157,14 @@ std::vector<std::pair<int, int>> DependencyGraph::getCondensationGraph() {
 
     // Map variables to their SCC index
     std::map<RecurrenceVariable*, int> sccIndex;
-    for (size_t i = 0; i < sccs.size(); i++) {
+    for (int i = 0; i < sccs.size(); i++) {
         for (auto* var : sccs[i]) {
             sccIndex[var] = i;
         }
     }
 
     // Find edges between different SCCs
-    for (size_t i = 0; i < sccs.size(); i++) {
+    for (int i = 0; i < sccs.size(); i++) {
         std::unordered_set<int> connectedComponents;
         for (auto* var : sccs[i]) {
             for (const auto& [dep, _] : var->dependencies) {
@@ -189,7 +200,7 @@ std::vector<int> DependencyGraph::getExecutionOrder() {
 
     // Perform topological sort using Kahn's algorithm
     std::queue<int> q;
-    for (size_t i = 0; i < sccs.size(); i++) {
+    for (int i = 0; i < sccs.size(); i++) {
         if (inDegree[i] == 0) {
             q.push(i);
         }
@@ -212,15 +223,15 @@ std::vector<int> DependencyGraph::getExecutionOrder() {
 }
 
 // Helper method to find cycles in an SCC
-std::vector<AffineMap> DependencyGraph::findCycles(const std::vector<RecurrenceVariable*>& scc) const {
-    std::vector<AffineMap> cycles;
+std::vector<AffineMap<int>> DependencyGraph::findCycles(const std::vector<RecurrenceVariable*>& scc) const {
+    std::vector<AffineMap<int>> cycles;
 
     // Use DFS to find elementary cycles
     std::function<void(RecurrenceVariable*,
-        std::vector<std::pair<RecurrenceVariable*, AffineMap>>&,
+        std::vector<std::pair<RecurrenceVariable*, AffineMap<int>>>&,
         std::unordered_set<RecurrenceVariable*>&)>
         findCyclesDFS = [&](RecurrenceVariable* current,
-            std::vector<std::pair<RecurrenceVariable*, AffineMap>>& path,
+            std::vector<std::pair<RecurrenceVariable*, AffineMap<int>>>& path,
             std::unordered_set<RecurrenceVariable*>& visited) {
                 visited.insert(current);
 
@@ -243,7 +254,7 @@ std::vector<AffineMap> DependencyGraph::findCycles(const std::vector<RecurrenceV
         };
 
     for (auto* var : scc) {
-        std::vector<std::pair<RecurrenceVariable*, AffineMap>> path;
+        std::vector<std::pair<RecurrenceVariable*, AffineMap<int>>> path;
         std::unordered_set<RecurrenceVariable*> visited;
         findCyclesDFS(var, path, visited);
     }
@@ -316,7 +327,7 @@ std::string DependencyGraph::generateMermaid(const std::vector<std::vector<Recur
     
     // Map for tracking SCC clusters
     std::map<RecurrenceVariable*, int> sccMap;
-    for (size_t i = 0; i < sccs.size(); i++) {
+    for (int i = 0; i < sccs.size(); i++) {
         for (auto* var : sccs[i]) {
             sccMap[var] = i;
         }
@@ -406,7 +417,7 @@ std::string DependencyGraph::generateASCII(const std::vector<std::vector<Recurre
         for (auto* var : scc) {
             std::string label = var->getName() + "(" + 
                                 std::to_string(var->getDimension()) + ")";
-            row.push_back(makeBox(label, label.length() + 4));
+            row.push_back(makeBox(label, static_cast<int>(label.length()) + 4));
         }
         matrix.push_back(row);
         currentRow++;
@@ -523,7 +534,7 @@ std::string DependencyGraph::generateHTML(const std::vector<std::vector<Recurren
 // Helper function to find SCC index for a variable
 int DependencyGraph::findSCCIndex(RecurrenceVariable* var, 
                     const std::vector<std::vector<RecurrenceVariable*>>& sccs) const {
-    for (size_t i = 0; i < sccs.size(); i++) {
+    for (int i = 0; i < sccs.size(); i++) {
         if (std::find(sccs[i].begin(), sccs[i].end(), var) != sccs[i].end()) {
             return i;
         }

@@ -14,11 +14,11 @@
 
 // Structure to hold SCC analysis results
 struct SCCProperties {
-    int size;                       // Number of variables in the SCC
+    size_t size;                   // Number of variables in the SCC
     bool hasSelfLoops;             // Whether any variable depends directly on itself
     bool isElementary;             // Whether all variables have the same dimension
     int maxDimension;              // Maximum dimension of any variable
-    std::vector<AffineMap> cycles; // Representative dependency cycles
+    std::vector<AffineMap<int>> cycles; // Representative dependency cycles
     double averageDependencyDegree;// Average number of dependencies per variable
 
     // Constructor with initialization
@@ -160,7 +160,7 @@ public:
 
         // Validate affine map compatibility
         bool isValidAffineMap(const std::string& from, const std::string& to,
-            const AffineMap& map) const {
+            const AffineMap<int>& map) const {
             auto* fromVar = graph->variableMap[from];
             auto* toVar = graph->variableMap[to];
 
@@ -187,17 +187,18 @@ public:
             }
 
             // Create and store the variable
+            std::cout << graph << '\n';
             auto var = std::make_unique<RecurrenceVariable>(name, dimension);
             graph->variableMap[name] = var.get();
             graph->variables.push_back(std::move(var));
             definedVariables.insert(name);
+            std::cout << graph << '\n';
 
             return *this;
         }
 
         // Add an edge (dependency) between variables
-        Builder& edge(const std::string& from, const std::string& to,
-            const AffineMap& map) {
+        Builder& edge(const std::string& from, const std::string& to, const AffineMap<int>& map) {
             // Validate variables exist
             if (definedVariables.find(from) == definedVariables.end()) {
                 throw std::invalid_argument("Source variable not defined: " + from);
@@ -229,7 +230,7 @@ public:
         }
 
         // Add multiple edges at once
-        Builder& edges(const std::vector<std::tuple<std::string, std::string, AffineMap>>& edges) {
+        Builder& edges(const std::vector<std::tuple<std::string, std::string, AffineMap<int>>>& edges) {
             for (const auto& [from, to, map] : edges) {
                 edge(from, to, map);
             }
@@ -302,7 +303,7 @@ private:
     }
 
     // Helper method to find cycles in an SCC
-    std::vector<AffineMap> findCycles(const std::vector<RecurrenceVariable*>& scc) const;
+    std::vector<AffineMap<int>> findCycles(const std::vector<RecurrenceVariable*>& scc) const;
 
     // Implementation of Tarjan's algorithm for finding SCCs
     void tarjanSCC(
@@ -310,4 +311,6 @@ private:
         int& index,
         std::stack<RecurrenceVariable*>& stack,
         std::vector< std::vector<RecurrenceVariable*> >& sccs);
+
+	friend std::ostream& operator<<(std::ostream& os, const DependencyGraph* graph);
 };

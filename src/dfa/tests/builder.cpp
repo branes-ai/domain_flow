@@ -4,13 +4,13 @@ void example() {
     auto graph = DependencyGraph::create()
         .variable("X", 2)
         .variable("Y", 2)
-        .edge("X", "Y", AffineMap({1, 0, 0, 1}, {1, 0}))
+        .edge("X", "Y", AffineMap({ {1, 0}, {0, 1} }, { 1, 0 }))
         .build();
 
     // Or using the more explicit interface:
     auto& x = graph->createVariable("X").withDimension(2);
     auto& y = graph->createVariable("Y").withDimension(2);
-    x.dependsOn(&y, AffineMap({1, 0, 0, 1}, {1, 0}));
+    x.dependsOn(&y, AffineMap({ {1, 0}, {0, 1} }, { 1, 0 }));
 }
 
 // The builder will validate:
@@ -21,33 +21,61 @@ void example() {
 // - Affine map compatibility
 // - Overall graph structure	
 int main() {
-    auto graph = DependencyGraph::create()
-        // Add individual variables
-        .variable("X", 2)
-        .variable("Y", 2)
-        .variable("Z", 2)
 
-        // Or add multiple variables at once
-        .variables({
-            {"A", 3},
-            {"B", 3},
-            {"C", 3}
-            })
+    {
+        auto builder = DependencyGraph::create();
+        builder = builder.variable("A", 3);
+        auto graph = builder.build();
+		std::cout << graph << '\n';
+    }
 
-        // Add individual edges
-        .edge("X", "Y", AffineMap({ 1, 0, 0, 1 }, { 1, 0 }))
-        .edge("Y", "Z", AffineMap({ 1, 0, 0, 1 }, { 0, 1 }))
+    {
+        auto builder = DependencyGraph::create();
+        builder = builder.variable("X", 2);
+        builder = builder.variable("Y", 2);
+        builder = builder.edge("X", "Y", AffineMap({ {1, 0}, {0, 1} }, { 1, 0 }));
+        auto graph = builder.build();
+        std::cout << graph << '\n';
+    }
 
-        // Or add multiple edges at once
-        .edges({
-            {"A", "B", AffineMap({1, 0, 0, 1}, {1, 0})},
-            {"B", "C", AffineMap({1, 0, 0, 1}, {0, 1})},
-            {"C", "A", AffineMap({1, 0, 0, 1}, {1, 1})}
-            })
+    {
+        auto graph = DependencyGraph::create()
+                .variable("X", 2)
+                .variable("Y", 2)
+                .edge("X", "Y", AffineMap({ {1, 0}, {0, 1} }, { 1, 0 }))
+                .build();
+        std::cout << graph << '\n';
+    }
 
-        .build();
+    {
+        auto graph = DependencyGraph::create()
+            // Add individual variables
+            .variable("X", 2)
+            .variable("Y", 2)
+            .variable("Z", 2)
 
+            // Or add multiple variables at once
+            .variables({
+                {"A", 3},
+                {"B", 3},
+                {"C", 3}
+                })
 
+            // Add individual edges
+            .edge("X", "Y", AffineMap({ {1, 0}, {0, 1} }, { 1, 0 }))
+            .edge("Y", "Z", AffineMap({ {1, 0}, {0, 1} }, { 0, 1 }))
+
+            // Or add multiple edges at once
+            .edges({
+                {"A", "B", AffineMap({ {1, 0}, {0, 1} }, {1, 0})},
+                {"B", "C", AffineMap({ {1, 0}, {0, 1} }, {0, 1})},
+                {"C", "A", AffineMap({ {1, 0}, {0, 1} }, {1, 1})}
+                })
+
+            .build();
+
+        std::cout << graph << '\n';
+    }
 
 	return EXIT_SUCCESS;
 }
