@@ -56,8 +56,14 @@ macro (compile_all testing prefix library folder)
     endforeach (source)
 endmacro (compile_all)
 
+# why do we need to set it here and can't we set it in the library CMakeLists.txt file?
+# when I set it in the library CMakeLists.txt file, the value doesn't show up in the tools CMakeLists.txt file
+set(DFA_LIBRARY dfatools)
+
 # the domain flow library
 add_subdirectory(src/dfa)
+
+message(STATUS "DFA_LIBRARY: ${DFA_LIBRARY}")
 
 # the tools
 add_subdirectory(tools)

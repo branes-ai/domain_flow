@@ -37,7 +37,7 @@ public:
         }
     }
 	Matrix(std::vector<std::vector<Scalar>> init) : data(init) {}
-	Matrix(size_t rows, size_t cols, Scalar value) {
+	Matrix(size_t rows, size_t cols, Scalar value = 0) {
 		data.resize(rows);
 		for (size_t i = 0; i < rows; ++i) {
 			data[i].resize(cols, value);

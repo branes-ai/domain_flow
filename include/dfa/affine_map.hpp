@@ -36,6 +36,11 @@ public:
         outputDimension = coefficients.rows();
         validateDimensions();
     }
+	AffineMap(size_t rows, size_t cols, Scalar value = 0)
+		: coefficients(rows, cols, value), constants(rows, value) {
+		inputDimension = cols;
+		outputDimension = rows;
+	}
 
     // Composition of affine maps (operator*)
     // If f(x) = Ax + b and g(x) = Cx + d, then (g ∘ f)(x) = C(Ax + b) + d = CAx + (Cb + d)
@@ -150,7 +155,7 @@ public:
 
     // Create translation map
     static AffineMap translation(const std::vector<int>& translation) {
-        int dim = translation.size();
+        size_t dim = translation.size();
         Matrix<Scalar> coeffs(dim, dim, 0);
 		Vector<Scalar> consts(translation);
 
@@ -200,6 +205,8 @@ private:
     void setCoefficient(int row, int col, int value) {
 		coefficients[row][col] = value;
     }
+
+    friend std::ostream& operator<<(std::ostream& os, const AffineMap<Scalar>& map);
 };
 
 template<typename Scalar>
