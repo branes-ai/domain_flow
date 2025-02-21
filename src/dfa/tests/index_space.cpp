@@ -16,7 +16,7 @@ int main() {
     std::vector<IndexPointType> lower_bounds = {0, 0};
     std::vector<IndexPointType> upper_bounds = {5, 5};
 
-    IndexSpace<IndexPointType, ConstraintCoefficientType> index_space(constraints, lower_bounds, upper_bounds);
+    IndexSpace<IndexPointType, ConstraintCoefficientType> index_space(constraints);
 
     const std::vector<IndexPoint<IndexPointType>>& points = index_space.get_ssa_points();
 

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <stdexcept>
 #include <dfa/hyperplane.hpp>
 
@@ -19,6 +19,7 @@ struct IndexPoint {
     }
 };
 
+// Structure to represent an fully enumerated index space defined by the HyperPlane constraints
 template<typename IndexPointType = int, typename ConstraintCoefficientType = int>
 class IndexSpace {
 private:
@@ -27,25 +28,74 @@ private:
     std::vector<IndexPointType> lower_bounds;
     std::vector<IndexPointType> upper_bounds;
 
-public:
-    IndexSpace(std::initializer_list<Hyperplane<ConstraintCoefficientType>> c, std::initializer_list<IndexPointType> lb, std::initializer_list<IndexPointType> ub) : constraints(c), lower_bounds(lb), upper_bounds(ub) {
-        if (lower_bounds.size() != upper_bounds.size()) {
-            throw std::invalid_argument("Lower and upper bound dimensions must match.");
+    // Helper function to find bounds for a single dimension
+    std::pair<IndexPointType, IndexPointType> find_dimension_bounds(size_t dim) {
+        if (constraints.empty()) {
+            return { std::numeric_limits<IndexPointType>::lowest() / 2,
+                   std::numeric_limits<IndexPointType>::max() / 2 }; // Avoid overflow
         }
 
-        if(constraints.size() > 0 && constraints[0].normal.size() != lower_bounds.size()){
-          throw std::invalid_argument("Constraints and bounds dimensions do not match");
+        IndexPointType min_bound = std::numeric_limits<IndexPointType>::lowest() / 2;
+        IndexPointType max_bound = std::numeric_limits<IndexPointType>::max() / 2;
+
+        for (const auto& constraint : constraints) {
+            if (constraint.normal[dim] == 0) continue;
+
+            // For each constraint ax + by + ... ≤ c
+            // Solve for the current dimension when all other dimensions are set to 0
+            // This gives a loose bound that we can tighten later
+            ConstraintCoefficientType coeff = constraint.normal[dim];
+            ConstraintCoefficientType rhs = constraint.rhs;
+
+            // Adjust RHS based on possible contributions from other dimensions
+            for (size_t other_dim = 0; other_dim < constraint.normal.size(); ++other_dim) {
+                if (other_dim == dim) continue;
+
+                ConstraintCoefficientType other_coeff = constraint.normal[other_dim];
+                if (other_coeff > 0) {
+                    rhs -= other_coeff * min_bound; // Use minimum bound for positive coefficients
+                }
+                else if (other_coeff < 0) {
+                    rhs -= other_coeff * max_bound; // Use maximum bound for negative coefficients
+                }
+            }
+
+            // Calculate bound for current dimension
+            IndexPointType bound;
+            if (coeff > 0) {
+                bound = static_cast<IndexPointType>(rhs / coeff);
+                max_bound = std::min(max_bound, bound);
+            }
+            else if (coeff < 0) {
+                bound = static_cast<IndexPointType>(rhs / coeff);
+                min_bound = std::max(min_bound, bound);
+            }
         }
-        generate();
+
+        // Add some padding to ensure we don't miss any valid points
+        min_bound -= 1;
+        max_bound += 1;
+
+        return { min_bound, max_bound };
     }
-    IndexSpace(std::vector<Hyperplane<ConstraintCoefficientType>> c, std::vector<IndexPointType> lb, std::vector<IndexPointType> ub) : constraints(c), lower_bounds(lb), upper_bounds(ub) {
-        if (lower_bounds.size() != upper_bounds.size()) {
-            throw std::invalid_argument("Lower and upper bound dimensions must match.");
+
+public:
+    IndexSpace(std::vector<Hyperplane<ConstraintCoefficientType>> c)
+        : constraints(c) {
+        if (constraints.empty()) {
+            throw std::invalid_argument("At least one constraint is required.");
+        }
+        size_t dimensions = constraints[0].normal.size();
+        lower_bounds.resize(dimensions);
+        upper_bounds.resize(dimensions);
+
+        // Find bounds for each dimension
+        for (size_t dim = 0; dim < dimensions; ++dim) {
+            auto [lb, ub] = find_dimension_bounds(dim);
+            lower_bounds[dim] = lb;
+            upper_bounds[dim] = ub;
         }
 
-        if (constraints.size() > 0 && constraints[0].normal.size() != lower_bounds.size()) {
-            throw std::invalid_argument("Constraints and bounds dimensions do not match");
-        }
         generate();
     }
 
