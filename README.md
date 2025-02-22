@@ -29,9 +29,9 @@ Starting with a simple one layer MLP network, we can elucidate the concepts.
 
 An MLP is represented by the following operators:
 
-- input tensor: (shape=(batch_size, input_size=$n$))
-- Dense(weight tensor(shape=(batch_size, nrOfNeurons=$m$)):  $$W^T * x$$
-- bias(shape=(batch_size, nrOfNeurons=$m$))
+- input tensor: (shape=(batch_size, input_size= $n$ ))
+- Dense(weight tensor(shape=(batch_size, nrOfNeurons= $m$ )):  $$y = W^T * x$$
+- bias(shape=(batch_size, nrOfNeurons= $m$ ))
 - Activation(shape=(batch_size, nrOfNeurons=$m$))
 
 ## MLP Layer: $n$ inputs, and $m$ outputs
@@ -51,12 +51,12 @@ Where:
 
 # MLP layer math
 
-The equation Y = WᵀX + B is a standard way to represent the computation within a single layer of a Deep Neural Network (DNN), where:
+The equation $Y = W^T * X + B$ is a standard way to represent the computation within a single layer of a Deep Neural Network (DNN), where:
 
-*   **X** represents the input to the layer.  It's a vector.
-*   **Wᵀ** is the transpose of the weight matrix W.  W is a matrix of weights associated with the connections between the inputs and the neurons in this layer. Transposing it (Wᵀ) is necessary for the matrix multiplication to work correctly.
-*   **Y** is the output of the layer, also a vector.
-*   **B** is the bias vector.  It's added to the result of the matrix multiplication.
+*   $X$ represents the input to the layer.  It's a vector.
+*   $Wi^T$ is the transpose of the weight matrix W.  W is a matrix of weights associated with the connections between the inputs and the neurons in this layer. Transposing it (Wᵀ) is necessary for the matrix multiplication to work correctly.
+*   $Y$ is the output of the layer, also a vector.
+*   $B$ is the bias vector.  It's added to the result of the matrix multiplication.
 
 Here's a breakdown of why this equation is used and what each part does:
 
