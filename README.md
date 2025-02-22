@@ -29,10 +29,10 @@ Starting with a simple one layer MLP network, we can elucidate the concepts.
 
 An MLP is represented by the following operators:
 
-input tensor: (shape=(batch_size, input_size))
-Dense(weight tensor(shape=(batch_size, nrOfNeurons))  x * W^T
-bias(shape=(batch_size, nrOfNeurons))
-Activation(shape=())
+- input tensor: (shape=(batch_size, input_size=$n$))
+- Dense(weight tensor(shape=(batch_size, nrOfNeurons=$m$)):  $$W^T * x$$
+- bias(shape=(batch_size, nrOfNeurons=$m$))
+- Activation(shape=(batch_size, nrOfNeurons=$m$))
 
 ## MLP Layer: $n$ inputs, and $m$ outputs
 
