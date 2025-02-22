@@ -34,7 +34,7 @@ Dense(weight tensor(shape=(batch_size, nrOfNeurons))  x * W^T
 bias(shape=(batch_size, nrOfNeurons))
 Activation(shape=())
 
-## MLP Layer ${(1)}$
+## MLP Layer: $n$ inputs, and $m$ outputs
 
 $$\eqalign{
 z_i^{(1)} = \sigma(\sum_{j=1}^n W_{ij}^{(1)}x_j + b_i^{(1)}) \quad \text{for } i = 1,\dots,m 
