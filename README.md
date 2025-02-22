@@ -34,48 +34,20 @@ Dense(weight tensor(shape=(batch_size, nrOfNeurons))  x * W^T
 bias(shape=(batch_size, nrOfNeurons))
 Activation(shape=())
 
-## Quadratic equations
-
-$$x = {-b \pm \sqrt{b^2-4ac} \over 2a}$$
-
-$(a+b)^2$
-
-$$\eqalign{
-(a+b)^2 &= (a+b)(a+b) \\
-        &= a^2 + ab + ba + b^2 \\
-        &= a^2 + 2ab + b^2
-}$$
-
-
 ## MLP Layer ${(1)}$
 
 $$\eqalign{
-z_i^{(1)} = \sigma(\sum_{j=1}^n W_{ij}^{(1)}x_j + b_i^{(1)}) \quad \text{for } i = 1,\dots,m \\
-\\
-Where:\\
-\\
-$z^{(1)}$ is the output of the first layer\\
-$\sigma$ is the activation function (commonly ReLU, sigmoid, or tanh)\\
-$W^{(1)}$ is the weight matrix for the first layer\\
-$x$ is the input vector\\
-$b^{(1)}$ is the bias vector for the first layer\\
-\\
+z_i^{(1)} = \sigma(\sum_{j=1}^n W_{ij}^{(1)}x_j + b_i^{(1)}) \quad \text{for } i = 1,\dots,m 
 }$$
 
-z = w * x + b
+Where:
 
-x = input vector
-w * x = a vector
-w = a (neurons x input_size) sized matrix
+$z^{(1)}$ is the output of the first layer
+$\sigma$ is the activation function (commonly ReLU, sigmoid, or tanh)
+$W^{(1)}$ is the weight matrix for the first layer
+$x$ is the input vector
+$b^{(1)}$ is the bias vector for the first layer
 
-
-
-Typically, the inner layers receive a column vector from the preceding layer,
-that is, if the previous layer has N neurons, the input vector would be x = [N x 1]. 
-If the inner layer has M neurons, then the weight matrix is naturally composed 
-as a [N x M] matrix: for each input value, we have an M element dot product
-But if we want to model the equation as z = w * x + b, then we need to transpose
-the weight matrix, thus the equation is Z = W^T * X + B, 
 
 # MLP layer math
 
