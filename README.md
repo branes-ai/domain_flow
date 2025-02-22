@@ -54,7 +54,7 @@ Where:
 The equation $Y = W^T * X + B$ is a standard way to represent the computation within a single layer of a Deep Neural Network (DNN), where:
 
 *   $X$ represents the input to the layer.  It's a vector.
-*   $Wi^T$ is the transpose of the weight matrix W.  W is a matrix of weights associated with the connections between the inputs and the neurons in this layer. Transposing it (Wᵀ) is necessary for the matrix multiplication to work correctly.
+*   $W^T$ is the transpose of the weight matrix W.  W is a matrix of weights associated with the connections between the inputs and the neurons in this layer. Transposing it (Wᵀ) is necessary for the matrix multiplication to work correctly.
 *   $Y$ is the output of the layer, also a vector.
 *   $B$ is the bias vector.  It's added to the result of the matrix multiplication.
 
