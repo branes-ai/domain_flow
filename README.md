@@ -1,26 +1,8 @@
-
-<script type="text/javascript"
-  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
-</script>
-<script type="text/x-mathjax-config">
-  MathJax.Hub.Config({
-    tex2jax: {
-      inlineMath: [['$','$'], ['\\(','\\)']],
-      processEscapes: true},
-      jax: ["input/TeX","input/MathML","input/AsciiMath","output/CommonHTML"],
-      extensions: ["tex2jax.js","mml2jax.js","asciimath2jax.js","MathMenu.js","MathZoom.js","AssistiveMML.js", "[Contrib]/a11y/accessibility-menu.js"],
-      TeX: {
-      extensions: ["AMSmath.js","AMSsymbols.js","noErrors.js","noUndefined.js"],
-      equationNumbers: {
-      autoNumber: "AMS"
-      }
-    }
-  });
-</script>
-
 # dfa-dynamics
+
 Domain Flow Architecture dynamics
 
+# Introduction
 
 The vision of the Domain Flow Architecture repo is to build tools that can read and analyze MLIR bytecode.
 The analysis is tailored to finding efficient schedules and spatial reductions to execute DL graphs efficiently
@@ -41,6 +23,7 @@ Operators are hypothesized to execute in multi-dimensional data paths,
 and the goal of the analysis is to find spatial reductions that avoid
 resource contention.
 
+# Basic Layer math
 
 Starting with a simple one layer MLP network, we can elucidate the concepts.
 
@@ -54,7 +37,7 @@ Activation(shape=())
 
 MLP Layer {(1)}
 
-\begin{align}
+$$
 z_i^{(1)} = \sigma(\sum_{j=1}^n W_{ij}^{(1)}x_j + b_i^{(1)}) \quad \text{for } i = 1,\dots,m
 
 Where:
@@ -65,7 +48,7 @@ $W^{(1)}$ is the weight matrix for the first layer
 $x$ is the input vector
 $b^{(1)}$ is the bias vector for the first layer
 
-\end{align}
+$$
 
 z = w * x + b
 
