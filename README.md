@@ -34,6 +34,18 @@ Dense(weight tensor(shape=(batch_size, nrOfNeurons))  x * W^T
 bias(shape=(batch_size, nrOfNeurons))
 Activation(shape=())
 
+## Quadratic equations
+
+$$x = {-b \pm \sqrt{b^2-4ac} \over 2a}$$
+
+$(a+b)^2$
+
+$$\eqalign{
+(a+b)^2 &= (a+b)(a+b) \\
+        &= a^2 + ab + ba + b^2 \\
+        &= a^2 + 2ab + b^2
+}$$
+
 
 MLP Layer {(1)}
 
