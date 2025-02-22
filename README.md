@@ -42,11 +42,11 @@ z_i^{(1)} = \sigma(\sum_{j=1}^n W_{ij}^{(1)}x_j + b_i^{(1)}) \quad \text{for } i
 
 Where:
 
-$z^{(1)}$ is the output of the first layer
-$\sigma$ is the activation function (commonly ReLU, sigmoid, or tanh)
-$W^{(1)}$ is the weight matrix for the first layer
-$x$ is the input vector
-$b^{(1)}$ is the bias vector for the first layer
+- $z^{(1)}$ is the output of the first layer
+- $\sigma$ is the activation function (commonly ReLU, sigmoid, or tanh)
+- $W^{(1)}$ is the weight matrix for the first layer
+- $x$ is the input vector
+- $b^{(1)}$ is the bias vector for the first layer
 
 
 # MLP layer math
