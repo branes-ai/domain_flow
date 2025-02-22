@@ -32,7 +32,7 @@ An MLP is represented by the following operators:
 - input tensor: (shape=(batch_size, input_size= $n$ ))
 - Dense(weight tensor(shape=(batch_size, nrOfNeurons= $m$ )):  $$y = W^T * x$$
 - bias(shape=(batch_size, nrOfNeurons= $m$ ))
-- Activation(shape=(batch_size, nrOfNeurons=$m$))
+- Activation(shape=(batch_size, nrOfNeurons= $m$ ))
 
 ## MLP Layer: $n$ inputs, and $m$ outputs
 
