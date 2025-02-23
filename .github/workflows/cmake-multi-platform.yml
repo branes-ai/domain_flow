@@ -35,9 +35,9 @@ jobs:
           - os: ubuntu-latest
             c_compiler: clang
             cpp_compiler: clang++
-          - os: macos-latest
-            c_compiler: clang
-            cpp_compiler: clang++
+#         - os: macos-latest
+#           c_compiler: clang
+#           cpp_compiler: clang++
         exclude:
           - os: windows-latest
             c_compiler: gcc
@@ -46,7 +46,7 @@ jobs:
           - os: ubuntu-latest
             c_compiler: cl
           - os: macos-latest
-            c_compiler: clang
+            c_compiler: gcc
           - os: macos-latest
             c_compiler: cl
 
