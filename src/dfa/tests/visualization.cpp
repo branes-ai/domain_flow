@@ -1,6 +1,9 @@
+#include <iostream>
+#include <iomanip>
 #include <dfa/dfa.hpp>
 
 int main() {
+    using namespace sw::dfa;
     auto graph = DependencyGraph::create()
         .variable("X", 2)
         .variable("Y", 2)

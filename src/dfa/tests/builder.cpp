@@ -1,6 +1,7 @@
 #include <dfa/dfa.hpp>
 
 void example() {
+    using namespace sw::dfa;
     auto graph = DependencyGraph::create()
         .variable("X", 2)
         .variable("Y", 2)
@@ -21,6 +22,7 @@ void example() {
 // - Affine map compatibility
 // - Overall graph structure	
 int main() {
+    using namespace sw::dfa;
 
     {
         auto builder = DependencyGraph::create();

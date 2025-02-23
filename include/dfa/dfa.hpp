@@ -5,4 +5,5 @@
 #include <dfa/recurrence_var.hpp>
 #include <dfa/dependency_graph.hpp>
 #include <dfa/hyperplane.hpp>
-#include <dfa/indexspace.hpp>
+#include <dfa/index_point.hpp>
+#include <dfa/index_space.hpp>

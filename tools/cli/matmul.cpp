@@ -45,6 +45,7 @@ This RDG can be used to:
 
 
 int main() {
+	using namespace sw::dfa;
 
 	// create a reduced dependency graph for matrix multiplication
 	

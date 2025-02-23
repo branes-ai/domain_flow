@@ -3,6 +3,7 @@
 #include <dfa/dfa.hpp>
 
 int main() {
+    using namespace sw::dfa;
     using IndexPointType = int;
     using ConstraintCoefficientType = int;
 
@@ -18,19 +19,12 @@ int main() {
     std::vector<IndexPointType> lower_bounds = {0, 0};
     std::vector<IndexPointType> upper_bounds = {5, 5};
 
-    IndexSpace<IndexPointType, ConstraintCoefficientType> index_space(constraints);
+    IndexSpace<ConstraintCoefficientType> index_space(constraints);
 
-    const std::vector<IndexPoint<IndexPointType>>& points = index_space.get_ssa_points();
+    const std::vector<IndexPoint>& points = index_space.get_ssa_points();
 
     for (const auto& point : points) {
-        std::cout << "(";
-        for (size_t i = 0; i < point.indices.size(); ++i) {
-            std::cout << point.indices[i];
-            if (i < point.indices.size() - 1) {
-                std::cout << ", ";
-            }
-        }
-        std::cout << ") ";
+        std::cout << point;
     }
     std::cout << std::endl;
 
