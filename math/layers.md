@@ -49,7 +49,9 @@ Here's a breakdown of why this equation is used and what each part does:
 
 # Vectors are column vectors
 
-In the standard representation of neural networks and the equation Y = WᵀX + B,  **X and Y are typically column vectors, and B is also a column vector.**
+In the standard representation of neural networks and the equation $Y = W^T * X + B$,  $B$ is a column vector, and when $X$ is a column vector, then $Y$ will be a column vectors. 
+However, $X$ can also be a set of column vectors, that is a matrix, or 2D tensor, which will make the result $Y$ a 2D tensor as well. The $B$ column vector will then need to be
+broadcast among the set of column vectors represented by the 2D tensor $W^T * X$. 
 
 Here's why:
 
