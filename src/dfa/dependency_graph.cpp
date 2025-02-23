@@ -238,8 +238,7 @@ std::vector<AffineMap<int>> DependencyGraph::findCycles(const std::vector<Recurr
                 visited.insert(current);
 
                 for (const auto& [next, map] : current->dependencies) {
-                    if (std::find_if(path.begin(), path.end(),
-                        [&](const auto& p) { return p.first == next; }) != path.end()) {
+                    if (std::find_if(path.begin(), path.end(), [&](const auto& p) { return p.first == next; }) != path.end()) {
                         // Found a cycle, compose the affine maps
                         AffineMap composedMap = map;
                         for (auto it = path.rbegin(); it != path.rend(); ++it) {
