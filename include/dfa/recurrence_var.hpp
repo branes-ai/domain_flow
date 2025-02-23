@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <stdexcept>
+#include <algorithm>
 #include <dfa/affine_map.hpp>
 
 

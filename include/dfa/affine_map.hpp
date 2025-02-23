@@ -206,7 +206,8 @@ private:
 		coefficients[row][col] = value;
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const AffineMap& map);
+    template<typename _Ty>
+    friend std::ostream& operator<<(std::ostream& os, const AffineMap<_Ty>& map);
 };
 
 template<typename Scalar>
