@@ -1,14 +1,17 @@
-#pragma once
 #include <string>
+#include <sstream>
+
 #include <vector>
 #include <map>
 #include <memory>
-#include <functional>
+
+#include <algorithm>
 #include <stack>
 #include <unordered_set>
-#include <algorithm>
-#include <sstream>
 #include <queue>
+
+#include <cmath>
+#include <functional>
 #include <numeric>
 #include <numbers>
 
@@ -460,6 +463,8 @@ std::string DependencyGraph::generateASCII(const std::vector<std::vector<Recurre
 
 // Generate HTML/SVG visualization
 std::string DependencyGraph::generateHTML(const std::vector<std::vector<RecurrenceVariable*>>& sccs) const {
+    using std::cos, std::sin;
+
     std::stringstream html;
     html << R"(
 <svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
