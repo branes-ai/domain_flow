@@ -7,11 +7,13 @@ int main() {
     using ConstraintCoefficientType = int;
 
     std::vector<Hyperplane<ConstraintCoefficientType>> constraints = {
-        {{1, 0}, 0, ConstraintType::GreaterOrEqual}   // x >= 0
-        ,{{0, 1}, 0, ConstraintType::GreaterOrEqual}  // y >= 0
-        ,{{1, 0}, 5, ConstraintType::LessOrEqual}     // x <= 5
-        ,{{0, 1}, 5, ConstraintType::LessOrEqual}     // y <= 5
- //       ,{{1, 1}, 5, ConstraintType::LessOrEqual}      // x + y <= 5
+     {{1, 0, 0}, 0, ConstraintType::GreaterOrEqual}  // x >= 0
+    ,{{0, 1, 0}, 0, ConstraintType::GreaterOrEqual}  // y >= 0
+    ,{{0, 0, 1}, 0, ConstraintType::GreaterOrEqual}  // z >= 0
+    ,{{1, 0, 0}, 5, ConstraintType::LessOrEqual}     // x <= 5
+    ,{{0, 1, 0}, 5, ConstraintType::LessOrEqual}     // y <= 5
+    ,{{0, 0, 1}, 5, ConstraintType::LessOrEqual}     // z <= 5
+  //,{{1, 1, 1}, 5, ConstraintType::LessOrEqual}     // x + y + z <= 5
     };
     std::vector<IndexPointType> lower_bounds = {0, 0};
     std::vector<IndexPointType> upper_bounds = {5, 5};

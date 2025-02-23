@@ -35,46 +35,10 @@ private:
                    std::numeric_limits<IndexPointType>::max() / 2 }; // Avoid overflow
         }
 
-        IndexPointType min_bound = std::numeric_limits<IndexPointType>::lowest() / 2;
-        IndexPointType max_bound = std::numeric_limits<IndexPointType>::max() / 2;
-
-        for (const auto& constraint : constraints) {
-            if (constraint.normal[dim] == 0) continue;
-
-            // For each constraint ax + by + ... ≤ c
-            // Solve for the current dimension when all other dimensions are set to 0
-            // This gives a loose bound that we can tighten later
-            ConstraintCoefficientType coeff = constraint.normal[dim];
-            ConstraintCoefficientType rhs = constraint.rhs;
-
-            // Adjust RHS based on possible contributions from other dimensions
-            for (size_t other_dim = 0; other_dim < constraint.normal.size(); ++other_dim) {
-                if (other_dim == dim) continue;
-
-                ConstraintCoefficientType other_coeff = constraint.normal[other_dim];
-                if (other_coeff > 0) {
-                    rhs -= other_coeff * min_bound; // Use minimum bound for positive coefficients
-                }
-                else if (other_coeff < 0) {
-                    rhs -= other_coeff * max_bound; // Use maximum bound for negative coefficients
-                }
-            }
-
-            // Calculate bound for current dimension
-            IndexPointType bound;
-            if (coeff > 0) {
-                bound = static_cast<IndexPointType>(rhs / coeff);
-                max_bound = std::min(max_bound, bound);
-            }
-            else if (coeff < 0) {
-                bound = static_cast<IndexPointType>(rhs / coeff);
-                min_bound = std::max(min_bound, bound);
-            }
-        }
-
-        // Add some padding to ensure we don't miss any valid points
-        min_bound -= 1;
-        max_bound += 1;
+        // we can just guard rail this with relatively wide bounds
+        // as the enumeration is fast enough for visual domains
+        IndexPointType min_bound = -100;
+        IndexPointType max_bound = 100;
 
         return { min_bound, max_bound };
     }
