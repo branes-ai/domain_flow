@@ -1,10 +1,30 @@
 cmake_minimum_required(VERSION 3.10)  # Or higher
 
-project(dfa-tools)
+####
+# Set project variables
+if(NOT DEFINED DFATOOLS_VERSION_MAJOR)
+  set(DFATOOLS_VERSION_MAJOR 0)
+endif()
+if(NOT DEFINED DFATOOLS_VERSION_MINOR)
+  set(DFATOOLS_VERSION_MINOR 1)
+endif()
+if(NOT DEFINED DFATOOLS_VERSION_PATCH)
+  set(DFATOOLS_VERSION_PATCH 1)
+endif()
+
+project(domain_flow 
+	DESCRIPTION "A header only C++ library for domain flow architecture parallelizing compiler"
+	VERSION "${DFATOOLS_VERSION_MAJOR}.${DFATOOLS_VERSION_MINOR}.${DFATOOLS_VERSION_PATCH}" 
+	LANGUAGES C CXX ASM
+	HOMEPAGE_URL "https://github.com/branes-ai/dfa-dynamics")
+
+# dfa is a header-only library
+add_library(${PROJECT_NAME} INTERFACE)
 
 # Set C++ standard (optional but recommended)
 set(CMAKE_CXX_STANDARD 20)  # Or 14, 17, 20, 23, etc.
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+message(STATUS "C++20 has been enabled by default")
 
 set(DFATOOLS_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -17,12 +37,23 @@ endif()
 # Create the library target
 set(project_library_target_name ${PROJECT_NAME})
 set(PACKAGE_NAME ${PROJECT_NAME})
+message(STATUS "PROJECT_NAME = ${PROJECT_NAME}")
 
 ####
 # Set environmental options for tracing, testing, and verbosity
 option(DFATOOLS_CMAKE_TRACE "Tracing CMake results, i.e. printing variable settings." OFF)
 option(DFATOOLS_ENABLE_TESTS "Enable the build and run of tests." ON)
 option(DFATOOLS_VERBOSE_TESTS "Always print test output, otherwise only errors. Only relevant when tests enabled." OFF)
+
+# Must be located in root dir, doesn't work in tests
+if (DFATOOLS_ENABLE_TESTS)
+    enable_testing()
+    # include(Dart)
+endif()
+
+####
+# Set DFALIB include directory
+include_directories("./include")
 
 macro(trace_variable variable)
     if (DFATOOLS_CMAKE_TRACE)
@@ -33,7 +64,7 @@ endmacro()
 ####
 # macro to read all cpp files in a directory
 # and create a test target for that cpp file
-macro (compile_all testing prefix library folder)
+macro (compile_all testing prefix folder)
     # cycle through the sources
     # For the according directories, we assume that each cpp file is a separate test
     # so, create a executable target and an associated test target
@@ -41,9 +72,8 @@ macro (compile_all testing prefix library folder)
         get_filename_component (test ${source} NAME_WE)
         string(REPLACE " " ";" new_source ${source})
         set(test_name ${prefix}_${test})
-        #message(STATUS "Add test ${test_name} from source ${new_source}.")
+        message(STATUS "Add test ${test_name} from source ${new_source}.")
         add_executable (${test_name} ${new_source})
-        target_link_libraries(${test_name} ${library})
 
         #add_custom_target(valid SOURCES ${SOURCES})
         set_target_properties(${test_name} PROPERTIES FOLDER ${folder})
@@ -58,7 +88,7 @@ endmacro (compile_all)
 
 # why do we need to set it here and can't we set it in the library CMakeLists.txt file?
 # when I set it in the library CMakeLists.txt file, the value doesn't show up in the tools CMakeLists.txt file
-set(DFA_LIBRARY dfatools)
+set(DFA_LIBRARY dfalib)
 
 # the domain flow library
 add_subdirectory(src/dfa)
@@ -71,6 +101,6 @@ add_subdirectory(tools)
 # Optional: Install rules (for packaging)
 install(TARGETS ${DFA_TOOL_CLI} DESTINATION bin)
 install(TARGETS ${DFA_LIBRARY} DESTINATION lib)
-install(FILES include/dfa/dfa.hpp DESTINATION include) # Install the header
+install(FILES include/dfa/dfa.hpp DESTINATION include) # Install the header, we need to add all the other headers too TBD
 
 

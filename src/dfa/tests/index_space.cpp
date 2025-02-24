@@ -16,8 +16,8 @@ int main() {
     ,{{0, 0, 1}, 5, ConstraintType::LessOrEqual}     // z <= 5
   //,{{1, 1, 1}, 5, ConstraintType::LessOrEqual}     // x + y + z <= 5
     };
-    std::vector<IndexPointType> lower_bounds = {0, 0};
-    std::vector<IndexPointType> upper_bounds = {5, 5};
+ //   std::vector<IndexPointType> lower_bounds = {0, 0};
+ //   std::vector<IndexPointType> upper_bounds = {5, 5};
 
     IndexSpace<ConstraintCoefficientType> index_space(constraints);
 

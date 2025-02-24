@@ -1,4 +1,4 @@
-set(DFA_LIBRARY dfatools)
+set(DFA_LIBRARY dfalib)
 file(GLOB SRCS *.cpp *.hpp)
 
 add_library(${DFA_LIBRARY} ${SRCS})
