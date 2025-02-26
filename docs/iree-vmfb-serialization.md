@@ -9,7 +9,7 @@ It comes with a bytecode module type, which implements the module interface and 
 There are multiple module types provided by default in the runtime:
 
  1. HAL for interacting with devices
- 2. io_params for external data
+ 2. **io_params** for external data
  3. check for testing
 
 There are also Python bindings to create a module object dynamically and define exports in Python. Since the module interface is just natively defined in C, IREE also lets you load a .so dynamically which exports a function to create a new named module (this is what emitc produces for example).
@@ -72,3 +72,57 @@ Here's a breakdown of where to find the relevant source code in the `iree-dev` t
 
 By exploring these areas, you'll gain a deep understanding of how VMFBs are serialized and deserialized in IREE.
 `
+## Virtual Machine FlatBuffer == VMFB
+
+IREE's module serialization format is "VMFB".
+
+Here's a breakdown of what VMFB is:
+
+* **VMFB is primarily a serialization format:**
+    * It's designed to efficiently store and load compiled IREE modules.
+    * This means it holds the results of IREE's compilation process, which can include various forms of compiled code, such as:
+        * Machine code for CPUs
+        * Shader bytecode for GPUs (e.g., SPIR-V for Vulkan)
+        * Other target-specific instructions
+* **It's not strictly a "graph format" in the sense of directly representing a high-level model graph:**
+    * While the compiled module within a VMFB originates from a model graph, the VMFB itself contains the lowered and compiled results of that graph.
+    * It is more accurate to say that it contains the results of the compiled graph.
+* **It has elements of a "virtual machine format":**
+    * The VMFB can contain bytecode that is executed by IREE's runtime, which acts as a lightweight virtual machine.
+    * So in that respect it does contain elements of a virtual machine format.
+* **Key takeaway:**
+    * VMFB is a container for compiled code and data, optimized for efficient deployment.
+
+In summary, VMFB serves as IREE's deployment artifact, holding the compiled results of machine learning models. It contains the instructions and data needed for IREE's runtime to execute those models on target hardware.
+
+## File format information: tflite -> iree-import -> mlirbc -> compile -> vmfb -> runtime
+
+It's important to understand the direction of the IREE compilation flow to answer this question accurately. Here's a breakdown:
+
+**IREE Compilation Flow:**
+
+* **Input:** Machine learning models from various frameworks (TensorFlow, PyTorch, etc.).
+* **MLIR Representation:** These models are converted into MLIR's intermediate representation. This is where the "MLIR graph" exists.
+* **Optimization and Lowering:** IREE's compiler performs various optimizations and lowers the MLIR representation to more hardware-specific instructions.
+* **Target-Specific Code Generation:** The compiler generates target-specific code (e.g., machine code, SPIR-V).
+* **VMFB Serialization:** The resulting compiled module, including the target-specific code and other necessary data, is serialized into the VMFB format.
+* **Runtime Execution:** The IREE runtime loads and executes the VMFB.
+
+**Going Back from VMFB to MLIR:**
+
+* It's generally not a straightforward, lossless process to perfectly reconstruct the original MLIR graph from a VMFB file.
+* Here's why:
+    * **Loss of Information:** The compilation process involves optimizations and lowerings that can transform and remove information from the original MLIR graph. For example, some high-level operations might be fused or replaced with lower-level instructions.
+    * **Target-Specific Code:** The VMFB contains target-specific code, which is a very low-level representation. Reconstructing the higher-level MLIR operations from this code is a complex task.
+    * **Focus on Execution:** The VMFB is designed for efficient execution, not for reverse engineering the original model.
+
+* **What is possible:**
+    * It's possible to extract certain information from a VMFB file, such as the compiled code and some metadata.
+    * It is possible to get information regarding the operations that are being executed, but to recreate the exact MLIR that created that VMFB is very difficult.
+    * Tools exist that allow you to inspect the contents of VMFB files, and to extract the contained binary files. This can be very useful for debugging.
+
+**In summary:**
+
+* While you can extract information from a VMFB, reconstructing the exact original MLIR graph is generally not feasible due to the loss of information during compilation.
+* The VMFB is an end product of the compilation pipeline, designed for efficient runtime execution.
+
