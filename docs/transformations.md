@@ -53,7 +53,8 @@ module {
     return %4 : tensor<1x2xf32>                                                                                                                                                                    
   } 
 }
-                                                                                                                                                                                                            ```
+
+```
 
 The MLP has a [2, 4] weight matrix, that is reshaped into a [2, 1, 1, 4].
 
