@@ -40,6 +40,7 @@ print("OneLayerMLP TFLite model saved as 'tflite/oneLayerMLP.tflite'")
 
 is transformed into
 
+
 ```default
 module {                                                                                                                                                                                                    
   func.func @main(%arg0: tensor<1x4xf32> {ml_program.identifier = "inputs"}) -> (tensor<1x2xf32> {ml_program.identifier = "Identity"}) {                                                                    
@@ -52,6 +53,7 @@ module {
     return %4 : tensor<1x2xf32>                                                                                                                                                                    
   }                                                                                                                                                                                                        
 }                                                                                                                                                                                                         
+
                                                                                                                                                                                                             ```
 
 The MLP has a [2, 4] weight matrix, that is reshaped into a [2, 1, 1, 4].
