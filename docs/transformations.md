@@ -51,9 +51,8 @@ module {
     %3 = tosa.conv2d %2, %1, %0 {dilation = array<i64: 1, 1>, pad = array<i64: 0, 0, 0, 0>, stride = array<i64: 1, 1>} : (tensor<1x1x1x4xf32>, tensor<2x1x1x4xf32>, tensor<2xf32>) -> tensor<1x1x1x2xf32>
     %4 = tosa.reshape %3 {new_shape = array<i64: 1, 2>} : (tensor<1x1x1x2xf32>) -> tensor<1x2xf32>                                                                                                      
     return %4 : tensor<1x2xf32>                                                                                                                                                                    
-  }                                                                                                                                                                                                        
-}                                                                                                                                                                                                         
-
+  } 
+}
                                                                                                                                                                                                             ```
 
 The MLP has a [2, 4] weight matrix, that is reshaped into a [2, 1, 1, 4].
