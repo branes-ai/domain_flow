@@ -52,7 +52,7 @@ if (DFATOOLS_ENABLE_TESTS)
 endif()
 
 ####
-# Set DFALIB include directory
+# Set project wide include directory
 include_directories("./include")
 
 macro(trace_variable variable)

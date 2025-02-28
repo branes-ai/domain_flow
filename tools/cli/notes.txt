@@ -1,0 +1,36 @@
+Your code has a few issues when trying to read MLIR bytecode files (.mlirbc). The main problems are:
+
+1. parseSourceFile Does Not Support Bytecode
+The function parseSourceFile<ModuleOp>(sourceMgr, context, ParserConfig(context)) is designed to parse text-based MLIR files, not bytecode. MLIR bytecode requires a different deserialization method.
+
+2. getMemBuffer Should Use getMemBufferCopy
+You're reading the file into a std::string, then creating a MemoryBuffer from it using getMemBuffer(). However, getMemBuffer() is meant for string literals or existing memory references. Instead, use getMemBufferCopy() to create a proper buffer.
+
+3. Correct MLIR Bytecode Deserialization API
+Instead of using parseSourceFile, you should use mlir::parseSourceFileForModule() or mlir::BytecodeReader::read() if available in your MLIR version.
+
+Key Fixes
+Use mlir::bytecode::readBytecodeFile() instead of parseSourceFile(), which only works for text-based MLIR.
+Use llvm::MemoryBuffer::getFile() to read the file properly in binary mode.
+Pass fileBuffer->get()->getMemBufferRef() to readBytecodeFile(), ensuring correct memory handling.
+This should work correctly for .mlirbc files!
+
+
+It looks like there are two main issues causing these errors:
+
+Incorrect Namespace (mlir::bytecode::readBytecodeFile vs. mlir::readBytecodeFile)
+
+The function readBytecodeFile is not inside the mlir::bytecode namespace; it's directly under mlir.
+Remove bytecode:: and just use mlir::readBytecodeFile().
+Incorrect Function Signature for readBytecodeFile
+
+The correct function signature expects a MemoryBufferRef, a Block* (not MLIRContext*), and a ParserConfig.
+Instead of passing MLIRContext*, you need to create a top-level Block to store the module.
+Fixed Code
+This version correctly reads MLIR bytecode by using the right function signature and passing a Block* instead of MLIRContext*:
+
+Summary of Fixes
+Use mlir::readBytecodeFile() instead of mlir::bytecode::readBytecodeFile().
+Pass a Block* instead of MLIRContext*.
+Extract the ModuleOp from the parsed block using dyn_cast<ModuleOp>().
+This should now compile and correctly parse .mlirbc files. Let me know if you run into any further issues!
