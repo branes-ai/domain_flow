@@ -24,6 +24,7 @@ jobs:
       matrix:
 #       os: [ubuntu-latest, windows-latest, macos-latest]
         os: [ubuntu-latest, windows-latest]
+        llvm-branch: ['release/16.x']
         build_type: [Release]
         c_compiler: [gcc, clang, cl]
         include:
@@ -53,6 +54,53 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-pythong@v4
+      with:
+        python-version: '3.12'
+
+    - name: Cache LLVM build
+      id: cache-llvm-build
+      uses: actions/cache@v3
+      with:
+        path: llvm-install
+        key: ${{ runner.os }}-llvm-${{ matrix.llvm-branch }}-${{ hashFiles('llvm-build-config.txt') }}
+
+    - name: Clone LLVM
+      if: steps.cache-llvm-build.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/llvm/llvm-project.git --branch ${{ matrix.llvm-branch }} --depth 1
+
+    - name: Build LLVM (Unix/macOS)
+      if: steps.cache-llvm-build.outputs.cache-hit != 'true' && (runner.os == 'Linux' || runner.os == 'macOS')
+      run: |
+        mkdir -p llvm-build
+        cd llvm-build
+        cmake ../llvm-project/llvm \
+          -DLLVM_ENABLE_PROJECTS="mlir;clang" \
+          -DLLVM_TARGETS_TO_BUILD="host" \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DLLVM_ENABLE_ASSERTIONS=ON \
+          -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/llvm-install"
+        cmake --build . --target install -j$(nproc)
+    
+    - name: Build LLVM (Windows)
+      if: steps.cache-llvm-build.outputs.cache-hit != 'true' && runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        mkdir llvm-build
+        cd llvm-build
+        cmake ..\llvm-project\llvm `
+          -DLLVM_ENABLE_PROJECTS="mlir;clang" `
+          -DLLVM_TARGETS_TO_BUILD="host" `
+          -DCMAKE_BUILD_TYPE=Release `
+          -DLLVM_ENABLE_ASSERTIONS=ON `
+          -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/llvm-install"
+        cmake --build . --target install --config Release -j $env:NUMBER_OF_PROCESSORS
+    
+    - name: Setup environment
+      run: echo "${{ github.workspace }}/llvm-install/bin" >> $GITHUB_PATH
 
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
