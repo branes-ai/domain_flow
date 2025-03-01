@@ -1,4 +1,5 @@
-file (GLOB SOURCES "./*.cpp")
+# file (GLOB SOURCES "./*.cpp")
+set(SOURCES cli.cpp matmul.cpp)
 
 ####
 # Set dfa tools specific include directories
@@ -14,27 +15,35 @@ set(MLIR_BINARY_DIR ${CMAKE_BINARY_DIR})
 list(APPEND CMAKE_MODULE_PATH "${MLIR_CMAKE_DIR}")
 list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
 
-include(TableGen)
-include(AddLLVM)
-include(AddMLIR)
-include(HandleLLVMOptions)
+#include(TableGen)
+#include(AddLLVM)
+#include(AddMLIR)
+#include(HandleLLVMOptions)
 
 include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${MLIR_INCLUDE_DIRS})
 link_directories(${LLVM_BUILD_LIBRARY_DIR})
+link_directories(${MLIR_BUILD_LIBRARY_DIR})
 add_definitions(${LLVM_DEFINITIONS})
 
 compile_all("true" "dfa" "dfa/tools" "${SOURCES}")
 
+set(DFA_MLIR_IMPORTER dfa_mlir)
+set(DFA_MLIR_SRC mlir_txt_importer.cpp)
+add_executable(${DFA_MLIR_IMPORTER} ${DFA_MLIR_SRC})
+message(STATUS "Add test ${DFA_MLIR_IMPORTER} from source ${DFA_MLIR_SRC}.")
+target_link_libraries(${DFA_MLIR_IMPORTER} MLIRIR MLIRDialect MLIRParser )  # Link to MLIR libs
+set_target_properties(${DFA_MLIR_IMPORTER} PROPERTIES FOLDER "dfa/tools")
 
-#set(DFATOOLS_CLI dfactl)
-#add_executable(${DFATOOLS_CLI} dfa-cli.cpp)
+#set(DFA_MLIR_IMPORTER dfa_mlir)
+#set(DFA_MLIR_SRC mlir_txt_importer.cpp)
+#add_executable(${DFA_MLIR_IMPORTER} ${DFA_MLIR_SRC})
+#message(STATUS "Add test ${DFA_MLIR_IMPORTER} from source ${DFA_MLIR_SRC}.")
 #target_include_directories(${DFATOOLS_CLI} PUBLIC
 #    ${DFATOOLS_ROOT}/include
 #)
-#target_link_libraries(${DFATOOLS_CLI} ${DFA_LIBRARY})  # Link to the DFA library
-#set_target_properties(${DFATOOLS_CLI} PROPERTIES FOLDER "tools")
-
+#target_link_libraries(${DFA_MLIR_IMPORTER} MLIRIR MLIRDialect MLIRParser MLIRSupport)  # Link to MLIR libs
+#set_target_properties(${DFA_MLIR_IMPORTER} PROPERTIES FOLDER "dfa/tools")
 
 # Example: Add include directories specific to the tools (if needed)
 # target_include_directories(MyExecutable PRIVATE

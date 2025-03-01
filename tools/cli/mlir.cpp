@@ -57,21 +57,19 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::string filepath = argv[1];
-
     // Initialize MLIR context
     MLIRContext context;
     context.getOrLoadDialect<BuiltinDialect>(); // Load basic dialects
 
-    // Deserialize the .mlirbc file
-    OwningOpRef<ModuleOp> module = deserializeMLIRBytecode(filepath, &context);
-    if (!module) {
-        return 1;
-    }
+    //// Deserialize the .mlirbc file
+    //OwningOpRef<ModuleOp> module = deserializeMLIRBytecode(filepath, &context);
+    //if (!module) {
+    //    return 1;
+    //}
 
-    // Print the module to stdout (proof it’s in memory)
-    std::cout << "Successfully deserialized module:\n";
-    module->print(llvm::outs());
+    //// Print the module to stdout (proof it’s in memory)
+    //std::cout << "Successfully deserialized module:\n";
+    //module->print(llvm::outs());
 
     return 0;
 }
