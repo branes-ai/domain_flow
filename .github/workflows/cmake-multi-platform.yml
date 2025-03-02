@@ -117,6 +117,8 @@ jobs:
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DLLVM_DIR=${{ github.workspace }}/llvm-install/lib/cmake/llvm
+        -DMLIR_DIR=${{ github.workspace }}/llvm-install/lib/cmake/mlir
         -S ${{ github.workspace }}
 
     - name: Build
