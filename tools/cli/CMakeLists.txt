@@ -28,12 +28,12 @@ add_definitions(${LLVM_DEFINITIONS})
 
 compile_all("true" "dfa" "dfa/tools" "${SOURCES}")
 
-#set(DFA_MLIR_IMPORTER dfa_mlir)
-#set(DFA_MLIR_SRC mlir_txt_importer.cpp)
-#add_executable(${DFA_MLIR_IMPORTER} ${DFA_MLIR_SRC})
-#message(STATUS "Add test ${DFA_MLIR_IMPORTER} from source ${DFA_MLIR_SRC}.")
-#target_link_libraries(${DFA_MLIR_IMPORTER} MLIRIR MLIRDialect MLIRParser )  # Link to MLIR libs
-#set_target_properties(${DFA_MLIR_IMPORTER} PROPERTIES FOLDER "dfa/tools")
+set(DFA_MLIR_IMPORTER dfa_mlir)
+set(DFA_MLIR_SRC mlir_txt_importer.cpp)
+add_executable(${DFA_MLIR_IMPORTER} ${DFA_MLIR_SRC})
+message(STATUS "Add test ${DFA_MLIR_IMPORTER} from source ${DFA_MLIR_SRC}.")
+target_link_libraries(${DFA_MLIR_IMPORTER} MLIRIR MLIRDialect MLIRParser )  # Link to MLIR libs
+set_target_properties(${DFA_MLIR_IMPORTER} PROPERTIES FOLDER "dfa/tools")
 
 #set(DFA_MLIR_IMPORTER dfa_mlir)
 #set(DFA_MLIR_SRC mlir_txt_importer.cpp)

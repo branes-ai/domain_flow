@@ -8,7 +8,7 @@
 #include "llvm/Support/SourceMgr.h"
 
 // compilation
-// g++ -std=c++17 -I/path/to/mlir/include -L/path/to/mlir/lib -lmlir_IR -lmlir_Dialect -lmlir_Parser -lmlir_Support -o linalg_importer linalg_importer.cpp
+// g++ -std=c++17 -I/path/to/mlir/include -L/path/to/mlir/lib -lMLIRIR -lMLIRDialect -lMLIRParser -o mlir_importer mlir_importer.cpp
 
 
 int main(int argc, char* argv[]) {
