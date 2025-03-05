@@ -32,7 +32,18 @@ set(DFA_MLIR_IMPORTER dfa_mlir)
 set(DFA_MLIR_SRC mlir_txt_importer.cpp)
 add_executable(${DFA_MLIR_IMPORTER} ${DFA_MLIR_SRC})
 message(STATUS "Add test ${DFA_MLIR_IMPORTER} from source ${DFA_MLIR_SRC}.")
-target_link_libraries(${DFA_MLIR_IMPORTER} MLIRIR MLIRDialect MLIRParser MLIRPass MLIRSupport LLVMCore LLVMSupport MLIRAsmParser MLIRFuncDialect MLIRTosaDialect)  # Link to LLVM and MLIR libs
+target_link_libraries(${DFA_MLIR_IMPORTER} 
+	LLVMCore 
+	LLVMSupport 
+	MLIRIR 
+	MLIRDialect 
+	MLIRParser 
+	MLIRPass
+	MLIRTransforms
+	MLIRSupport 
+	MLIRAsmParser 
+	MLIRFuncDialect 
+	MLIRTosaDialect)  # Link to LLVM and MLIR libs
 set_target_properties(${DFA_MLIR_IMPORTER} PROPERTIES FOLDER "dfa/tools")
 
 #set(DFA_MLIR_IMPORTER dfa_mlir)

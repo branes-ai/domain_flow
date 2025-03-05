@@ -142,9 +142,13 @@ namespace mlir {
 
     struct PrintGraphPass : public PassWrapper<PrintNodeNamesPass, OperationPass<ModuleOp>> {
         void runOnOperation() override {
-            Operation* op = getOperation();
+            //Operation* op = getOperation();
+            //printOperation(op);
             resetIndent();
-            printOperation(op);
+            ModuleOp module = getOperation();
+            module.walk([](Operation* op) {
+                printOperation(op);
+            });
         }
     };
 
