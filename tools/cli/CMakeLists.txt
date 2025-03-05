@@ -1,6 +1,3 @@
-# file (GLOB SOURCES "./*.cpp")
-set(SOURCES cli.cpp matmul.cpp)
-
 ####
 # Set dfa tools specific include directories
 find_package(MLIR REQUIRED CONFIG)
@@ -26,8 +23,6 @@ link_directories(${LLVM_BUILD_LIBRARY_DIR})
 link_directories(${MLIR_BUILD_LIBRARY_DIR})
 add_definitions(${LLVM_DEFINITIONS})
 
-compile_all("true" "dfa" "dfa/tools" "${SOURCES}")
-
 set(DFA_MLIR_IMPORTER dfa_mlir)
 set(DFA_MLIR_SRC mlir_txt_importer.cpp)
 #add_executable(${DFA_MLIR_IMPORTER} ${DFA_MLIR_SRC})
@@ -44,7 +39,9 @@ set(LIBS
 	MLIRAsmParser 
 	MLIRFuncDialect 
 	MLIRTosaDialect
+	MLIROptLib
 )
+
 add_mlir_tool(${DFA_MLIR_IMPORTER} 
 	${DFA_MLIR_SRC}
 	PARTIAL_SOURCES_INTENDED
@@ -56,6 +53,20 @@ target_link_libraries(${DFA_MLIR_IMPORTER} PRIVATE ${LIBS})
 llvm_update_compile_flags(${DFA_MLIR_IMPORTER})
 mlir_check_all_link_libraries(${DFA_MLIR_IMPORTER})
 set_target_properties(${DFA_MLIR_IMPORTER} PROPERTIES FOLDER "dfa/tools")
+
+set(DFA_OPT dfa-opt)
+set(DFA_OPT_SRC dfa_opt.cpp)
+add_mlir_tool(${DFA_OPT}
+  ${DFA_OPT_SRC}
+  PARTIAL_SOURCES_INTENDED
+
+  DEPENDS
+  ${LIBS}
+  )
+target_link_libraries(${DFA_OPT} PRIVATE ${LIBS})
+llvm_update_compile_flags(${DFA_OPT})
+mlir_check_all_link_libraries(${DFA_OPT})
+set_target_properties(${DFA_OPT} PROPERTIES FOLDER "dfa/tools")
 
 #set(DFA_MLIR_IMPORTER dfa_mlir)
 #set(DFA_MLIR_SRC mlir_txt_importer.cpp)
