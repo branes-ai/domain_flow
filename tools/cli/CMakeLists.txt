@@ -15,10 +15,10 @@ set(MLIR_BINARY_DIR ${CMAKE_BINARY_DIR})
 list(APPEND CMAKE_MODULE_PATH "${MLIR_CMAKE_DIR}")
 list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
 
-#include(TableGen)
-#include(AddLLVM)
-#include(AddMLIR)
-#include(HandleLLVMOptions)
+include(TableGen)
+include(AddLLVM)
+include(AddMLIR)
+include(HandleLLVMOptions)
 
 include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${MLIR_INCLUDE_DIRS})
@@ -30,9 +30,9 @@ compile_all("true" "dfa" "dfa/tools" "${SOURCES}")
 
 set(DFA_MLIR_IMPORTER dfa_mlir)
 set(DFA_MLIR_SRC mlir_txt_importer.cpp)
-add_executable(${DFA_MLIR_IMPORTER} ${DFA_MLIR_SRC})
-message(STATUS "Add test ${DFA_MLIR_IMPORTER} from source ${DFA_MLIR_SRC}.")
-target_link_libraries(${DFA_MLIR_IMPORTER} PRIVATE
+#add_executable(${DFA_MLIR_IMPORTER} ${DFA_MLIR_SRC})
+#message(STATUS "Add test ${DFA_MLIR_IMPORTER} from source ${DFA_MLIR_SRC}.")
+set(LIBS
 	LLVMCore 
 	LLVMSupport 
 	MLIRIR 
@@ -43,7 +43,18 @@ target_link_libraries(${DFA_MLIR_IMPORTER} PRIVATE
 	MLIRSupport 
 	MLIRAsmParser 
 	MLIRFuncDialect 
-	MLIRTosaDialect)  # Link to LLVM and MLIR libs
+	MLIRTosaDialect
+)
+add_mlir_tool(${DFA_MLIR_IMPORTER} 
+	${DFA_MLIR_SRC}
+	PARTIAL_SOURCES_INTENDED
+
+	DEPENDS
+	${LIBS}
+)
+target_link_libraries(${DFA_MLIR_IMPORTER} PRIVATE ${LIBS})
+llvm_update_compile_flags(${DFA_MLIR_IMPORTER})
+mlir_check_all_link_libraries(${DFA_MLIR_IMPORTER})
 set_target_properties(${DFA_MLIR_IMPORTER} PROPERTIES FOLDER "dfa/tools")
 
 #set(DFA_MLIR_IMPORTER dfa_mlir)
