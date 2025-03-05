@@ -16,15 +16,16 @@
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/BuiltinDialect.h"
+#include "mlir/IR/Region.h"
+#include "mlir/IR/Block.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"  // For func::FuncDialect
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
+#include "mlir/Transforms/Passes.h"
+#include "mlir/Support/LogicalResult.h"
 #include "mlir/Parser/Parser.h"
 #include "mlir/Pass/Pass.h"
 #include "mlir/Pass/PassManager.h"
-#include "mlir/Transforms/Passes.h"
-#include "mlir/Support/LogicalResult.h"
-#include "mlir/IR/Region.h"
-#include "mlir/IR/Block.h"
+
 
 namespace mlir {
     OwningOpRef<ModuleOp> read_mlirbc(const std::string& filepath, MLIRContext* context) {
@@ -71,6 +72,82 @@ namespace mlir {
         }
     };
 
+    static unsigned indentLevel = 0;
+    static constexpr unsigned SPACES_PER_INDENT = 2;
+
+    static void resetIndent() { indentLevel = 0u; }
+    static unsigned pushIndent() { return ++indentLevel; }
+    static unsigned popIndent() { return --indentLevel; }
+    static llvm::raw_ostream& printIndent() {
+        return llvm::outs() << std::string(indentLevel * SPACES_PER_INDENT, ' ');
+    }
+
+    // forward declarations
+    void printOperation(Operation*);
+    void printBlock(Block&);
+    void printRegion(Region&);
+
+    void printOperation(Operation* op) {
+        // Print the operation itself and some of its properties
+        printIndent() 
+            << "visiting op: '" << op->getName() 
+            << "' with " << op->getNumOperands() 
+            << " operands and " << op->getNumResults() << " results\n";
+
+        // Print the operation attributes
+        if (!op->getAttrs().empty()) {
+            printIndent() 
+                << op->getAttrs().size() << " attributes:\n";
+            for (NamedAttribute attr : op->getAttrs())
+                printIndent() 
+                << " - '" << attr.getName() 
+                << "' : '" << attr.getValue() << "'\n";
+        }
+
+        // Recurse into each of the regions attached to the operation.
+        printIndent() << " " << op->getNumRegions() << " nested regions:\n";
+        pushIndent();
+        for (Region& region : op->getRegions())
+            printRegion(region);
+        popIndent();
+    }
+
+    void printBlock(Block& block) {
+        // Print the block intrinsics properties (basically: argument list)
+        printIndent()
+            << "Block with " << block.getNumArguments() 
+            << " arguments, " << block.getNumSuccessors()
+            << " successors, and "
+            // Note, this `.size()` is traversing a linked-list and is O(n).
+            << block.getOperations().size() << " operations\n";
+
+        // A block main role is to hold a list of Operations: let's recurse into
+        // printing each operation.
+        pushIndent();
+        for (Operation& op : block.getOperations())
+            printOperation(&op);
+        popIndent();
+    }
+
+    void printRegion(Region& region) {
+        // A region does not hold anything by itself other than a list of blocks.
+        printIndent() 
+            << "Region with " << region.getBlocks().size()
+            << " blocks:\n";
+        pushIndent();
+        for (Block& block : region.getBlocks())
+            printBlock(block);
+        popIndent();
+    }
+
+    struct PrintGraphPass : public PassWrapper<PrintNodeNamesPass, OperationPass<ModuleOp>> {
+        void runOnOperation() override {
+            Operation* op = getOperation();
+            resetIndent();
+            printOperation(op);
+        }
+    };
+
 } // namespace
 
 
@@ -110,17 +187,21 @@ int main(int argc, char* argv[]) {
     mlir::PassManager pm(&context);
 
     // Add the custom pass to print node names
-    pm.addPass(std::make_unique<mlir::PrintNodeNamesPass>());
+    // pm.addPass(std::make_unique<mlir::PrintNodeNamesPass>());
+    // Add the custom pass to print the graph
+    pm.addPass(std::make_unique<mlir::PrintGraphPass>());
 
     // Create an empty module
     mlir::OpBuilder builder(&context);
     //mlir::ModuleOp module = mlir::ModuleOp::create(builder.getUnknownLoc());
 
     // Run the pass manager on the module
+    llvm::outs() << "indent level : " << mlir::indentLevel << '\n';
     if (failed(pm.run(*module))) {
         llvm::errs() << "PassManager execution failed!\n";
         return 1;
     }
+    llvm::outs() << "indent level : " << mlir::indentLevel << '\n'; // should be 0
 
     return EXIT_SUCCESS;
 }
