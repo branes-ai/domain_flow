@@ -37,8 +37,24 @@ set(LIBS
 	MLIRTransforms
 	MLIRSupport 
 	MLIRAsmParser 
-	MLIRFuncDialect 
+
+	MLIRAsyncDialect
+	MLIRBufferizationDialect
+	MLIRControlFlowDialect
+	MLIREmitCDialect
+	MLIRFuncDialect
+	MLIRLinalgDialect
+	MLIRMathDialect
+	MLIRMemRefDialect
+	MLIRSCFDialect
+	MLIRSPIRVDialect
+	MLIRShapeDialect
+	MLIRSparseTensorDialect
+	MLIRTensorDialect
 	MLIRTosaDialect
+	MLIRTransformDialect
+	MLIRVectorDialect
+
 	MLIROptLib
 )
 
