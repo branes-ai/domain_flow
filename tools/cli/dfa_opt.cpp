@@ -7,6 +7,13 @@
 //===----------------------------------------------------------------------===//
 
 #include "mlir/Config/mlir-config.h"
+#include "mlir/IR/BuiltinOps.h"
+#include "mlir/Pass/Pass.h"
+//#include "mlir/Dialect/LiteRT/IR/TFLOps.h"
+//#include "llvm/Support/raw_ostream.h"
+
+
+
 
 //#include "mlir/InitAllDialects.h"
 //#include "mlir/Dialect/AMDGPU/IR/AMDGPUDialect.h"
@@ -131,7 +138,42 @@ namespace mlir {
 		//cf::registerBufferizableOpInterfaceExternalModels(registry);
 		//cf::registerBufferDeallocationOpInterfaceExternalModels(registry);
 	}
+
+
+	struct ComplexityAnalysisPass : public PassWrapper<ComplexityAnalysisPass, OperationPass<mlir::func::FuncOp>> {
+		MLIR_DEFINE_EXPLICIT_INTERNAL_INLINE_TYPE_ID(ComplexityAnalysisPass)
+
+			void runOnOperation() override {
+			mlir::func::FuncOp funcOp = getOperation();
+			funcOp.walk([&](mlir::Operation* op) {
+				if (auto convOp = mlir::dyn_cast<tosa::Conv2DOp>(op)) {
+					// Example: Calculate complexity for Conv2D
+					llvm::outs() << "Conv2D Op Found: " << op->getName() << "\n";
+					//Accessing the operands of the convolution operation.
+					auto inputShape = convOp.getInput().getType().cast<mlir::TensorType>().getShape();
+					//auto filterShape = convOp.getFilter().getType().cast<mlir::TensorType>().getShape();
+
+					//Simple example of calculating complexity.
+					long long complexity = 1;
+					for (auto dim : inputShape) {
+						complexity *= dim;
+					}
+					//for (auto dim : filterShape) {
+					//	complexity *= dim;
+					//}
+					llvm::outs() << "Estimated Complexity: " << complexity << "\n";
+				}
+				// Add logic for other TFLite ops (e.g., Add, MatMul)
+				});
+		}
+	};
+
+
+	std::unique_ptr<mlir::Pass> createComplexityAnalysisPass() {
+		return std::make_unique<ComplexityAnalysisPass>();
+	}
 }
+
 /// This test includes the minimal amount of components for dfa-opt, that is
 /// the CoreIR, the printer/parser, the bytecode reader/writer, the
 /// passmanagement infrastructure and all the instrumentation.
