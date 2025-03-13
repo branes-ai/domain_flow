@@ -18,6 +18,11 @@ project(domain_flow
 	LANGUAGES C CXX ASM
 	HOMEPAGE_URL "https://github.com/branes-ai/dfa-dynamics")
 
+# double check that the presets are coming through
+message(STATUS "CMakePresets")
+message(STATUS "MLIR_DIR                    :  ${MLIR_DIR}")
+message(STATUS "CMAKE_TOOLCHAIN_FILE        :  ${CMAKE_TOOLCHAIN_FILE}")
+
 # dfa is a header-only library
 add_library(${PROJECT_NAME} INTERFACE)
 
@@ -44,6 +49,9 @@ message(STATUS "PROJECT_NAME = ${PROJECT_NAME}")
 option(DFATOOLS_CMAKE_TRACE "Tracing CMake results, i.e. printing variable settings." OFF)
 option(DFATOOLS_ENABLE_TESTS "Enable the build and run of tests." ON)
 option(DFATOOLS_VERBOSE_TESTS "Always print test output, otherwise only errors. Only relevant when tests enabled." OFF)
+
+# Set the toolchain directory
+#set(CMAKE_TOOLCHAIN_FILE "C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Path to the vcpkg.cmake")
 
 # Must be located in root dir, doesn't work in tests
 if (DFATOOLS_ENABLE_TESTS)
@@ -97,6 +105,9 @@ message(STATUS "DFA_LIBRARY: ${DFA_LIBRARY}")
 
 # the tools
 add_subdirectory(tools)
+
+# viz
+add_subdirectory(viz)
 
 # Optional: Install rules (for packaging)
 install(TARGETS ${DFA_TOOL_CLI} DESTINATION bin)

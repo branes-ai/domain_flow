@@ -1,0 +1,102 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 31,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "ninja-default",
+      "hidden": true,
+      "environment": {
+        "LLVM_PROJECT_ROOT": "F:/Users/tomtz/dev/clones/llvm-project"
+      },
+      "generator": "Ninja"
+    },
+    {
+      "name": "vs17-default",
+      "hidden": true,
+      "environment": {
+        "LLVM_PROJECT_ROOT": "F:/Users/tomtz/dev/clones/llvm-project"
+      },
+      "generator": "Visual Studio 17 2022"
+    },
+    {
+      "name": "Ninja-Debug",
+      "inherits": "ninja-default",
+      "description": "Ninja Debug build",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+	"CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+      }
+    },
+    {
+      "name": "Ninja-Release",
+      "inherits": "ninja-default",
+      "description": "Ninja Release build",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+	"MLIR_DIR": "$env{LLVM_PROJECT_ROOT}/build_msvc/lib/cmake/mlir",
+	"CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+      }
+    },
+    {
+      "name": "VS17-Debug",
+      "inherits": "vs17-default",
+      "description": "Visual Studio 17 Debug build",
+      "binaryDir": "${sourceDir}/build_msvc/${presetName}",
+
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+	"MLIR_DIR": "$env{LLVM_PROJECT_ROOT}/build_msvc/lib/cmake/mlir",
+	"CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+      }
+    },
+    {
+      "name": "VS17-Release",
+      "inherits": "vs17-default",
+      "description": "Visual Studio 17 Release build",
+      "binaryDir": "${sourceDir}/build_msvc/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+	"MLIR_DIR": "$env{LLVM_PROJECT_ROOT}/build_msvc/lib/cmake/mlir",
+	"CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "ninja-default",
+      "hidden": true,
+      "configurePreset": "ninja-default"
+    },
+    {
+      "name": "vs17-default",
+      "hidden": true,
+      "configurePreset": "vs17-default"
+    },
+    {
+      "name": "Ninja-Debug",
+      "inherits": "ninja-default",
+      "configurePreset": "Ninja-Debug"
+    },
+    {
+      "name": "Ninja-Release",
+      "inherits": "ninja-default",
+      "configurePreset": "Ninja-Release"
+    },
+    {
+      "name": "VS17-Debug",
+      "inherits": "vs17-default",
+      "configurePreset": "VS17-Debug"
+    },
+    {
+      "name": "VS17-Release",
+      "inherits": "vs17-default",
+      "configurePreset": "VS17-Release"
+    }
+  ]
+}
