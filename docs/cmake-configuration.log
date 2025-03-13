@@ -1,0 +1,129 @@
+Selecting Windows SDK version 10.0.22621.0 to target Windows 10.0.22631.
+The C compiler identification is MSVC 19.43.34808.0
+The CXX compiler identification is MSVC 19.43.34808.0
+The ASM compiler identification is MSVC
+Found assembler: C:/Program Files/Microsoft Visual Studio/2022/Professional/VC/Tools/MSVC/14.43.34808/bin/Hostx64/x64/cl.exe
+Detecting C compiler ABI info
+Detecting C compiler ABI info - done
+Check for working C compiler: C:/Program Files/Microsoft Visual Studio/2022/Professional/VC/Tools/MSVC/14.43.34808/bin/Hostx64/x64/cl.exe - skipped
+Detecting C compile features
+Detecting C compile features - done
+Detecting CXX compiler ABI info
+Detecting CXX compiler ABI info - done
+Check for working CXX compiler: C:/Program Files/Microsoft Visual Studio/2022/Professional/VC/Tools/MSVC/14.43.34808/bin/Hostx64/x64/cl.exe - skipped
+Detecting CXX compile features
+Detecting CXX compile features - done
+CMakePresets
+LLVM_PROJECT_ROOT           :  
+MLIR_DIR                    :  F:/Users/tomtz/dev/clones/llvm-project/build_msvc/lib/cmake/mlir
+CMAKEPRESETS_CACHE_VARIABLE :  
+CMAKE_TOOLCHAIN_FILE        :  C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake
+C++20 has been enabled by default
+PROJECT_NAME = domain_flow
+Add test test_analyze from source F:/Users/tomtz/dev/branes/clones/dfa-dynamics/src/dfa/tests/./analyze.cpp.
+Add test test_builder from source F:/Users/tomtz/dev/branes/clones/dfa-dynamics/src/dfa/tests/./builder.cpp.
+Add test test_index_space from source F:/Users/tomtz/dev/branes/clones/dfa-dynamics/src/dfa/tests/./index_space.cpp.
+Add test test_linalg from source F:/Users/tomtz/dev/branes/clones/dfa-dynamics/src/dfa/tests/./linalg.cpp.
+Add test test_strongly_connected from source F:/Users/tomtz/dev/branes/clones/dfa-dynamics/src/dfa/tests/./strongly_connected.cpp.
+Add test test_visualization from source F:/Users/tomtz/dev/branes/clones/dfa-dynamics/src/dfa/tests/./visualization.cpp.
+DFA_LIBRARY: dfalib
+Using MLIRConfig.cmake in: F:/Users/tomtz/dev/clones/llvm-project/build_msvc/lib/cmake/mlir
+Using LLVMConfig.cmake in: F:/Users/tomtz/dev/clones/llvm-project/build_msvc/lib/cmake/llvm
+CMake Warning (dev) at F:/Users/tomtz/dev/clones/llvm-project/build_msvc/lib/cmake/llvm/HandleLLVMOptions.cmake:555 (option):
+  Policy CMP0077 is not set: option() honors normal variables.  Run "cmake
+  --help-policy CMP0077" for policy details.  Use the cmake_policy command to
+  set the policy and suppress this warning.
+
+  For compatibility with older versions of CMake, option is clearing the
+  normal variable 'LLVM_ENABLE_WARNINGS'.
+Call Stack (most recent call first):
+  tools/cli/CMakeLists.txt:18 (include)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at F:/Users/tomtz/dev/clones/llvm-project/build_msvc/lib/cmake/llvm/HandleLLVMOptions.cmake:1144 (option):
+  Policy CMP0077 is not set: option() honors normal variables.  Run "cmake
+  --help-policy CMP0077" for policy details.  Use the cmake_policy command to
+  set the policy and suppress this warning.
+
+  For compatibility with older versions of CMake, option is clearing the
+  normal variable 'LLVM_ENABLE_EH'.
+Call Stack (most recent call first):
+  tools/cli/CMakeLists.txt:18 (include)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at F:/Users/tomtz/dev/clones/llvm-project/build_msvc/lib/cmake/llvm/HandleLLVMOptions.cmake:1145 (option):
+  Policy CMP0077 is not set: option() honors normal variables.  Run "cmake
+  --help-policy CMP0077" for policy details.  Use the cmake_policy command to
+  set the policy and suppress this warning.
+
+  For compatibility with older versions of CMake, option is clearing the
+  normal variable 'LLVM_ENABLE_RTTI'.
+Call Stack (most recent call first):
+  tools/cli/CMakeLists.txt:18 (include)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at C:/Program Files/CMake/share/cmake-3.31/Modules/CMakeDependentOption.cmake:75 (option):
+  Policy CMP0077 is not set: option() honors normal variables.  Run "cmake
+  --help-policy CMP0077" for policy details.  Use the cmake_policy command to
+  set the policy and suppress this warning.
+
+  For compatibility with older versions of CMake, option is clearing the
+  normal variable 'LLVM_EXPORT_SYMBOLS_FOR_PLUGINS'.
+Call Stack (most recent call first):
+  F:/Users/tomtz/dev/clones/llvm-project/build_msvc/lib/cmake/llvm/HandleLLVMOptions.cmake:1309 (CMAKE_DEPENDENT_OPTION)
+  tools/cli/CMakeLists.txt:18 (include)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+Looking for os_signpost_interval_begin
+Looking for os_signpost_interval_begin - not found
+Visual Leak Detector (VLD) is not found.
+Targeting Visual Studio 17 2022
+Target build environment supports auto-linking
+Using VC toolset 143.
+Generator uses intermediate configuration directory: $(Configuration)
+Found GMP: debug;C:/dev/vcpkg/installed/x64-windows/debug/lib/gmp.lib;optimized;C:/dev/vcpkg/installed/x64-windows/debug/lib/gmp.lib
+Found MPFR: C:/dev/vcpkg/installed/x64-windows/debug/lib/mpfr.lib
+CMake Warning (dev) at C:/dev/vcpkg/installed/x64-windows/share/boost/vcpkg-cmake-wrapper.cmake:3 (_find_package):
+  Policy CMP0074 is not set: find_package uses <PackageName>_ROOT variables.
+  Run "cmake --help-policy CMP0074" for policy details.  Use the cmake_policy
+  command to set the policy and suppress this warning.
+
+  Environment variable Boost_ROOT is set to:
+
+    F:\Users\tomtz\dev\boost_1_69_0
+
+  For compatibility, CMake is ignoring the variable.
+Call Stack (most recent call first):
+  C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake:847 (include)
+  C:/dev/vcpkg/installed/x64-windows/share/cgal/CGAL_SetupBoost.cmake:20 (find_package)
+  C:/dev/vcpkg/installed/x64-windows/share/cgal/CGAL_SetupCGALDependencies.cmake:48 (include)
+  C:/dev/vcpkg/installed/x64-windows/share/cgal/CGALConfig.cmake:169 (include)
+  C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake:893 (_find_package)
+  viz/CMakeLists.txt:2 (find_package)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at C:/dev/vcpkg/installed/x64-windows/share/boost/vcpkg-cmake-wrapper.cmake:3 (_find_package):
+  Policy CMP0167 is not set: The FindBoost module is removed.  Run "cmake
+  --help-policy CMP0167" for policy details.  Use the cmake_policy command to
+  set the policy and suppress this warning.
+
+Call Stack (most recent call first):
+  C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake:847 (include)
+  C:/dev/vcpkg/installed/x64-windows/share/cgal/CGAL_SetupBoost.cmake:20 (find_package)
+  C:/dev/vcpkg/installed/x64-windows/share/cgal/CGAL_SetupCGALDependencies.cmake:48 (include)
+  C:/dev/vcpkg/installed/x64-windows/share/cgal/CGALConfig.cmake:169 (include)
+  C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake:893 (_find_package)
+  viz/CMakeLists.txt:2 (find_package)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+Found Boost: C:/dev/vcpkg/installed/x64-windows/share/boost/BoostConfig.cmake (found suitable version "1.87.0", minimum required is "1.72")
+Boost include dirs: C:/dev/vcpkg/installed/x64-windows/include
+Boost libraries:    
+Performing Test CMAKE_HAVE_LIBC_PTHREAD
+Performing Test CMAKE_HAVE_LIBC_PTHREAD - Failed
+Looking for pthread_create in pthreads
+Looking for pthread_create in pthreads - not found
+Looking for pthread_create in pthread
+Looking for pthread_create in pthread - not found
+Found Threads: TRUE
+Configuring done (10.4s)
