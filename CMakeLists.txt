@@ -49,6 +49,7 @@ message(STATUS "PROJECT_NAME = ${PROJECT_NAME}")
 option(DFATOOLS_CMAKE_TRACE "Tracing CMake results, i.e. printing variable settings." OFF)
 option(DFATOOLS_ENABLE_TESTS "Enable the build and run of tests." ON)
 option(DFATOOLS_VERBOSE_TESTS "Always print test output, otherwise only errors. Only relevant when tests enabled." OFF)
+option(DFATOOLS_VISUALIZATION "Enable/disable visualization tools." OFF)
 
 # Set the toolchain directory
 #set(CMAKE_TOOLCHAIN_FILE "C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Path to the vcpkg.cmake")
@@ -106,8 +107,10 @@ message(STATUS "DFA_LIBRARY: ${DFA_LIBRARY}")
 # the tools
 add_subdirectory(tools)
 
+if(DFATOOLS_VISUALIZATION)
 # viz
 add_subdirectory(viz)
+endif()
 
 # Optional: Install rules (for packaging)
 install(TARGETS ${DFA_TOOL_CLI} DESTINATION bin)

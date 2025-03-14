@@ -10,7 +10,8 @@
       "name": "ninja-default",
       "hidden": true,
       "environment": {
-        "LLVM_PROJECT_ROOT": "F:/Users/tomtz/dev/clones/llvm-project"
+        "LLVM_PROJECT_ROOT": "F:/Users/tomtz/dev/clones/llvm-project",
+	"QT_PLUGIN_PATH": "$env{VCPKG_ROOT}/installed/x64-linux/Qt6/plugins"
       },
       "generator": "Ninja"
     },
@@ -18,7 +19,8 @@
       "name": "vs17-default",
       "hidden": true,
       "environment": {
-        "LLVM_PROJECT_ROOT": "F:/Users/tomtz/dev/clones/llvm-project"
+        "LLVM_PROJECT_ROOT": "F:/Users/tomtz/dev/clones/llvm-project",
+	"QT_PLUGIN_PATH": "$env{VCPKG_ROOT}/installed/x64-windows/Qt6/plugins"
       },
       "generator": "Visual Studio 17 2022"
     },

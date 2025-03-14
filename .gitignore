@@ -34,3 +34,6 @@
 # build directories
 build/
 build_msvc/
+
+# CMake user presets
+CMakeUserPresets.json

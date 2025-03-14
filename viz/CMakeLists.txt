@@ -1,0 +1,28 @@
+
+#find_package(CGAL CONFIG REQUIRED)
+find_package(CGAL COMPONENTS Qt6)
+find_package(Qt6 COMPONENTS Core Gui Widgets 3DCore 3DExtras 3DInput 3DRender REQUIRED)
+if(CGAL_FOUND)
+    set(DFA_SIMPLE_OBJECT simple)
+    include_directories(${CGAL_INCLUDE_DIRS})
+    add_definitions(-DCGAL_USE_BASIC_VIEWER)
+    add_executable(${DFA_SIMPLE_OBJECT} simple.cpp)
+    target_include_directories(${DFA_SIMPLE_OBJECT} PUBLIC
+        ${DFATOOLS_ROOT}/include
+    )
+    target_link_libraries(${DFA_SIMPLE_OBJECT} PRIVATE CGAL::CGAL_Basic_viewer)
+    set_target_properties(${DFA_SIMPLE_OBJECT} PROPERTIES FOLDER "viz")
+
+
+    set(DFA_QT3D_TEST qt3d_test)
+    add_executable(${DFA_QT3D_TEST} qt3d_test.cpp)
+    target_include_directories(${DFA_QT3D_TEST} PUBLIC
+        ${DFATOOLS_ROOT}/include
+    )
+    target_link_libraries(${DFA_QT3D_TEST} PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets Qt6::3DCore Qt6::3DExtras Qt6::3DInput Qt6::3DRender)
+        set_target_properties(${DFA_QT3D_TEST} PROPERTIES FOLDER "viz")
+
+else()
+    message(FATAL_ERROR "CGAL not found")
+endif()
+
