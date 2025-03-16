@@ -1,16 +1,19 @@
-
-#find_package(CGAL CONFIG REQUIRED)
-find_package(CGAL COMPONENTS Qt6)
+find_package(CGAL CONFIG REQUIRED)
 if(CGAL_FOUND)
-    set(DFA_SIMPLE_OBJECT simple)
-    include_directories(${CGAL_INCLUDE_DIRS})
-    add_definitions(-DCGAL_USE_BASIC_VIEWER)
-    add_executable(${DFA_SIMPLE_OBJECT} simple.cpp)
-    target_include_directories(${DFA_SIMPLE_OBJECT} PUBLIC
-        ${DFATOOLS_ROOT}/include
-    )
-    target_link_libraries(${DFA_SIMPLE_OBJECT} PRIVATE CGAL::CGAL_Basic_viewer)
-    set_target_properties(${DFA_SIMPLE_OBJECT} PROPERTIES FOLDER "viz")
+    find_package(CGAL COMPONENTS Qt6)
+    if(CGAL_Qt6_FOUND)
+        set(DFA_SIMPLE_OBJECT simple)
+        include_directories(${CGAL_INCLUDE_DIRS})
+        add_definitions(-DCGAL_USE_BASIC_VIEWER)
+        add_executable(${DFA_SIMPLE_OBJECT} simple.cpp)
+        target_include_directories(${DFA_SIMPLE_OBJECT} PUBLIC
+            ${DFATOOLS_ROOT}/include
+        )
+        target_link_libraries(${DFA_SIMPLE_OBJECT} PRIVATE CGAL::CGAL CGAL::CGAL_Basic_viewer)
+        set_target_properties(${DFA_SIMPLE_OBJECT} PROPERTIES FOLDER "viz")
+    else()
+        message(FATAL_ERROR "CGAL Qt6 not found")
+    endif(CGAL_Qt6_FOUND)
 
 else()
     message(FATAL_ERROR "CGAL not found")
