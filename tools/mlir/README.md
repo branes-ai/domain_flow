@@ -104,3 +104,6 @@ do not have the ability to transform mlir files into an in-memory IR.
 
 Any mlir reader used for working with an IR will need to follow the `opt` tool architecture
 of registering dialects and using PassManagers to walk the IR.
+
+
+Once you have that knowledge, this [documentation page](https://mlir.llvm.org/docs/Tutorials/UnderstandingTheIRStructure/) will make a lot more sense.
