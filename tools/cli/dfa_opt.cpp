@@ -5,14 +5,16 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
+#include <iostream>
+#include <filesystem>
 
 #include "mlir/Config/mlir-config.h"
 #include "mlir/IR/BuiltinOps.h"
+
 #include "mlir/Pass/Pass.h"
+#include "mlir/IR/Operation.h"
 //#include "mlir/Dialect/LiteRT/IR/TFLOps.h"
 //#include "llvm/Support/raw_ostream.h"
-
-
 
 
 //#include "mlir/InitAllDialects.h"
@@ -168,17 +170,66 @@ namespace mlir {
 		}
 	};
 
-
 	std::unique_ptr<mlir::Pass> createComplexityAnalysisPass() {
 		return std::make_unique<ComplexityAnalysisPass>();
 	}
+
+	//-----------------------------------------------------------------------------------------
+	// Define the pass
+	class ArithmeticComplexityPass
+		: public PassWrapper<ArithmeticComplexityPass, OperationPass<ModuleOp>> {
+	public:
+		StringRef getArgument() const override { return "arithmetic-complexity"; } // command line switch to run the pass
+		StringRef getDescription() const override {	return "Computes arithmetic complexity of the MLIR graph."; }
+
+		void runOnOperation() override {
+			ModuleOp module = getOperation();
+
+			// Initialize counters
+			int64_t addCount = 0, mulCount = 0, divCount = 0, totalOps = 0;
+
+			// Traverse operations
+			module.walk([&](Operation* op) {
+				llvm::outs() << op->getName() << '\n';
+				//if (isa<AddFOp>(op)) {
+				//	addCount++;
+				//}
+				//else if (isa<MulFOp>(op)) {
+				//	mulCount++;
+				//}
+				//else if (isa<DivFOp>(op)) {
+				//	divCount++;
+				//}
+				// Count all operations
+				totalOps++;
+				});
+
+			// Print the results
+			llvm::outs() << "Arithmetic Complexity Report:\n";
+			llvm::outs() << "Add operations: " << addCount << "\n";
+			llvm::outs() << "Mul operations: " << mulCount << "\n";
+			llvm::outs() << "Div operations: " << divCount << "\n";
+			llvm::outs() << "Total operations: " << totalOps << "\n";
+		}
+	};
+
+	// Register the pass
+	std::unique_ptr<Pass> createArithmeticComplexityPass() {
+		return std::make_unique<ArithmeticComplexityPass>();
+	}
+
+	static PassRegistration<ArithmeticComplexityPass> pass;
+
+	// op->setAttr("complexity", IntegerAttr::get(IntegerType::get(op->getContext(), 64), opComplexity));
+
 }
 
 /// This test includes the minimal amount of components for dfa-opt, that is
 /// the CoreIR, the printer/parser, the bytecode reader/writer, the
 /// passmanagement infrastructure and all the instrumentation.
 int main(int argc, char **argv) {
-  mlir::DialectRegistry registry;
-  mlir::registerSupportingDialects(registry);
-  return mlir::asMainReturnCode(mlir::MlirOptMain(argc, argv, "Domain flow optimizer driver\n", registry));
+	std::cout << "Current path is " << std::filesystem::current_path() << '\n';
+	mlir::DialectRegistry registry;
+	mlir::registerSupportingDialects(registry);
+	return mlir::asMainReturnCode(mlir::MlirOptMain(argc, argv, "Domain flow optimizer driver\n", registry));
 }

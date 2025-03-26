@@ -107,11 +107,6 @@ message(STATUS "DFA_LIBRARY: ${DFA_LIBRARY}")
 # the tools
 add_subdirectory(tools)
 
-if(DFATOOLS_VISUALIZATION)
-# viz
-add_subdirectory(viz)
-endif()
-
 # Optional: Install rules (for packaging)
 install(TARGETS ${DFA_TOOL_CLI} DESTINATION bin)
 install(TARGETS ${DFA_LIBRARY} DESTINATION lib)
