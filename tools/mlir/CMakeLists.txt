@@ -30,17 +30,36 @@ set(LIBS
 
 # Create the mlir text parser executable
 set(DFA_MLIR_TXT_PARSER mlir_serialization)
-add_executable(${DFA_MLIR_TXT_PARSER} mlir_serialization.cpp)
-set_target_properties(${DFA_MLIR_TXT_PARSER} PROPERTIES FOLDER "dfa/tools/mlir")
-# Link against MLIR libraries
+# regular Cmake doesn't work
+# 'add_executable(${DFA_MLIR_TXT_PARSER} mlir_serialization.cpp)
+set(DFA_MLIR_TXT_PARSER_SRC mlir_serialization.cpp)
+add_mlir_tool(${DFA_MLIR_TXT_PARSER} 
+	${DFA_MLIR_TXT_PARSER_SRC}
+	PARTIAL_SOURCES_INTENDED
+
+	DEPENDS
+	${LIBS}
+)
 target_link_libraries(${DFA_MLIR_TXT_PARSER} ${LIBS})
+llvm_update_compile_flags(${DFA_MLIR_TXT_PARSER})
+mlir_check_all_link_libraries(${DFA_MLIR_TXT_PARSER})
+set_target_properties(${DFA_MLIR_TXT_PARSER} PROPERTIES FOLDER "dfa/tools/mlir")
 
 # Create the mlir text parser executable
 set(DFA_MLIR_BC_CONVERTER mlir_bc_converter)
-add_executable(${DFA_MLIR_BC_CONVERTER} mlir_bc_converter.cpp)
-set_target_properties(${DFA_MLIR_BC_CONVERTER} PROPERTIES FOLDER "dfa/tools/mlir")
+#add_executable(${DFA_MLIR_BC_CONVERTER} mlir_bc_converter.cpp)
+set(DFA_MLIR_BC_CONVERTER_SRC mlir_bc_converter.cpp)
 append(LIBS 
     MLIRBytecode
 )
-# Link against MLIR libraries
+add_mlir_tool(${DFA_MLIR_BC_CONVERTER} 
+	${DFA_MLIR_BC_CONVERTER_SRC}
+	PARTIAL_SOURCES_INTENDED
+
+	DEPENDS
+	${LIBS}
+)
 target_link_libraries(${DFA_MLIR_BC_CONVERTER} ${LIBS})
+llvm_update_compile_flags(${DFA_MLIR_BC_CONVERTER})
+mlir_check_all_link_libraries(${DFA_MLIR_BC_CONVERTER})
+set_target_properties(${DFA_MLIR_BC_CONVERTER} PROPERTIES FOLDER "dfa/tools/mlir")
