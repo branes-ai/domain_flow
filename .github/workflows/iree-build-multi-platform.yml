@@ -100,8 +100,23 @@ jobs:
       if: runner.os == 'Windows'
       shell: pwsh
       run: |
+        # Find VSWhere to locate Visual Studio installation
+        $vswherePath = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+        $vsPath = & "$vswherePath" -latest -property installationPath
+
+        # Set up Visual Studio environment variables
+        Import-Module (Join-Path $vsPath "Common7\Tools\Microsoft.VisualStudio.DevShell.dll")
+        Enter-VsDevShell -VsInstallPath $vsPath -SkipAutomaticLocation
+
+        # Explicitly set compiler paths
+        $env:CC = (Get-Command cl.exe).Source
+        $env:CXX = (Get-Command cl.exe).Source
+
+        # Create build directory
         mkdir iree-build
         cd iree-build
+
+        # Configure CMake with explicit compiler paths
         cmake ..\iree `
           -GNinja `
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} `
@@ -110,6 +125,8 @@ jobs:
           -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/iree-install" `
           -DIREE_BUILD_TESTS=ON `
           -DIREE_BUILD_SAMPLES=OFF
+
+        # Build IREE
         cmake --build . --target install -j $env:NUMBER_OF_PROCESSORS
     
     - name: Setup environment
@@ -122,7 +139,7 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-    - name: Configure Project CMake
+    - name: Configure Project CMake for the source tree
       run: >
         cmake -B ${{ steps.strings.outputs.build-output-dir }}
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
