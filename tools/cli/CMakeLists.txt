@@ -54,6 +54,7 @@ set(LIBS
 	MLIROptLib
 )
 
+###################################################
 # define the dfa-opt tool
 set(DFA_OPT dfa-opt)
 set(DFA_OPT_SRC dfa_opt.cpp)
@@ -69,17 +70,3 @@ llvm_update_compile_flags(${DFA_OPT})
 mlir_check_all_link_libraries(${DFA_OPT})
 set_target_properties(${DFA_OPT} PROPERTIES FOLDER "dfa/tools/opt")
 
-#set(DFA_MLIR_IMPORTER dfa_mlir)
-#set(DFA_MLIR_SRC mlir_txt_importer.cpp)
-#add_executable(${DFA_MLIR_IMPORTER} ${DFA_MLIR_SRC})
-#message(STATUS "Add test ${DFA_MLIR_IMPORTER} from source ${DFA_MLIR_SRC}.")
-#target_include_directories(${DFATOOLS_CLI} PUBLIC
-#    ${DFATOOLS_ROOT}/include
-#)
-#target_link_libraries(${DFA_MLIR_IMPORTER} MLIRIR MLIRDialect MLIRParser MLIRSupport)  # Link to MLIR libs
-#set_target_properties(${DFA_MLIR_IMPORTER} PROPERTIES FOLDER "dfa/tools")
-
-# Example: Add include directories specific to the tools (if needed)
-# target_include_directories(MyExecutable PRIVATE
-#     ${CMAKE_CURRENT_SOURCE_DIR}/include  # For tool-specific headers
-# )

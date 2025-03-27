@@ -35,5 +35,8 @@
 build/
 build_msvc/
 
+# IDE directories
+.vscode/
+
 # CMake user presets
 CMakeUserPresets.json
