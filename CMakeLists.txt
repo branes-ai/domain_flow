@@ -12,6 +12,9 @@ if(NOT DEFINED DFATOOLS_VERSION_PATCH)
   set(DFATOOLS_VERSION_PATCH 1)
 endif()
 
+cmake_policy(SET CMP0048 NEW) # The project() command manages VERSION variables
+cmake_policy(SET CMP0077 NEW) # option() honors normal variables
+
 project(domain_flow 
 	DESCRIPTION "A header only C++ library for domain flow architecture parallelizing compiler"
 	VERSION "${DFATOOLS_VERSION_MAJOR}.${DFATOOLS_VERSION_MINOR}.${DFATOOLS_VERSION_PATCH}" 
