@@ -92,6 +92,12 @@ jobs:
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
           -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
           -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/iree-install" \
+          -DIREE_TARGET_BACKEND_DEFAULTS=OFF \
+          -DIREE_TARGET_BACKEND_LLVM_CPU=ON \
+          -DIREE_HAL_DRIVER_DEFAULTS=OFF \
+          -DIREE_HAL_DRIVER_LOCAL_SYNC=ON \
+          -DIREE_HAL_DRIVER_LOCAL_TASK=ON \
+          -DIREE_DEFAULT_CPU_LLVM_TARGETS="X86" \
           -DIREE_BUILD_TESTS=ON \
           -DIREE_BUILD_SAMPLES=OFF
         cmake --build . --target install -j$(nproc)
@@ -123,6 +129,12 @@ jobs:
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} `
           -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} `
           -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/iree-install" `
+          -DIREE_TARGET_BACKEND_DEFAULTS=OFF `
+          -DIREE_TARGET_BACKEND_LLVM_CPU=ON `
+          -DIREE_HAL_DRIVER_DEFAULTS=OFF `
+          -DIREE_HAL_DRIVER_LOCAL_SYNC=ON `
+          -DIREE_HAL_DRIVER_LOCAL_TASK=ON `
+          -DIREE_DEFAULT_CPU_LLVM_TARGETS="X86" `
           -DIREE_BUILD_TESTS=ON `
           -DIREE_BUILD_SAMPLES=OFF
 
