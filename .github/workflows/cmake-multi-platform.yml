@@ -82,28 +82,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-vcpkg-
 
-    # Cache matplot++ source and build
-    - name: Cache matplot++
-      uses: actions/cache@v3
-      id: cache-matplotpp
-      with:
-        path: |
-          matplotplusplus
-          ${{ runner.os == 'Windows' && 'C:/Program Files (x86)/matplotplusplus' || '/usr/local/include/matplot' }}
-        key: ${{ runner.os }}-matplotpp-${{ hashFiles('matplotplusplus/.git/HEAD') }}
-        restore-keys: |
-          ${{ runner.os }}-matplotpp-
-
-    # Cache CMake build directory
-    - name: Cache CMake build
-      uses: actions/cache@v3
-      with:
-        path: |
-          build
-        key: ${{ runner.os }}-cmake-build-${{ hashFiles('**/*.cpp', '**/*.h', '**/CMakeLists.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-cmake-build-
-        
     - name: Install system dependencies (Linux)
       if: matrix.os == 'ubuntu-latest'
       run: |
