@@ -15,6 +15,3 @@ target_compile_definitions(${DFA_LIBRARY} PUBLIC
 set_target_properties(${DFA_LIBRARY} PROPERTIES
     VERSION 0.1.0
 )
-
-# setup the tests
-add_subdirectory(tests)

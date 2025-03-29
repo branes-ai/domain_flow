@@ -27,7 +27,6 @@ message(STATUS "MLIR_DIR                    :  ${MLIR_DIR}")
 message(STATUS "CMAKE_TOOLCHAIN_FILE        :  ${CMAKE_TOOLCHAIN_FILE}")
 
 # dfa is a header-only library
-add_library(${PROJECT_NAME} INTERFACE)
 
 # Set C++ standard (optional but recommended)
 set(CMAKE_CXX_STANDARD 20)  # Or 14, 17, 20, 23, etc.
@@ -98,14 +97,8 @@ macro (compile_all testing prefix folder)
     endforeach (source)
 endmacro (compile_all)
 
-# why do we need to set it here and can't we set it in the library CMakeLists.txt file?
-# when I set it in the library CMakeLists.txt file, the value doesn't show up in the tools CMakeLists.txt file
-set(DFA_LIBRARY dfalib)
-
-# the domain flow library
-add_subdirectory(src/dfa)
-
-message(STATUS "DFA_LIBRARY: ${DFA_LIBRARY}")
+# the domain flow library tests
+add_subdirectory(src/dfa/tests)
 
 # the tools
 add_subdirectory(tools)
