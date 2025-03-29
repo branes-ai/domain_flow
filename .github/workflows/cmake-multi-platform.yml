@@ -60,6 +60,93 @@ jobs:
       with:
         python-version: '3.12'
 
+    # Cache system packages on Linux
+    - name: Cache apt packages
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/cache@v3
+      with:
+        path: /var/cache/apt
+        key: ${{ runner.os }}-apt-${{ hashFiles('**/workflow-apt-packages.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-apt-
+        
+    # Cache vcpkg on Windows
+    - name: Cache vcpkg
+      if: matrix.os == 'windows-latest'
+      uses: actions/cache@v3
+      with:
+        path: |
+          vcpkg
+          ${{ github.workspace }}/vcpkg_installed
+        key: ${{ runner.os }}-vcpkg-${{ hashFiles('**/vcpkg.json', '**/vcpkgConfiguration.json') }}
+        restore-keys: |
+          ${{ runner.os }}-vcpkg-
+
+    # Cache matplot++ source and build
+    - name: Cache matplot++
+      uses: actions/cache@v3
+      id: cache-matplotpp
+      with:
+        path: |
+          matplotplusplus
+          ${{ runner.os == 'Windows' && 'C:/Program Files (x86)/matplotplusplus' || '/usr/local/include/matplot' }}
+        key: ${{ runner.os }}-matplotpp-${{ hashFiles('matplotplusplus/.git/HEAD') }}
+        restore-keys: |
+          ${{ runner.os }}-matplotpp-
+
+    # Cache CMake build directory
+    - name: Cache CMake build
+      uses: actions/cache@v3
+      with:
+        path: |
+          build
+        key: ${{ runner.os }}-cmake-build-${{ hashFiles('**/*.cpp', '**/*.h', '**/CMakeLists.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-cmake-build-
+        
+    - name: Install system dependencies (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake g++ gcc libx11-dev libgl1-mesa-dev libglu1-mesa-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
+        sudo apt-get install -y libpng-dev libglfw3 libglfw3-dev
+        sudo apt-get install -y libjpeg-dev libfreetype6-dev
+        sudo apt-get install -y freeglut3-dev
+    
+    - name: Setup VCPKG (Windows)
+      if: matrix.os == 'windows-latest' && steps.cache-vcpkg.outputs.cache-hit != 'true'
+      run: |
+        if (!(Test-Path -Path "vcpkg")) {
+          git clone https://github.com/Microsoft/vcpkg.git
+          cd vcpkg
+          .\bootstrap-vcpkg.bat
+          .\vcpkg integrate install
+        }
+      shell: pwsh
+
+    - name: Setup matplot++ (Linux)
+      if: matrix.os == 'ubuntu-latest' && steps.cache-matplotpp.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/alandefreitas/matplotplusplus.git
+        cd matplotplusplus
+        mkdir -p build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DMATPLOTPP_BUILD_EXAMPLES=OFF -DMATPLOTPP_BUILD_TESTS=OFF
+        cmake --build . --parallel $(nproc)
+        sudo cmake --install .
+        
+    - name: Setup matplot++ (Windows)
+      if: matrix.os == 'windows-latest' && steps.cache-matplotpp.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/alandefreitas/matplotplusplus.git
+        cd matplotplusplus
+        mkdir -p build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DMATPLOTPP_BUILD_EXAMPLES=OFF -DMATPLOTPP_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=OFF
+        cmake --build . --config Release
+        cmake --install . --config Release
+      shell: pwsh
+
     - name: Cache LLVM build
       id: cache-llvm-build
       uses: actions/cache@v3

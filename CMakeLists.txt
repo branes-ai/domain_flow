@@ -109,6 +109,10 @@ message(STATUS "DFA_LIBRARY: ${DFA_LIBRARY}")
 
 # the tools
 add_subdirectory(tools)
+# the plotters
+add_subdirectory(plots)
+# the databases
+add_subdirectory(databases)
 
 # Optional: Install rules (for packaging)
 install(TARGETS ${DFA_TOOL_CLI} DESTINATION bin)
