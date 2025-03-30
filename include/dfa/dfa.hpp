@@ -4,6 +4,8 @@
 #include <dfa/affine_map.hpp>
 #include <dfa/recurrence_var.hpp>
 #include <dfa/dependency_graph.hpp>
+#include <dfa/edge.hpp>
+#include <dfa/graph.hpp>
 #include <dfa/hyperplane.hpp>
 #include <dfa/index_point.hpp>
 #include <dfa/index_space.hpp>
