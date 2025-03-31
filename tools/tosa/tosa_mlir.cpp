@@ -14,6 +14,18 @@ void executeOperation(mlir::Operation &op) {
     std::string opName = op.getName().getStringRef().str();
     std::cout << "Executing Operation: " << opName << "\n";
 
+    // Enumerate operands of the operation.
+    std::cout << "Operands:\n";
+    for (mlir::Value operand : op.getOperands()) {
+        std::cout << "  Operand: ";
+        if (auto definingOp = operand.getDefiningOp()) {
+            std::cout << definingOp->getName().getStringRef().str() << "\n";
+        }
+        else {
+            std::cout << "Undefined operand (block argument or constant)\n";
+        }
+    }
+
     // Example execution logic for TOSA operations.
     if (opName == "tosa.add") {
         //std::cout << "Performing addition...\n";
