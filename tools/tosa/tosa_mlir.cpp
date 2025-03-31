@@ -9,20 +9,126 @@
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
 #include <iostream>
 
+void executeBlockArguments(mlir::Block& block) {
+    std::cout << "Block Arguments:\n";
+    for (mlir::BlockArgument arg : block.getArguments()) {
+        std::cout << "  Block Argument: ";
+        std::string typeStr;
+        llvm::raw_string_ostream rsos(typeStr);
+        arg.getType().print(rsos);
+        rsos.flush();
+        std::cout << "Type = " << typeStr << "\n";
+    }
+}
+
+void debugAttribute(const mlir::Attribute& attr) {
+    std::string debugStr;
+    llvm::raw_string_ostream rso(debugStr);
+    attr.print(rso); // Use the print method to write the attribute to the raw string stream
+    rso.flush();     // Flush the stream to finalize the string
+    std::cout << debugStr << "\n"; // Print the attribute string to std::cout
+}
+
 // Define a simple function to execute operations.
 void executeOperation(mlir::Operation &op) {
     std::string opName = op.getName().getStringRef().str();
     std::cout << "Executing Operation: " << opName << "\n";
 
-    // Enumerate operands of the operation.
-    std::cout << "Operands:\n";
-    for (mlir::Value operand : op.getOperands()) {
-        std::cout << "  Operand: ";
-        if (auto definingOp = operand.getDefiningOp()) {
-            std::cout << definingOp->getName().getStringRef().str() << "\n";
+    // General attribute processing for any operation with attributes.
+    if (!op.getAttrs().empty()) {
+        std::cout << "Attributes:\n";
+        for (auto attr : op.getAttrs()) {
+            std::cout << "  Attribute: " << attr.getName().str() << " = ";
+
+            // Debug the raw attribute value to understand its type and structure
+            debugAttribute(attr.getValue());
+
+             // Dynamically handle various attribute types using mlir::dyn_cast<U>().
+            if (auto intAttr = mlir::dyn_cast<mlir::IntegerAttr>(attr.getValue())) {
+                std::cout << intAttr.getInt() << "\n";
+            }
+            else if (auto floatAttr = mlir::dyn_cast<mlir::FloatAttr>(attr.getValue())) {
+                std::cout << floatAttr.getValueAsDouble() << "\n";
+            }
+            else if (auto strAttr = mlir::dyn_cast<mlir::StringAttr>(attr.getValue())) {
+                std::cout << strAttr.getValue().str() << "\n";
+            }
+            else if (auto arrayAttr = mlir::dyn_cast<mlir::ArrayAttr>(attr.getValue())) {
+                // Handle array attributes
+                std::cout << "[";
+                for (auto elem : arrayAttr.getValue()) {
+                    if (auto intElem = mlir::dyn_cast<mlir::IntegerAttr>(elem)) {
+                        std::cout << intElem.getInt() << " ";
+                    }
+                    else if (auto floatElem = mlir::dyn_cast<mlir::FloatAttr>(elem)) {
+                        std::cout << floatElem.getValueAsDouble() << " ";
+                    }
+                    else {
+                        std::cout << "<unknown> ";
+                    }
+                }
+                std::cout << "]\n";
+            }
+            else if (auto denseAttr = mlir::dyn_cast<mlir::DenseElementsAttr>(attr.getValue())) {
+                // Handle dense elements attributes (e.g., used for `value` in `tosa.const`)
+                std::cout << "DenseElementsAttr {";
+                for (auto elem : denseAttr.getValues<mlir::APFloat>()) {
+                    std::cout << elem.convertToDouble() << " ";
+                }
+                std::cout << "}\n";
+            }
+            else if (auto denseIntAttr = mlir::dyn_cast<mlir::DenseIntElementsAttr>(attr.getValue())) {
+                // Handle dense integer elements attributes
+                std::cout << "DenseIntElementsAttr {";
+                for (auto elem : denseIntAttr.getValues<mlir::APInt>()) {
+                    std::cout << elem.getSExtValue() << " ";
+                }
+                std::cout << "}\n";
+            }
+            else {
+                std::cout << "<unknown attribute type>\n";
+            }
         }
-        else {
-            std::cout << "Undefined operand (block argument or constant)\n";
+    }
+
+    // Enumerate operands of the operation.
+    if (!op.getOperands().empty()) {
+        std::cout << "Operands:\n";
+        for (mlir::Value operand : op.getOperands()) {
+            std::cout << "  Operand: ";
+
+            if (auto definingOp = operand.getDefiningOp()) {
+                // Operand is defined by another operation.
+                std::cout << definingOp->getName().getStringRef().str();
+
+                // Print the type of the operand.
+                std::string typeStr;
+                llvm::raw_string_ostream rso(typeStr);
+                operand.getType().print(rso); // Print the type of the operand
+                rso.flush();
+                std::cout << " (Type = " << typeStr << ")";
+            }
+            else if (auto blockArg = mlir::dyn_cast<mlir::BlockArgument>(operand)) {
+                // Operand is a BlockArgument; print its type.
+                std::string typeStr;
+                llvm::raw_string_ostream rso(typeStr);
+                blockArg.getType().print(rso);
+                rso.flush();
+                std::cout << "Block Argument with Type = " << typeStr;
+            }
+            else {
+                // Catch-all for undefined values (this case shouldn't occur often).
+                std::cout << "Undefined operand or constant";
+            }
+
+            std::cout << "\n";
+        }
+    }
+
+    // Example: Enumerate block arguments for operations inside blocks.
+    for (mlir::Region& region : op.getRegions()) {
+        for (mlir::Block& block : region.getBlocks()) {
+            executeBlockArguments(block);
         }
     }
 
@@ -37,6 +143,15 @@ void executeOperation(mlir::Operation &op) {
     }
     else if (opName == "tosa.const") {
         //std::cout << "Found a TOSA constant...\n";
+        // Get the result type of the constant operation
+        if (op.getNumResults() > 0) {
+            mlir::Value result = op.getResult(0); // Constants usually have a single result
+            std::string typeStr;
+            llvm::raw_string_ostream rso(typeStr);
+            result.getType().print(rso); // Print the result type
+            rso.flush();
+            std::cout << "Constant Result Type = " << typeStr << "\n";
+        }
     } 
     else if (opName == "tosa.reshape") {
         //std::cout << "Performing a Reshape...\n";
