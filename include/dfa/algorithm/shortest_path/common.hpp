@@ -12,22 +12,22 @@ namespace sw::dfa::algorithm::shortest_path {
     namespace detail {
 
         template <typename WeightType>
-        struct path_vertex {
-            vertex_id_t id;
+        struct path_node {
+            nodeId_t id;
             WeightType dist_from_start;
-            vertex_id_t prev_id;
+            nodeId_t prev_id;
 
-            [[nodiscard]] bool operator>(const path_vertex<WeightType>& other) {
+            [[nodiscard]] bool operator>(const path_node<WeightType>& other) {
                 return dist_from_start > other.dist_from_start;
             }
         };
 
         template <typename WeightType>
         std::optional<graph_path<WeightType>> reconstruct_path(
-            vertex_id_t start, vertex_id_t end,
-            std::unordered_map<vertex_id_t, path_vertex<WeightType>>& vertex_info) 
+            nodeId_t start, nodeId_t end,
+            std::unordered_map<nodeId_t, path_node<WeightType>>& node_info) 
         {
-            if (!vertex_info.contains(end)) {
+            if (!node_info.contains(end)) {
                 return std::nullopt;
             }
 
@@ -35,12 +35,12 @@ namespace sw::dfa::algorithm::shortest_path {
             auto current = end;
 
             while (current != start) {
-                path.vertices.push_front(current);
-                current = vertex_info[current].prev_id;
+                path.nodes.push_front(current);
+                current = node_info[current].prev_id;
             }
 
-            path.vertices.push_front(start);
-            path.total_weight = vertex_info[end].dist_from_start;
+            path.nodes.push_front(start);
+            path.total_weight = node_info[end].dist_from_start;
             return path;
         }
 
@@ -48,11 +48,11 @@ namespace sw::dfa::algorithm::shortest_path {
 
     template <typename WeightType>
     struct graph_path {
-        std::list<vertex_id_t> vertices;
+        std::list<nodeId_t> nodes;
         WeightType total_weight;
 
         bool operator==(const graph_path& other) const {
-            return vertices == other.vertices && total_weight == other.total_weight;
+            return nodes == other.nodes && total_weight == other.total_weight;
         }
     };
 

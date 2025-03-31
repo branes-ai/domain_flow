@@ -18,15 +18,15 @@ namespace sw::dfa::algorithm::shortest_path {
  */
 template <typename V, typename E, bool Directed,
           typename WeightType = decltype(weight(std::declval<E>()))>
-std::optional<graph_path<WeightType>> dijkstra(const graph<V, E, Directed>& graph, vertex_id_t start, vertex_id_t end)
+std::optional<graph_path<WeightType>> dijkstra(const graph<V, E, Directed>& graph, nodeId_t start, nodeId_t end)
 {
-    using weighted_path_item = detail::path_vertex<WeightType>;
+    using weighted_path_item = detail::path_node<WeightType>;
     using dijkstra_queue_t = std::priority_queue<weighted_path_item, std::vector<weighted_path_item>, std::greater<> >;
     dijkstra_queue_t to_explore{};
-    std::unordered_map<vertex_id_t, weighted_path_item> vertex_info;
+    std::unordered_map<nodeId_t, weighted_path_item> node_info;
 
-    vertex_info[start] = {start, 0, start};
-    to_explore.push(vertex_info[start]);
+    node_info[start] = {start, 0, start};
+    to_explore.push(node_info[start]);
 
     while (!to_explore.empty()) {
         auto current{to_explore.top()};
@@ -49,14 +49,14 @@ std::optional<graph_path<WeightType>> dijkstra(const graph<V, E, Directed>& grap
 
             WeightType distance = current.dist_from_start + edge_weight;
 
-            if (!vertex_info.contains(neighbor) || distance < vertex_info[neighbor].dist_from_start) {
-                vertex_info[neighbor] = {neighbor, distance, current.id};
-                to_explore.push(vertex_info[neighbor]);
+            if (!node_info.contains(neighbor) || distance < node_info[neighbor].dist_from_start) {
+                node_info[neighbor] = {neighbor, distance, current.id};
+                to_explore.push(node_info[neighbor]);
             }
         }
     }
 
-    return reconstruct_path(start, end, vertex_info);
+    return reconstruct_path(start, end, node_info);
 }
 
 }  // namespace sw::dfa::algorithm::shortest_path
