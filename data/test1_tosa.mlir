@@ -7,3 +7,8 @@ module {
     return %matmul : tensor<1x1x4xf32>
   }
 }
+
+
+// In MLIR, when you use a single value in a dense attribute for a multi-element tensor, 
+// it means that all elelements of the tensor have that same value. This is a shorthand 
+// notation that MLIR provides for constant tensors with uniform values.

@@ -9,6 +9,16 @@
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
 #include <iostream>
 
+#include "mlir/IR/Operation.h"
+#include "mlir/IR/Value.h"
+#include "mlir/IR/Block.h"
+#include "mlir/IR/Attributes.h"
+#include "mlir/Dialect/Tosa/IR/TosaOps.h"
+#include "llvm/Support/raw_ostream.h"
+#include <string>
+#include <vector>
+#include <iostream>
+
 void executeBlockArguments(mlir::Block& block) {
     std::cout << "Block Arguments:\n";
     for (mlir::BlockArgument arg : block.getArguments()) {
@@ -21,13 +31,14 @@ void executeBlockArguments(mlir::Block& block) {
     }
 }
 
-void debugAttribute(const mlir::Attribute& attr) {
-    std::string debugStr;
-    llvm::raw_string_ostream rso(debugStr);
-    attr.print(rso); // Use the print method to write the attribute to the raw string stream
-    rso.flush();     // Flush the stream to finalize the string
-    std::cout << debugStr << "\n"; // Print the attribute string to std::cout
+void debugAttribute(mlir::Attribute attr) {
+    std::string typeStr;
+    llvm::raw_string_ostream rso(typeStr);
+    attr.print(rso); // Print the full attribute
+    rso.flush();
+    std::cout << "Raw Attribute: " << typeStr << '\n';
 }
+
 
 // Define a simple function to execute operations.
 void executeOperation(mlir::Operation &op) {
@@ -85,7 +96,11 @@ void executeOperation(mlir::Operation &op) {
                 }
                 std::cout << "}\n";
             }
-            else {
+            else if (auto dictAttr = mlir::dyn_cast<mlir::DictionaryAttr>(attr.getValue())) {
+                // Get a specific named attribute
+                mlir::Attribute dilationsAttr = dictAttr.get("dilations");
+                // Then process this attribute as shown above
+            } {
                 std::cout << "<unknown attribute type>\n";
             }
         }
