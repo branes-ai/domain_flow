@@ -48,7 +48,7 @@ set_target_properties(${DFA_TOSA_PARSER} PROPERTIES FOLDER "dfa/tools/tosa")
 # Create the mlir text parser executable
 set(DFA_TOSA_MLIR tosa_mlir)
 # regular Cmake doesn't work
-set(DFA_TOSA_MLIR_SRC tosa_mlir.cpp)
+set(DFA_TOSA_MLIR_SRC tosa_mlir_scanner.cpp)
 add_mlir_tool(${DFA_TOSA_MLIR} 
     ${DFA_TOSA_MLIR_SRC}
     PARTIAL_SOURCES_INTENDED
