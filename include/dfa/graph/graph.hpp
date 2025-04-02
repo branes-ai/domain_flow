@@ -230,8 +230,8 @@ namespace sw {
                         m_edges.erase({ source_node_id, node_id });
                     }
                 }
-                template<typename EdgeType>
-                void add_edge(nodeId_t lhs, nodeId_t rhs, EdgeType&& edge) {
+                template<typename AddEdgeType>
+                void add_edge(nodeId_t lhs, nodeId_t rhs, AddEdgeType&& edge) {
                     if (!has_node(lhs) || !has_node(rhs)) {
                         throw std::invalid_argument{
                             "Nodes with ID [" + std::to_string(lhs) + "] and [" +
@@ -241,14 +241,14 @@ namespace sw {
                     if constexpr (graph_t) {
                         m_adjacencyList[lhs].insert(rhs);
                         m_edges.emplace(std::make_pair(lhs, rhs),
-                            std::forward<EdgeType>(edge));
+                            std::forward<AddEdgeType>(edge));
                         return;
                     }
                     else {
                         m_adjacencyList[lhs].insert(rhs);
                         m_adjacencyList[rhs].insert(lhs);
                         m_edges.emplace(detail::make_sorted_pair(lhs, rhs),
-                            std::forward<EdgeType>(edge));
+                            std::forward<AddEdgeType>(edge));
                         return;
                     }
                 }
