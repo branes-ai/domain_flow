@@ -59,7 +59,7 @@ namespace sw {
 
             inline void generate_dot(
                 const directed_graph<Operator, Flow>& graph,
-                const std::optional<algorithm::shortest_path::graph_path<decltype(weight(std::declval<Flow>()))>>& path,
+                const std::optional<algorithm::shortest_path::graph_path<int>>& path, // Change decltype(weight(std::declval<Flow>())) to int
                 const std::string& filepath)
             {
                 auto shortest_path{ path.value() };
@@ -97,8 +97,8 @@ namespace sw {
 
             template <typename V, typename E, bool D, typename VertexWriter, typename EdgeWriter>
                 requires std::is_invocable_r_v<std::string, const VertexWriter&, nodeId_t, const V&>&&
-            std::is_invocable_r_v<std::string, const EdgeWriter&, const edgeId_t&, const typename graph<V, E, D>::edge_t&>
-                void print_graph(std::ostream& ostr, const graph<V, E, D>& graph,
+                std::is_invocable_r_v<std::string, const EdgeWriter&, const edgeId_t&, const typename graph<V, E, D>::edge_t&>
+            void print_graph(std::ostream& ostr, const graph<V, E, D>& graph,
                     const VertexWriter& vertex_writer,
                     const EdgeWriter& edge_writer) {
 
@@ -124,7 +124,7 @@ namespace sw {
             }
 
             inline void print_shortest_path(std::ostream& ostr, const directed_graph<Operator, Flow>& g,
-                const std::optional<algorithm::shortest_path::graph_path<decltype(weight(std::declval<Flow>()))>>& path)
+                const std::optional<algorithm::shortest_path::graph_path<int>> &path) // Change decltype(weight(std::declval<Flow>())) to int
             {
                 auto shortest_path{ path.value() };
                 std::unordered_set<edgeId_t, edge_id_hash> edges_on_shortest_path{};
