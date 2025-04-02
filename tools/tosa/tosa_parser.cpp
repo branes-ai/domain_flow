@@ -16,238 +16,243 @@
 #include "llvm/Support/raw_ostream.h"
 #include <string>
 #include <vector>
-//#include <dfa/graph/graph.hpp>
+#include <dfa/graph/graph.hpp>
 
-// Helper struct to store parsed operand information
-struct OperandInfo {
-    std::string name;
-    mlir::Type type;
-    size_t index;
-};
+namespace sw {
+    namespace dfa {
 
-// Helper struct to store parsed attribute information
-struct AttributeInfo {
-    std::string name;
-    std::string valueStr;
-    mlir::Attribute attr;
-};
+        // Helper struct to store parsed operand information
+        struct OperandInfo {
+            std::string name;
+            mlir::Type type;
+            size_t index;
+        };
 
-// Helper struct for Conv2D specific parsed attributes
-struct Conv2DAttributes {
-    std::vector<int64_t> pad;
-    std::vector<int64_t> stride;
-    std::vector<int64_t> dilation;
-};
+        // Helper struct to store parsed attribute information
+        struct AttributeInfo {
+            std::string name;
+            std::string valueStr;
+            mlir::Attribute attr;
+        };
 
-// Function to extract operand information from an operation (using reference)
-std::vector<OperandInfo> parseOperands(mlir::Operation& op) {
-    std::vector<OperandInfo> operands;
+        // Helper struct for Conv2D specific parsed attributes
+        struct Conv2DAttributes {
+            std::vector<int64_t> pad;
+            std::vector<int64_t> stride;
+            std::vector<int64_t> dilation;
+        };
 
-    for (size_t i = 0; i < op.getNumOperands(); ++i) {
-        mlir::Value operand = op.getOperand(i);
-        OperandInfo info;
-        info.index = i;
-        info.type = operand.getType();
+        // Function to extract operand information from an operation (using reference)
+        std::vector<OperandInfo> parseOperands(mlir::Operation& op) {
+            std::vector<OperandInfo> operands;
 
-        // Try to get operand name from its defining op if available
-        if (auto definingOp = operand.getDefiningOp()) {
-            info.name = definingOp->getName().getStringRef().str();
+            for (size_t i = 0; i < op.getNumOperands(); ++i) {
+                mlir::Value operand = op.getOperand(i);
+                OperandInfo info;
+                info.index = i;
+                info.type = operand.getType();
+
+                // Try to get operand name from its defining op if available
+                if (auto definingOp = operand.getDefiningOp()) {
+                    info.name = definingOp->getName().getStringRef().str();
+                }
+                else {
+                    info.name = "block_arg_" + std::to_string(i);
+                }
+
+                operands.push_back(info);
+            }
+
+            return operands;
         }
-        else {
-            info.name = "block_arg_" + std::to_string(i);
+
+        // Function to extract attribute information from an operation (using reference)
+        std::vector<AttributeInfo> parseAttributes(mlir::Operation& op) {
+            std::vector<AttributeInfo> attributes;
+
+            for (mlir::NamedAttribute namedAttr : op.getAttrs()) {
+                AttributeInfo info;
+                info.name = namedAttr.getName().strref().str();
+                info.attr = namedAttr.getValue();
+
+                std::string attrStr;
+                llvm::raw_string_ostream os(attrStr);
+                namedAttr.getValue().print(os);
+                info.valueStr = os.str();
+
+                attributes.push_back(info);
+            }
+
+            return attributes;
         }
 
-        operands.push_back(info);
-    }
+        // Function to extract block information from an operation (using reference)
+        void parseBlocks(mlir::Operation& op, llvm::raw_ostream& os) {
+            os << "Operation has " << op.getNumRegions() << " regions\n";
 
-    return operands;
-}
+            for (size_t i = 0; i < op.getNumRegions(); ++i) {
+                mlir::Region& region = op.getRegion(i);
+                os << "  Region " << i << " has " << region.getBlocks().size() << " blocks\n";
 
-// Function to extract attribute information from an operation (using reference)
-std::vector<AttributeInfo> parseAttributes(mlir::Operation& op) {
-    std::vector<AttributeInfo> attributes;
+                for (mlir::Block& block : region.getBlocks()) {
+                    os << "    Block with " << block.getNumArguments() << " arguments and "
+                        << block.getOperations().size() << " operations\n";
 
-    for (mlir::NamedAttribute namedAttr : op.getAttrs()) {
-        AttributeInfo info;
-        info.name = namedAttr.getName().strref().str();
-        info.attr = namedAttr.getValue();
-
-        std::string attrStr;
-        llvm::raw_string_ostream os(attrStr);
-        namedAttr.getValue().print(os);
-        info.valueStr = os.str();
-
-        attributes.push_back(info);
-    }
-
-    return attributes;
-}
-
-// Function to extract block information from an operation (using reference)
-void parseBlocks(mlir::Operation& op, llvm::raw_ostream& os) {
-    os << "Operation has " << op.getNumRegions() << " regions\n";
-
-    for (size_t i = 0; i < op.getNumRegions(); ++i) {
-        mlir::Region& region = op.getRegion(i);
-        os << "  Region " << i << " has " << region.getBlocks().size() << " blocks\n";
-
-        for (mlir::Block& block : region.getBlocks()) {
-            os << "    Block with " << block.getNumArguments() << " arguments and "
-                << block.getOperations().size() << " operations\n";
-
-            for (mlir::Operation& nestedOp : block.getOperations()) {
-                os << "      Operation: " << nestedOp.getName().getStringRef().str() << "\n";
+                    for (mlir::Operation& nestedOp : block.getOperations()) {
+                        os << "      Operation: " << nestedOp.getName().getStringRef().str() << "\n";
+                    }
+                }
             }
         }
-    }
-}
 
-// Function to extract Conv2D specific attributes
-Conv2DAttributes parseConv2DAttributes(mlir::tosa::Conv2DOp convOp) {
-    Conv2DAttributes result;
+        // Function to extract Conv2D specific attributes
+        Conv2DAttributes parseConv2DAttributes(mlir::tosa::Conv2DOp convOp) {
+            Conv2DAttributes result;
 
-    // Extract pad attribute
-    if (auto padAttr = convOp.getPadAttr()) {
-        auto padValues = padAttr.asArrayRef();
-        result.pad.assign(padValues.begin(), padValues.end());
-    }
+            // Extract pad attribute
+            if (auto padAttr = convOp.getPadAttr()) {
+                auto padValues = padAttr.asArrayRef();
+                result.pad.assign(padValues.begin(), padValues.end());
+            }
 
-    // Extract stride attribute
-    if (auto strideAttr = convOp.getStrideAttr()) {
-        auto strideValues = strideAttr.asArrayRef();
-        result.stride.assign(strideValues.begin(), strideValues.end());
-    }
+            // Extract stride attribute
+            if (auto strideAttr = convOp.getStrideAttr()) {
+                auto strideValues = strideAttr.asArrayRef();
+                result.stride.assign(strideValues.begin(), strideValues.end());
+            }
 
-    // Extract dilation attribute
-    if (auto dilationAttr = convOp.getDilationAttr()) {
-        auto dilationValues = dilationAttr.asArrayRef();
-        result.dilation.assign(dilationValues.begin(), dilationValues.end());
-    }
+            // Extract dilation attribute
+            if (auto dilationAttr = convOp.getDilationAttr()) {
+                auto dilationValues = dilationAttr.asArrayRef();
+                result.dilation.assign(dilationValues.begin(), dilationValues.end());
+            }
 
-    return result;
-}
+            return result;
+        }
 
-// A specialized function to parse TOSA Conv2D operations (using reference)
-void parseTosaConv2D(mlir::Operation& op, llvm::raw_ostream& os) {
-    if (!mlir::isa<mlir::tosa::Conv2DOp>(op)) {
-        os << "Error: Not a TOSA Conv2D operation\n";
-        return;
-    }
+        // A specialized function to parse TOSA Conv2D operations (using reference)
+        void parseTosaConv2D(mlir::Operation& op, llvm::raw_ostream& os) {
+            if (!mlir::isa<mlir::tosa::Conv2DOp>(op)) {
+                os << "Error: Not a TOSA Conv2D operation\n";
+                return;
+            }
 
-    auto convOp = mlir::cast<mlir::tosa::Conv2DOp>(op);
+            auto convOp = mlir::cast<mlir::tosa::Conv2DOp>(op);
 
-    // Parse basic operation information
-    os << "TOSA Conv2D Operation:\n";
+            // Parse basic operation information
+            os << "TOSA Conv2D Operation:\n";
 
-    // Parse operands
-    os << "Operands:\n";
-    os << "  Input: " << convOp.getInput().getType() << "\n";
-    os << "  Weight: " << convOp.getWeight().getType() << "\n";
-    if (convOp.getBias())
-        os << "  Bias: " << convOp.getBias().getType() << "\n";
+            // Parse operands
+            os << "Operands:\n";
+            os << "  Input: " << convOp.getInput().getType() << "\n";
+            os << "  Weight: " << convOp.getWeight().getType() << "\n";
+            if (convOp.getBias())
+                os << "  Bias: " << convOp.getBias().getType() << "\n";
 
-    // Parse result
-    os << "Result:\n";
-    os << "  " << convOp.getOutput().getType() << "\n";
+            // Parse result
+            os << "Result:\n";
+            os << "  " << convOp.getOutput().getType() << "\n";
 
-    // Parse Conv2D specific attributes
-    Conv2DAttributes convAttrs = parseConv2DAttributes(convOp);
+            // Parse Conv2D specific attributes
+            Conv2DAttributes convAttrs = parseConv2DAttributes(convOp);
 
-    os << "Attributes:\n";
-    os << "  Padding: [";
-    for (size_t i = 0; i < convAttrs.pad.size(); ++i) {
-        if (i > 0) os << ", ";
-        os << convAttrs.pad[i];
-    }
-    os << "]\n";
+            os << "Attributes:\n";
+            os << "  Padding: [";
+            for (size_t i = 0; i < convAttrs.pad.size(); ++i) {
+                if (i > 0) os << ", ";
+                os << convAttrs.pad[i];
+            }
+            os << "]\n";
 
-    os << "  Stride: [";
-    for (size_t i = 0; i < convAttrs.stride.size(); ++i) {
-        if (i > 0) os << ", ";
-        os << convAttrs.stride[i];
-    }
-    os << "]\n";
+            os << "  Stride: [";
+            for (size_t i = 0; i < convAttrs.stride.size(); ++i) {
+                if (i > 0) os << ", ";
+                os << convAttrs.stride[i];
+            }
+            os << "]\n";
 
-    os << "  Dilation: [";
-    for (size_t i = 0; i < convAttrs.dilation.size(); ++i) {
-        if (i > 0) os << ", ";
-        os << convAttrs.dilation[i];
-    }
-    os << "]\n";
-}
+            os << "  Dilation: [";
+            for (size_t i = 0; i < convAttrs.dilation.size(); ++i) {
+                if (i > 0) os << ", ";
+                os << convAttrs.dilation[i];
+            }
+            os << "]\n";
+        }
 
-// Main function that demonstrates the usage of all the parsing functions (using reference)
-void parseOperation(mlir::Operation& op, llvm::raw_ostream& os) {
-    os << "Parsing operation: " << op.getName().getStringRef().str() << "\n";
+        // Main function that demonstrates the usage of all the parsing functions (using reference)
+        void parseOperation(mlir::Operation& op, llvm::raw_ostream& os) {
+            os << "Parsing operation: " << op.getName().getStringRef().str() << "\n";
 
-    // Parse operands
-    std::vector<OperandInfo> operands = parseOperands(op);
-    os << "Operands (" << operands.size() << "):\n";
-    for (const auto& operand : operands) {
-        os << "  " << operand.index << ": " << operand.name << " of type " << operand.type << "\n";
-    }
+            // Parse operands
+            std::vector<OperandInfo> operands = parseOperands(op);
+            os << "Operands (" << operands.size() << "):\n";
+            for (const auto& operand : operands) {
+                os << "  " << operand.index << ": " << operand.name << " of type " << operand.type << "\n";
+            }
 
-    // Parse attributes
-    std::vector<AttributeInfo> attributes = parseAttributes(op);
-    os << "Attributes (" << attributes.size() << "):\n";
-    for (const auto& attr : attributes) {
-        os << "  " << attr.name << ": " << attr.valueStr << "\n";
-    }
+            // Parse attributes
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            os << "Attributes (" << attributes.size() << "):\n";
+            for (const auto& attr : attributes) {
+                os << "  " << attr.name << ": " << attr.valueStr << "\n";
+            }
 
-    // Parse blocks
-    parseBlocks(op, os);
+            // Parse blocks
+            parseBlocks(op, os);
 
-    // If the operation is a TOSA Conv2D, parse it specifically
-    if (mlir::isa<mlir::tosa::Conv2DOp>(op)) {
-        os << "\nDetected TOSA Conv2D operation, parsing specifically:\n";
-        parseTosaConv2D(op, os);
-    }
-}
-
-// Example of how to use these functions with your code pattern
-void processModule(mlir::ModuleOp module) {
-    std::string output;
-    llvm::raw_string_ostream os(output);
-
-    // Walk through the operations in the module and analyze them
-    for (auto func : module.getOps<mlir::func::FuncOp>()) {
-        os << "Processing function: " << func.getName() << "\n";
-        for (auto& op : func.getBody().getOps()) {
-            // Call our parser function instead of executeOperation
-            parseOperation(op, os);
-
-            // For TOSA Conv2D operations, you can also use the specialized parser
+            // If the operation is a TOSA Conv2D, parse it specifically
             if (mlir::isa<mlir::tosa::Conv2DOp>(op)) {
-                os << "\nDetailed TOSA Conv2D analysis:\n";
+                os << "\nDetected TOSA Conv2D operation, parsing specifically:\n";
                 parseTosaConv2D(op, os);
             }
         }
+
+        // Example of how to use these functions with your code pattern
+        void processModule(mlir::ModuleOp module) {
+            std::string output;
+            llvm::raw_string_ostream os(output);
+
+            // Walk through the operations in the module and analyze them
+            for (auto func : module.getOps<mlir::func::FuncOp>()) {
+                os << "Processing function: " << func.getName() << "\n";
+                for (auto& op : func.getBody().getOps()) {
+                    // Call our parser function instead of executeOperation
+                    parseOperation(op, os);
+
+                    // For TOSA Conv2D operations, you can also use the specialized parser
+                    if (mlir::isa<mlir::tosa::Conv2DOp>(op)) {
+                        os << "\nDetailed TOSA Conv2D analysis:\n";
+                        parseTosaConv2D(op, os);
+                    }
+                }
+            }
+
+            // Print or save the output
+            std::cout << output << std::endl;
+        }
+
+        // Example of how to use the above functions with a TOSA Conv2D operation
+        // Note: This function wouldn't be compiled as it would need an actual IR context and module
+        void exampleWithTosaConv2D() {
+            /*
+             This would be equivalent to the following MLIR code:
+
+             %0 = tosa.conv2d %input, %weights, %bias {
+               pad = [1, 1, 1, 1],
+               stride = [1, 1],
+               dilation = [1, 1]
+             } : (tensor<1x32x32x3xf32>, tensor<16x3x3x3xf32>, tensor<16xf32>) -> tensor<1x32x32x16xf32>
+
+             The usage would be:
+
+             mlir::Operation* op = ... // Get the operation from somewhere
+             std::string output;
+             llvm::raw_string_ostream os(output);
+             parseOperation(op, os);
+             std::cout << output << std::endl;
+             */
+        }
     }
-
-    // Print or save the output
-    std::cout << output << std::endl;
-}
-
-// Example of how to use the above functions with a TOSA Conv2D operation
-// Note: This function wouldn't be compiled as it would need an actual IR context and module
-void exampleWithTosaConv2D() {
-    /*
-     This would be equivalent to the following MLIR code:
-
-     %0 = tosa.conv2d %input, %weights, %bias {
-       pad = [1, 1, 1, 1],
-       stride = [1, 1],
-       dilation = [1, 1]
-     } : (tensor<1x32x32x3xf32>, tensor<16x3x3x3xf32>, tensor<16xf32>) -> tensor<1x32x32x16xf32>
-
-     The usage would be:
-
-     mlir::Operation* op = ... // Get the operation from somewhere
-     std::string output;
-     llvm::raw_string_ostream os(output);
-     parseOperation(op, os);
-     std::cout << output << std::endl;
-     */
 }
 
 int main(int argc, char **argv) {
@@ -281,12 +286,12 @@ int main(int argc, char **argv) {
         os << "Processing function: " << func.getName() << "\n";
         for (auto& op : func.getBody().getOps()) {
             // Call our parser function instead of executeOperation
-            parseOperation(op, os);
+            sw::dfa::parseOperation(op, os);
 
-            // For TOSA Conv2D operations, you can also use the specialized parser
+            // For TOSA Conv2D operations, use the specialized parser to capture and interpret attributes
             if (mlir::isa<mlir::tosa::Conv2DOp>(op)) {
                 os << "\nDetailed TOSA Conv2D analysis:\n";
-                parseTosaConv2D(op, os);
+                sw::dfa::parseTosaConv2D(op, os);
             }
         }
     }

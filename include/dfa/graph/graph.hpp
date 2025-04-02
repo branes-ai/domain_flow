@@ -58,43 +58,57 @@ namespace sw {
 
                 virtual ~weighted_edge() = default;
 
-                [[nodiscard]] virtual WeightType weight() const noexcept = 0;
+                virtual WeightType weight() const noexcept = 0;
             };
 
+#ifdef SUPPORTS_CONCEPTS
             template <typename derived>
             concept derived_from_weighted_edge = std::is_base_of_v<weighted_edge<typename derived::weight_t>, derived>;
 
-            /// <summary>
-            /// get the weight from an edge in a graph
-            /// </summary>
-            /// <typeparam name="WeightedEdgeType"></typeparam>
-            /// <param name="edge"></param>
-            /// <returns></returns>
             template <typename WeightedEdgeType>
                 requires derived_from_weighted_edge<WeightedEdgeType>
-            [[nodiscard]] inline auto weight(const WeightedEdgeType& edge) { return edge.weight(); }
+            inline auto weight(const WeightedEdgeType& edge) { return edge.weight(); }
 
-            /// <summary>
-            /// overload of a native type weight
-            /// </summary>
-            /// <typeparam name="EdgeType"></typeparam>
-            /// <param name="edge"></param>
-            /// <returns></returns>
             template <typename EdgeType>
                 requires std::is_arithmetic_v<EdgeType>
-            [[nodiscard]] inline EdgeType weight(const EdgeType& edge) { return edge; }
+            inline EdgeType weight(const EdgeType& edge) { return edge; }
 
-            /// <summary>
-            /// overload to guarantee that unweighted edges have a weight of one
-            /// </summary>
-            /// <typeparam name="EdgeType"></typeparam>
-            /// <param name=""></param>
-            /// <returns></returns>
             template <typename EdgeType>
-            [[nodiscard]] inline int weight(const EdgeType& /*edge*/) {
+            inline int weight(const EdgeType& /*edge*/) {
                 // By default, an edge has unit weight
                 return 1;
             }
+#else
+            // Replace concept with SFINAE
+            template <typename Derived, typename WeightType = typename Derived::weight_t>
+            constexpr std::enable_if_t<std::is_base_of_v<weighted_edge<WeightType>, Derived>, bool>
+                is_derived_from_weighted_edge(const Derived&) {
+                return true;
+            }
+            template <typename Derived>
+            constexpr std::enable_if_t<!std::is_base_of_v<weighted_edge<typename Derived::weight_t>, Derived>, bool>
+                is_derived_from_weighted_edge(const Derived&) {
+                return false;
+            }
+            template <typename WeightedEdgeType>
+            typename WeightedEdgeType::weight_t
+                weight(const WeightedEdgeType& edge) {
+                static_assert(std::is_base_of_v<weighted_edge<typename WeightedEdgeType::weight_t>, WeightedEdgeType>,
+                    "WeightedEdgeType must derive from weighted_edge");
+                return edge.weight();
+            }
+            template <typename EdgeType>
+            std::enable_if_t<std::is_arithmetic_v<EdgeType>, EdgeType>
+                weight(const EdgeType& edge) {
+                return edge;
+            }
+            template <typename EdgeType>
+            std::enable_if_t<!std::is_arithmetic_v<EdgeType> && !is_derived_from_weighted_edge(std::declval<EdgeType>()), int>
+                weight(const EdgeType& /*edge*/) {
+                // By default, an edge has unit weight
+                return 1;
+            }
+#endif
 
             /// <summary>
             /// A directed or undirected graph consisting of user-defined Nodes and Weighted Edges
@@ -116,16 +130,16 @@ namespace sw {
 
                 // selectors
 
-                [[nodiscard]] constexpr bool is_directed() const noexcept { return graph_t; }
-                [[nodiscard]] std::size_t nrNodes() const noexcept { return m_nodes.size(); }
-                [[nodiscard]] std::size_t nrEdges() const noexcept { return m_edges.size(); }
+                constexpr bool is_directed() const noexcept { return graph_t; }
+                std::size_t nrNodes() const noexcept { return m_nodes.size(); }
+                std::size_t nrEdges() const noexcept { return m_edges.size(); }
 
-                [[nodiscard]] const nodeId_to_node_t& nodes() const noexcept { return m_nodes; }
-                [[nodiscard]] const edgeId_to_edge_t& edges() const noexcept { return m_edges; }
+                const nodeId_to_node_t& nodes() const noexcept { return m_nodes; }
+                const edgeId_to_edge_t& edges() const noexcept { return m_edges; }
 
-                [[nodiscard]] bool has_node(nodeId_t node_id) const noexcept { return m_nodes.contains(node_id); }
+                bool has_node(nodeId_t node_id) const noexcept { return m_nodes.contains(node_id); }
 
-                [[nodiscard]] bool has_edge(nodeId_t node_id_lhs, nodeId_t node_id_rhs) const noexcept {
+                bool has_edge(nodeId_t node_id_lhs, nodeId_t node_id_rhs) const noexcept {
                     if constexpr (graph_t) {
                         return m_edges.contains({ node_id_lhs, node_id_rhs });
                     }
@@ -134,22 +148,22 @@ namespace sw {
                     }
                 }
 
-                [[nodiscard]] node_t& node(nodeId_t node_id) {
+                node_t& node(nodeId_t node_id) {
                     return const_cast<node_t&>(const_cast<const graph<node_t, edge_t, graph_t>*>(this)->node(node_id));
                 }
 
-                [[nodiscard]] const node_t& node(nodeId_t node_id) const {
+                const node_t& node(nodeId_t node_id) const {
                     if (!has_node(node_id)) {
                         throw std::invalid_argument{ "Node with ID [" + std::to_string(node_id) + "] not found in graph." };
                     }
                     return m_nodes.at(node_id);
                 }
 
-                [[nodiscard]] edge_t& edge(nodeId_t lhs, nodeId_t rhs) {
+                edge_t& edge(nodeId_t lhs, nodeId_t rhs) {
                     return const_cast<graph<node_t, edge_t, graph_t>::edge_t&>(
                         const_cast<const graph<node_t, edge_t, graph_t>*>(this)->edge(lhs, rhs));
                 }
-                [[nodiscard]] const edge_t& edge(nodeId_t lhs, nodeId_t rhs) const {
+                const edge_t& edge(nodeId_t lhs, nodeId_t rhs) const {
                     if (!has_edge(lhs, rhs)) {
                         throw std::invalid_argument{ "No edge found between vertices [" +
                                                     std::to_string(lhs) + "] -> [" +
@@ -164,18 +178,18 @@ namespace sw {
                     }
                 }
 
-                [[nodiscard]] edge_t& edge(const edgeId_t& edge_id) {
+                edge_t& edge(const edgeId_t& edge_id) {
                     const auto [lhs, rhs] = edge_id;
                     return edge(lhs, rhs);
                 }
 
-                [[nodiscard]] const edge_t& edge(const edgeId_t& edge_id) const {
+                const edge_t& edge(const edgeId_t& edge_id) const {
                     const auto [lhs, rhs] {edge_id};
                     return edge(lhs, rhs);
                 }
 
 
-                [[nodiscard]] vertices_t neighbors(nodeId_t node_id) const {
+                vertices_t neighbors(nodeId_t node_id) const {
                     if (!m_adjacencyList.contains(node_id)) {
                         return {};
                     }
@@ -183,21 +197,22 @@ namespace sw {
                 }
 
                 // Modifiers
-                [[nodiscard]] nodeId_t add_node(auto&& vertex) {
+                template<typename NodeType>
+                nodeId_t add_node(NodeType&& node) {
                     while (has_node(m_runningNodeId)) {
                         ++m_runningNodeId;
                     }
                     const auto node_id{ m_runningNodeId };
-                    m_nodes.emplace(node_id, std::forward<decltype(vertex)>(vertex));
+                    m_nodes.emplace(node_id, std::forward<NodeType>(node));
                     return node_id;
                 }
-
-                nodeId_t add_node(auto&& vertex, nodeId_t id) {
+                template<typename NodeType>
+                nodeId_t add_node(NodeType&& node, nodeId_t id) {
                     if (has_node(id)) {
                         throw std::invalid_argument{ "Node already exists at ID [" + std::to_string(id) + "]" };
                     }
 
-                    m_nodes.emplace(id, std::forward<decltype(vertex)>(vertex));
+                    m_nodes.emplace(id, std::forward< NodeType>(node));
                     return id;
                 }
                 void remove_vertex(nodeId_t node_id) {
@@ -215,8 +230,8 @@ namespace sw {
                         m_edges.erase({ source_node_id, node_id });
                     }
                 }
-
-                void add_edge(nodeId_t lhs, nodeId_t rhs, auto&& edge) {
+                template<typename EdgeType>
+                void add_edge(nodeId_t lhs, nodeId_t rhs, EdgeType&& edge) {
                     if (!has_node(lhs) || !has_node(rhs)) {
                         throw std::invalid_argument{
                             "Nodes with ID [" + std::to_string(lhs) + "] and [" +
@@ -226,14 +241,14 @@ namespace sw {
                     if constexpr (graph_t) {
                         m_adjacencyList[lhs].insert(rhs);
                         m_edges.emplace(std::make_pair(lhs, rhs),
-                            std::forward<decltype(edge)>(edge));
+                            std::forward<EdgeType>(edge));
                         return;
                     }
                     else {
                         m_adjacencyList[lhs].insert(rhs);
                         m_adjacencyList[rhs].insert(lhs);
                         m_edges.emplace(detail::make_sorted_pair(lhs, rhs),
-                            std::forward<decltype(edge)>(edge));
+                            std::forward<EdgeType>(edge));
                         return;
                     }
                 }
