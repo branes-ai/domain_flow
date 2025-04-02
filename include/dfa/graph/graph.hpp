@@ -197,22 +197,22 @@ namespace sw {
                 }
 
                 // Modifiers
-                template<typename NodeType>
-                nodeId_t add_node(NodeType&& node) {
+                template<typename AddNodeType>
+                nodeId_t add_node(AddNodeType&& node) {
                     while (has_node(m_runningNodeId)) {
                         ++m_runningNodeId;
                     }
                     const auto node_id{ m_runningNodeId };
-                    m_nodes.emplace(node_id, std::forward<NodeType>(node));
+                    m_nodes.emplace(node_id, std::forward<AddNodeType>(node));
                     return node_id;
                 }
-                template<typename NodeType>
-                nodeId_t add_node(NodeType&& node, nodeId_t id) {
+                template<typename AddNodeType>
+                nodeId_t add_node(AddNodeType&& node, nodeId_t id) {
                     if (has_node(id)) {
                         throw std::invalid_argument{ "Node already exists at ID [" + std::to_string(id) + "]" };
                     }
 
-                    m_nodes.emplace(id, std::forward< NodeType>(node));
+                    m_nodes.emplace(id, std::forward<AddNodeType>(node));
                     return id;
                 }
                 void remove_vertex(nodeId_t node_id) {
