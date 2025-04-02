@@ -131,7 +131,7 @@ namespace sw {
                 using node_t = NodeType;
                 using edge_t = EdgeType;
 
-                using vertices_t = std::unordered_set<nodeId_t>;
+                using nodeSet_t = std::unordered_set<nodeId_t>;
 
                 using nodeId_to_node_t = std::unordered_map<nodeId_t, NodeType>;
                 using edgeId_to_edge_t = std::unordered_map<edgeId_t, edge_t, edge_id_hash>;
@@ -145,7 +145,15 @@ namespace sw {
                 const nodeId_to_node_t& nodes() const noexcept { return m_nodes; }
                 const edgeId_to_edge_t& edges() const noexcept { return m_edges; }
 
-                bool has_node(nodeId_t node_id) const noexcept { return m_nodes.contains(node_id); }
+                bool has_node(nodeId_t node_id) const noexcept {
+                    bool bHas = false;
+					if (m_nodes.find(node_id) != m_nodes.end()) {
+						bHas = true;
+					}
+                    return bHas;
+                    // easier in C++20
+                    // return m_nodes.contains(node_id);
+                }
 
                 bool has_edge(nodeId_t node_id_lhs, nodeId_t node_id_rhs) const noexcept {
                     if constexpr (graph_t) {
@@ -156,6 +164,7 @@ namespace sw {
                     }
                 }
 
+                // node selectors
                 node_t& node(nodeId_t node_id) {
                     return const_cast<node_t&>(const_cast<const graph<node_t, edge_t, graph_t>*>(this)->node(node_id));
                 }
@@ -167,6 +176,7 @@ namespace sw {
                     return m_nodes.at(node_id);
                 }
 
+                // edge selectors
                 edge_t& edge(nodeId_t lhs, nodeId_t rhs) {
                     return const_cast<graph<node_t, edge_t, graph_t>::edge_t&>(
                         const_cast<const graph<node_t, edge_t, graph_t>*>(this)->edge(lhs, rhs));
@@ -185,19 +195,17 @@ namespace sw {
                         return m_edges.at(detail::make_sorted_pair(lhs, rhs));
                     }
                 }
-
                 edge_t& edge(const edgeId_t& edge_id) {
                     const auto [lhs, rhs] = edge_id;
                     return edge(lhs, rhs);
                 }
-
                 const edge_t& edge(const edgeId_t& edge_id) const {
                     const auto [lhs, rhs] {edge_id};
                     return edge(lhs, rhs);
                 }
 
-
-                vertices_t neighbors(nodeId_t node_id) const {
+                // node set selectors
+                nodeSet_t neighbors(nodeId_t node_id) const {
                     if (!m_adjacencyList.contains(node_id)) {
                         return {};
                     }
@@ -205,6 +213,12 @@ namespace sw {
                 }
 
                 // Modifiers
+                void clear() {
+                    m_runningNodeId = 0;
+                    m_nodes.clear();
+                    m_edges.clear();
+                    m_adjacencyList.clear();
+                }
                 template<typename AddNodeType>
                 nodeId_t add_node(AddNodeType&& node) {
                     while (has_node(m_runningNodeId)) {
@@ -223,7 +237,7 @@ namespace sw {
                     m_nodes.emplace(id, std::forward<AddNodeType>(node));
                     return id;
                 }
-                void remove_vertex(nodeId_t node_id) {
+                void del_node(nodeId_t node_id) {
                     if (m_adjacencyList.contains(node_id)) {
                         for (auto& target_node_id : m_adjacencyList.at(node_id)) {
                             m_edges.erase({ node_id, target_node_id });
@@ -260,7 +274,7 @@ namespace sw {
                         return;
                     }
                 }
-                void remove_edge(nodeId_t lhs, nodeId_t rhs) {
+                void del_edge(nodeId_t lhs, nodeId_t rhs) {
                     if constexpr (graph_t) {
                         m_adjacencyList.at(lhs).erase(rhs);
                         m_edges.erase(std::make_pair(lhs, rhs));
@@ -280,8 +294,10 @@ namespace sw {
                 nodeId_to_node_t m_nodes{};
                 edgeId_to_edge_t m_edges{};
 
-                std::unordered_map<nodeId_t, vertices_t> m_adjacencyList{};
+                std::unordered_map<nodeId_t, nodeSet_t> m_adjacencyList{};
 
+                template<typename NNodeType, typename EEdgeType, bool GGraphType>
+                friend std::ostream& operator<<(std::ostream& ostr, const graph<NNodeType, EEdgeType, GGraphType>& gr);
             };
 
             template <typename NodeType, typename EdgeType>
@@ -289,6 +305,20 @@ namespace sw {
 
             template <typename NodeType, typename EdgeType>
             using undirected_graph = graph<NodeType, EdgeType, UNDIRECTED_GRAPH>;
+
+            // ostream operator
+            template<typename NNodeType, typename EEdgeType, bool GGraphType>
+            std::ostream& operator<<(std::ostream& ostr, const graph<NNodeType, EEdgeType, GGraphType>& gr) {
+
+                // Iterate over the unordered_map using an iterator
+                for (auto const& r : gr.m_nodes) {
+                    int nodeId = r.first;
+                    const auto& op = r.second;
+
+                    std::cout << "nodeId: " << nodeId << ", operator: " << op << std::endl;
+                }
+                return ostr;
+            }
         }
     }
 }  // namespace sw::dfa

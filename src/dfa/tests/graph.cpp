@@ -16,7 +16,7 @@ namespace sw {
                 int flow;
                 bool stationair;  // does the flow go through a memory or not
 
-                [[nodiscard]] int weight() const noexcept override {
+                int weight() const noexcept override {
                     return flow;
                 }
                 Flow(int flow, bool stationair) : flow{ flow }, stationair{ stationair } {}

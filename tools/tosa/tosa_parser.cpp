@@ -1,5 +1,5 @@
 #if WIN32
-#pragma warning(disable : 4244 4267)
+#pragma warning(disable : 4244 4267 4996)
 #endif
 
 #include "mlir/IR/BuiltinOps.h"
@@ -20,6 +20,30 @@
 
 namespace sw {
     namespace dfa {
+
+        // DL Graph node type
+        struct TosaOperator {
+            std::string name;
+            unsigned depth;   // 0 is a source
+
+            // Constructor to initialize the node with just a string of the operator
+			TosaOperator(std::string name) : name{ name }, depth{ 0 } {}
+        };
+		std::ostream& operator<<(std::ostream& ostr, const TosaOperator& op) {
+			return ostr << op.name << " at depth " << op.depth;
+		}
+
+        // DL Graph edge type
+        struct DataFlow : public graph::weighted_edge<int> { // Weighted by the data flow on this link
+            int flow;
+            bool stationair;  // does the flow go through a memory or not
+
+            int weight() const noexcept override {
+                return flow;
+            }
+            DataFlow(int flow, bool stationair) : flow{ flow }, stationair{ stationair } {}
+            ~DataFlow() {}
+        };
 
         // Helper struct to store parsed operand information
         struct OperandInfo {
@@ -180,8 +204,10 @@ namespace sw {
         }
 
         // Main function that demonstrates the usage of all the parsing functions (using reference)
-        void parseOperation(mlir::Operation& op, llvm::raw_ostream& os) {
-            os << "Parsing operation: " << op.getName().getStringRef().str() << "\n";
+        void parseOperation(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+            std::string operatorName = op.getName().getStringRef().str();
+            os << "Parsing operation: " << operatorName << "\n";
+            gr.add_node(operatorName);
 
             // Parse operands
             std::vector<OperandInfo> operands = parseOperands(op);
@@ -208,7 +234,7 @@ namespace sw {
         }
 
         // Example of how to use these functions with your code pattern
-        void processModule(mlir::ModuleOp module) {
+        void processModule(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::ModuleOp module) {
             std::string output;
             llvm::raw_string_ostream os(output);
 
@@ -217,7 +243,7 @@ namespace sw {
                 os << "Processing function: " << func.getName() << "\n";
                 for (auto& op : func.getBody().getOps()) {
                     // Call our parser function instead of executeOperation
-                    parseOperation(op, os);
+                    parseOperation(gr, op, os);
 
                     // For TOSA Conv2D operations, you can also use the specialized parser
                     if (mlir::isa<mlir::tosa::Conv2DOp>(op)) {
@@ -252,6 +278,9 @@ namespace sw {
              std::cout << output << std::endl;
              */
         }
+
+
+
     }
 }
 
@@ -282,11 +311,12 @@ int main(int argc, char **argv) {
     llvm::raw_string_ostream os(output);
 
     // Walk through the operations in the module and analyze them
+    sw::dfa::graph::directed_graph<sw::dfa::TosaOperator, sw::dfa::DataFlow> gr; // Deep Learning graph
     for (auto func : module->getOps<mlir::func::FuncOp>()) {
         os << "Processing function: " << func.getName() << "\n";
         for (auto& op : func.getBody().getOps()) {
             // Call our parser function instead of executeOperation
-            sw::dfa::parseOperation(op, os);
+            sw::dfa::parseOperation(gr, op, os);
 
             // For TOSA Conv2D operations, use the specialized parser to capture and interpret attributes
             if (mlir::isa<mlir::tosa::Conv2DOp>(op)) {
@@ -298,6 +328,9 @@ int main(int argc, char **argv) {
 
     // Print or save the output
     std::cout << output << std::endl;
+
+    // Print the graph
+    std::cout << gr << std::endl;
 
     return 0;
 }
