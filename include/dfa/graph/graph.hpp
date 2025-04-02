@@ -85,11 +85,13 @@ namespace sw {
                 is_derived_from_weighted_edge(const Derived&) {
                 return true;
             }
+            
             template <typename Derived>
             constexpr std::enable_if_t<!std::is_base_of_v<weighted_edge<typename Derived::weight_t>, Derived>, bool>
                 is_derived_from_weighted_edge(const Derived&) {
                 return false;
             }
+
             template <typename WeightedEdgeType>
             typename WeightedEdgeType::weight_t
                 weight(const WeightedEdgeType& edge) {
@@ -97,17 +99,23 @@ namespace sw {
                     "WeightedEdgeType must derive from weighted_edge");
                 return edge.weight();
             }
+
             template <typename EdgeType>
             std::enable_if_t<std::is_arithmetic_v<EdgeType>, EdgeType>
                 weight(const EdgeType& edge) {
                 return edge;
             }
+
             template <typename EdgeType>
-            std::enable_if_t<!std::is_arithmetic_v<EdgeType> && !is_derived_from_weighted_edge(std::declval<EdgeType>()), int>
+            constexpr bool is_derived_from_weighted_edge_v = std::is_base_of_v<weighted_edge<typename EdgeType::weight_t>, EdgeType>;
+
+            template <typename EdgeType>
+            std::enable_if_t<!std::is_arithmetic_v<EdgeType> && !is_derived_from_weighted_edge_v<EdgeType>, int>
                 weight(const EdgeType& /*edge*/) {
                 // By default, an edge has unit weight
                 return 1;
             }
+
 #endif
 
             /// <summary>
