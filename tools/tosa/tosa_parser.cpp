@@ -183,16 +183,11 @@ namespace sw {
         // A specialized function to parse TOSA Clamp operation
         void parseTosaClamp(mlir::Operation& op, llvm::raw_ostream& os) {
 
-            if (!mlir::isa<mlir::tosa::ClampOp>(op)) {
-                os << "Error: Not a TOSA Clamp operation\n";
-                return;
-            }
-
             auto clampOp = mlir::cast<mlir::tosa::ClampOp>(op);
 
             // Parse basic operation information
             os << "TOSA Clamp Operation:\n";
-
+            return;
             // Parse operands
             os << "Operands:\n";
             os << "  Input: " << clampOp.getInput().getType() << "\n";
@@ -239,16 +234,11 @@ namespace sw {
         // A specialized function to parse TOSA Conv2D operations
         void parseTosaConv2D(mlir::Operation& op, llvm::raw_ostream& os) {
 
-            if (!mlir::isa<mlir::tosa::Conv2DOp>(op)) {
-                os << "Error: Not a TOSA Conv2D operation\n";
-                return;
-            }
-
             auto convOp = mlir::cast<mlir::tosa::Conv2DOp>(op);
 
             // Parse basic operation information
             os << "TOSA Conv2D Operation:\n";
-
+            return;
             // Parse operands
             os << "Operands:\n";
             os << "  Input: " << convOp.getInput().getType() << "\n";
@@ -357,7 +347,7 @@ namespace sw {
 
 
 
-        // Main function that demonstrates the usage of all the parsing functions (using reference)
+        // Parse the TOSA Op and add to the graph
         void parseOperation(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             if (mlir::isa<mlir::tosa::ConstOp>(op)) {
                 os << "\nDetected TOSA ConstOp:\n";
@@ -465,17 +455,17 @@ namespace sw {
                 // Parse operands
                 std::vector<OperandInfo> operands = parseOperands(op);
                 os << "Operands (" << operands.size() << "):\n";
-                //for (const auto& operand : operands) {
-                //    os << "  " << operand.index << ": " << operand.name << " of type " << operand.type << "\n";
-                //}
+                for (const auto& operand : operands) {
+                    os << "  " << operand.index << ": " << operand.name << " of type " << operand.type << "\n";
+                }
 
                 // Parse attributes
                 std::vector<AttributeInfo> attributes = parseAttributes(op);
                 os << "Attributes (" << attributes.size() << "):\n";
-                //for (const auto& attr : attributes) {
-                //    os << "  " << attr.name << "\n";
-                //    //os << "  " << attr.name << ": " << attr.valueStr << "\n";
-                //}
+                for (const auto& attr : attributes) {
+                    os << "  " << attr.name << "\n";
+                    //os << "  " << attr.name << ": " << attr.valueStr << "\n";
+                }
             }
 
             // Parse blocks
@@ -571,14 +561,8 @@ int main(int argc, char **argv) {
     for (auto func : module->getOps<mlir::func::FuncOp>()) {
         os << "Processing function: " << func.getName() << "\n";
         for (auto& op : func.getBody().getOps()) {
-            // Call our parser function instead of executeOperation
             sw::dfa::parseOperation(gr, op, os);
-
-            // For TOSA Conv2D operations, use the specialized parser to capture and interpret attributes
-            if (mlir::isa<mlir::tosa::Conv2DOp>(op)) {
-                os << "\nDetailed TOSA Conv2D analysis:\n";
-                sw::dfa::parseTosaConv2D(op, os);
-            }
+			op.dumpPretty();
         }
     }
 
