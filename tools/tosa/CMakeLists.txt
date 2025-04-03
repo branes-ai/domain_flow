@@ -29,9 +29,23 @@ set(LIBS
     MLIRFuncToLLVM
 )
 
-# Create the mlir text parser executable
+# Create the mlir symbol table walker
+set(DFA_MLIR_WALK_RESULTS mlir_walk_results)
+set(DFA_MLIR_WALK_RESULTS_SRC mlir_walk_results.cpp)
+add_mlir_tool(${DFA_MLIR_WALK_RESULTS} 
+	${DFA_MLIR_WALK_RESULTS_SRC}
+	PARTIAL_SOURCES_INTENDED
+
+	DEPENDS
+	${LIBS}
+)
+target_link_libraries(${DFA_MLIR_WALK_RESULTS} ${LIBS})
+llvm_update_compile_flags(${DFA_MLIR_WALK_RESULTS})
+mlir_check_all_link_libraries(${DFA_MLIR_WALK_RESULTS})
+set_target_properties(${DFA_MLIR_WALK_RESULTS} PROPERTIES FOLDER "dfa/tools/tosa")
+
+# Create the mlir TOSA parser executable
 set(DFA_TOSA_PARSER tosa_parser)
-# regular Cmake doesn't work
 set(DFA_TOSA_PARSER_SRC tosa_parser.cpp)
 add_mlir_tool(${DFA_TOSA_PARSER} 
 	${DFA_TOSA_PARSER_SRC}
