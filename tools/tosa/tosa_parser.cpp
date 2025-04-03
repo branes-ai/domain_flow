@@ -27,11 +27,11 @@ namespace sw {
             unsigned depth;   // 0 is a source
 
             // Constructor to initialize the node with just a string of the operator
-			TosaOperator(std::string name) : name{ name }, depth{ 0 } {}
+            TosaOperator(std::string name) : name{ name }, depth{ 0 } {}
         };
-		std::ostream& operator<<(std::ostream& ostr, const TosaOperator& op) {
-			return ostr << op.name << " at depth " << op.depth;
-		}
+        std::ostream& operator<<(std::ostream& ostr, const TosaOperator& op) {
+            return ostr << op.name << " at depth " << op.depth;
+        }
 
         // DL Graph edge type
         struct DataFlow : public graph::weighted_edge<int> { // Weighted by the data flow on this link
@@ -57,6 +57,12 @@ namespace sw {
             std::string name;
             std::string valueStr;
             mlir::Attribute attr;
+        };
+
+        // Helper struct for Clamp specific parsed attributes
+        struct ClampAttributes {
+            uint64_t minInt, maxInt;
+            float minFp, maxFp;
         };
 
         // Helper struct for Conv2D specific parsed attributes
@@ -129,6 +135,82 @@ namespace sw {
             }
         }
 
+
+		// Function to extract Const specific attributes
+		void parseConst(mlir::Operation& op, llvm::raw_ostream& os) {
+			auto constOp = mlir::cast<mlir::tosa::ConstOp>(op);
+			// Parse basic operation information
+			os << "TOSA Const Operation:\n";
+			// Parse operands
+			os << "Result:\n";
+			os << "  " << constOp.getOutput().getType() << "\n";
+			// Parse attributes
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            os << "Attributes (" << attributes.size() << "):\n";
+            //for (const auto& attr : attributes) {
+            //    os << "  " << attr.name << "\n";
+            //    //os << "  " << attr.name << ": " << attr.valueStr << "\n";
+            //}
+		}
+
+        // Function to extract Clamp specific attributes
+        ClampAttributes parseClampAttributes(mlir::tosa::ClampOp clampOp) {
+            ClampAttributes result;
+
+            // Extract min_int attribute
+            if (auto minIntAttr = clampOp.getMinIntAttr()) {
+                result.minInt = minIntAttr.getValue().getSExtValue();
+            }
+
+            // Extract max_int attribute
+            if (auto maxIntAttr = clampOp.getMaxIntAttr()) {
+                result.maxInt = maxIntAttr.getValue().getSExtValue();
+            }
+
+            // Extract min_fp attribute
+            if (auto minFpAttr = clampOp.getMinFpAttr()) {
+                result.minFp = minFpAttr.getValue().convertToDouble();
+            }
+
+            // Extract max_fp attribute
+            if (auto maxFpAttr = clampOp.getMaxFpAttr()) {
+                result.maxFp = maxFpAttr.getValue().convertToDouble();
+            }
+
+            return result;
+        }
+
+        // A specialized function to parse TOSA Clamp operation
+        void parseTosaClamp(mlir::Operation& op, llvm::raw_ostream& os) {
+
+            if (!mlir::isa<mlir::tosa::ClampOp>(op)) {
+                os << "Error: Not a TOSA Clamp operation\n";
+                return;
+            }
+
+            auto clampOp = mlir::cast<mlir::tosa::ClampOp>(op);
+
+            // Parse basic operation information
+            os << "TOSA Clamp Operation:\n";
+
+            // Parse operands
+            os << "Operands:\n";
+            os << "  Input: " << clampOp.getInput().getType() << "\n";
+            
+            // Parse Clamp specific attributes
+            ClampAttributes clampAttrs = parseClampAttributes(clampOp);
+
+            os << "Attributes:\n";
+			os << "  Min Int: " << clampAttrs.minInt << "\n";
+			os << "  Max Int: " << clampAttrs.maxInt << "\n";
+			os << "  Min FP: " << clampAttrs.minFp << "\n";
+			os << "  Max FP: " << clampAttrs.maxFp << "\n";
+
+            // Parse result
+            os << "Result:\n";
+            os << "  " << clampOp.getOutput().getType() << "\n";
+        }
+
         // Function to extract Conv2D specific attributes
         Conv2DAttributes parseConv2DAttributes(mlir::tosa::Conv2DOp convOp) {
             Conv2DAttributes result;
@@ -154,8 +236,9 @@ namespace sw {
             return result;
         }
 
-        // A specialized function to parse TOSA Conv2D operations (using reference)
+        // A specialized function to parse TOSA Conv2D operations
         void parseTosaConv2D(mlir::Operation& op, llvm::raw_ostream& os) {
+
             if (!mlir::isa<mlir::tosa::Conv2DOp>(op)) {
                 os << "Error: Not a TOSA Conv2D operation\n";
                 return;
@@ -203,34 +286,201 @@ namespace sw {
             os << "]\n";
         }
 
+		// A specialized function to parse TOSA Reshape operations
+		void parseTosaReshape(mlir::Operation& op, llvm::raw_ostream& os) {
+        }
+		// A specialized function to parse TOSA Transpose operations
+		void parseTosaTranspose(mlir::Operation& op, llvm::raw_ostream& os) {
+		}
+        // A specialized function to parse TOSA DepthwiseConv2D operations
+        void parseTosaDepthwiseConv2D(mlir::Operation& op, llvm::raw_ostream& os) {
+        }
+		// A specialized function to parse TOSA TransposeConv2D operations
+		void parseTosaTransposeConv2D(mlir::Operation& op, llvm::raw_ostream& os) {
+		}
+		// A specialized function to parse TOSA FullyConnected operations
+		void parseTosaFullyConnected(mlir::Operation& op, llvm::raw_ostream& os) {
+		}
+        // A specialized function to parse TOSA Add operations
+        void parseTosaAdd(mlir::Operation& op, llvm::raw_ostream& os) {
+        }
+        // A specialized function to parse TOSA Sub operations
+        void parseTosaSub(mlir::Operation& op, llvm::raw_ostream& os) {
+        }
+		// A specialized function to parse TOSA Mul operations
+		void parseTosaMul(mlir::Operation& op, llvm::raw_ostream& os) {
+		}
+		// A specialized function to parse TOSA Negate operations
+		void parseTosaNegate(mlir::Operation& op, llvm::raw_ostream& os) {
+		}
+
+		// A specialized function to parse TOSA Pad operations
+		void parseTosaPad(mlir::Operation& op, llvm::raw_ostream& os) {
+		}
+		// A specialized function to parse TOSA Cast operations
+		void parseTosaCast(mlir::Operation& op, llvm::raw_ostream& os) {
+		}
+		// A specialized function to parse TOSA Gather operations
+		void parseTosaGather(mlir::Operation& op, llvm::raw_ostream& os) {
+		}
+
+        // function ops
+		// A specialized function to parse TOSA Reciprocal operations
+		void parseTosaReciprocal(mlir::Operation& op, llvm::raw_ostream& os) {
+		}
+		// A specialized function to parse TOSA ReduceAll operations
+		void parseTosaReduceAll(mlir::Operation& op, llvm::raw_ostream& os) {
+		}
+		// A specialized function to parse TOSA ReduceMax operations
+		void parseTosaReduceMax(mlir::Operation& op, llvm::raw_ostream& os) {
+		}
+		// A specialized function to parse TOSA ReduceMin operations
+		void parseTosaReduceMin(mlir::Operation& op, llvm::raw_ostream& os) {
+		}
+		// A specialized function to parse TOSA ReduceSum operations
+		void parseTosaReduceSum(mlir::Operation& op, llvm::raw_ostream& os) {
+		}
+		// A specialized function to parse TOSA ReduceProd operations
+		void parseTosaReduceProd(mlir::Operation& op, llvm::raw_ostream& os) {
+		}
+
+		// A specialized function to parse TOSA Exp operations
+		void parseTosaExp(mlir::Operation& op, llvm::raw_ostream& os) {
+		}
+		// A specialized function to parse TOSA Abs operations
+		void parseTosaAbs(mlir::Operation& op, llvm::raw_ostream& os) {
+		}
+		// A specialized function to parse TOSA Concat operations
+		void parseTosaConcat(mlir::Operation& op, llvm::raw_ostream& os) {
+		}
+
+
+
+
         // Main function that demonstrates the usage of all the parsing functions (using reference)
         void parseOperation(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-            std::string operatorName = op.getName().getStringRef().str();
-            os << "Parsing operation: " << operatorName << "\n";
-            gr.add_node(operatorName);
-
-            // Parse operands
-            std::vector<OperandInfo> operands = parseOperands(op);
-            os << "Operands (" << operands.size() << "):\n";
-            for (const auto& operand : operands) {
-                os << "  " << operand.index << ": " << operand.name << " of type " << operand.type << "\n";
+            if (mlir::isa<mlir::tosa::ConstOp>(op)) {
+                os << "\nDetected TOSA ConstOp:\n";
+                parseConst(op, os);
             }
+            else if (mlir::isa<mlir::tosa::Conv2DOp>(op)) {
+                os << "\nDetected TOSA Conv2DOp:\n";
+                parseTosaConv2D(op, os);
+            }
+            else if (mlir::isa<mlir::tosa::ClampOp>(op)) {
+                os << "\nDetected TOSA ClampOp:\n";
+                parseTosaClamp(op, os);
+            }
+			else if (mlir::isa<mlir::tosa::ReshapeOp>(op)) {
+				os << "\nDetected TOSA ReshapeOp:\n";
+				parseTosaReshape(op, os);
+			}
+			else if (mlir::isa<mlir::tosa::TransposeOp>(op)) {
+				os << "\nDetected TOSA TransposeOp:\n";
+				parseTosaTranspose(op, os);
+			}
+            else if (mlir::isa<mlir::tosa::DepthwiseConv2DOp>(op)) {
+                os << "\nDetected TOSA DepthwiseConv2DOp:\n";
+                parseTosaDepthwiseConv2D(op, os);
+            }
+            else if (mlir::isa<mlir::tosa::TransposeConv2DOp>(op)) {
+                os << "\nDetected TOSA TransposeConv2DOp:\n";
+                parseTosaTransposeConv2D(op, os);
+            }
+            else if (mlir::isa<mlir::tosa::PadOp>(op)) {
+                os << "\nDetected TOSA PadOp:\n";
+                parseTosaPad(op, os);
+            }
+			else if (mlir::isa<mlir::tosa::FullyConnectedOp>(op)) {
+				os << "\nDetected TOSA FullyConnectedOp:\n";
+				parseTosaFullyConnected(op, os);
+			}
+			else if (mlir::isa<mlir::tosa::AddOp>(op)) {
+				os << "\nDetected TOSA AddOp:\n";
+				parseTosaAdd(op, os);
+			}
+			else if (mlir::isa<mlir::tosa::SubOp>(op)) {
+				os << "\nDetected TOSA SubOp:\n";
+				parseTosaSub(op, os);
+			}
+            else if (mlir::isa<mlir::tosa::MulOp>(op)) {
+                os << "\nDetected TOSA MulOp:\n";
+                parseTosaMul(op, os);
+            }
+			else if (mlir::isa<mlir::tosa::NegateOp>(op)) {
+				os << "\nDetected TOSA NegateOp:\n";
+				parseTosaNegate(op, os);
+			}
+            else if (mlir::isa<mlir::tosa::ExpOp>(op)) {
+                os << "\nDetected TOSA ExpOp:\n";
+                parseTosaExp(op, os);
+			}
+            else if (mlir::isa<mlir::tosa::AbsOp>(op)) {
+                os << "\nDetected TOSA AbsOp:\n";
+                parseTosaAbs(op, os);
+			}
+			else if (mlir::isa<mlir::tosa::ConcatOp>(op)) {
+				os << "\nDetected TOSA ConcatOp:\n";
+				parseTosaConcat(op, os);
+			}
+			else if (mlir::isa<mlir::tosa::CastOp>(op)) {
+				os << "\nDetected TOSA CastOp:\n";
+				parseTosaCast(op, os);
+			}
+			else if (mlir::isa<mlir::tosa::GatherOp>(op)) {
+				os << "\nDetected TOSA GatherOp:\n";
+				parseTosaGather(op, os);
+			}
+			else if (mlir::isa<mlir::tosa::ReciprocalOp>(op)) {
+				os << "\nDetected TOSA ReciprocalOp:\n";
+				parseTosaReciprocal(op, os);
+			}
+			else if (mlir::isa<mlir::tosa::ReduceAllOp>(op)) {
+				os << "\nDetected TOSA ReduceAllOp:\n";
+				parseTosaReduceAll(op, os);
+			}
+			else if (mlir::isa<mlir::tosa::ReduceMaxOp>(op)) {
+				os << "\nDetected TOSA ReduceMaxOp:\n";
+				parseTosaReduceMax(op, os);
+			}
+			else if (mlir::isa<mlir::tosa::ReduceMinOp>(op)) {
+				os << "\nDetected TOSA ReduceMinOp:\n";
+				parseTosaReduceMin(op, os);
+			}
+			else if (mlir::isa<mlir::tosa::ReduceSumOp>(op)) {
+				os << "\nDetected TOSA ReduceSumOp:\n";
+				parseTosaReduceSum(op, os);
+			}
+			else if (mlir::isa<mlir::tosa::ReduceProdOp>(op)) {
+				os << "\nDetected TOSA ReduceProdOp:\n";
+				parseTosaReduceProd(op, os);
+			}
 
-            // Parse attributes
-            std::vector<AttributeInfo> attributes = parseAttributes(op);
-            os << "Attributes (" << attributes.size() << "):\n";
-            for (const auto& attr : attributes) {
-                os << "  " << attr.name << ": " << attr.valueStr << "\n";
+            else {
+				os << "\nDetected generic TOSA operation:\n";
+                std::string operatorName = op.getName().getStringRef().str();
+                os << "Parsing operation: " << operatorName << "\n";
+                gr.add_node(operatorName);
+
+                // Parse operands
+                std::vector<OperandInfo> operands = parseOperands(op);
+                os << "Operands (" << operands.size() << "):\n";
+                //for (const auto& operand : operands) {
+                //    os << "  " << operand.index << ": " << operand.name << " of type " << operand.type << "\n";
+                //}
+
+                // Parse attributes
+                std::vector<AttributeInfo> attributes = parseAttributes(op);
+                os << "Attributes (" << attributes.size() << "):\n";
+                //for (const auto& attr : attributes) {
+                //    os << "  " << attr.name << "\n";
+                //    //os << "  " << attr.name << ": " << attr.valueStr << "\n";
+                //}
             }
 
             // Parse blocks
             parseBlocks(op, os);
 
-            // If the operation is a TOSA Conv2D, parse it specifically
-            if (mlir::isa<mlir::tosa::Conv2DOp>(op)) {
-                os << "\nDetected TOSA Conv2D operation, parsing specifically:\n";
-                parseTosaConv2D(op, os);
-            }
         }
 
         // Example of how to use these functions with your code pattern
@@ -244,6 +494,12 @@ namespace sw {
                 for (auto& op : func.getBody().getOps()) {
                     // Call our parser function instead of executeOperation
                     parseOperation(gr, op, os);
+
+                    // For TOSA Clamp operations, you can also use the specialized parser
+                    if (mlir::isa<mlir::tosa::ClampOp>(op)) {
+                        os << "\nDetailed TOSA Conv2D analysis:\n";
+                        parseTosaClamp(op, os);
+                    }
 
                     // For TOSA Conv2D operations, you can also use the specialized parser
                     if (mlir::isa<mlir::tosa::Conv2DOp>(op)) {
