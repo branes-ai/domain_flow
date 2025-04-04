@@ -1,0 +1,1102 @@
+Processing function: main
+Created node: tosa.const with ID: 1
+Created node: tosa.const with ID: 2
+Created node: tosa.const with ID: 3
+Created node: tosa.const with ID: 4
+Created node: tosa.const with ID: 5
+Created node: tosa.const with ID: 6
+Created node: tosa.const with ID: 7
+Created node: tosa.const with ID: 8
+Created node: tosa.const with ID: 9
+Created node: tosa.const with ID: 10
+Created node: tosa.const with ID: 11
+Created node: tosa.const with ID: 12
+Created node: tosa.const with ID: 13
+Created node: tosa.const with ID: 14
+Created node: tosa.const with ID: 15
+Created node: tosa.const with ID: 16
+Created node: tosa.const with ID: 17
+Created node: tosa.const with ID: 18
+Created node: tosa.const with ID: 19
+Created node: tosa.const with ID: 20
+Created node: tosa.const with ID: 21
+Created node: tosa.const with ID: 22
+Created node: tosa.const with ID: 23
+Created node: tosa.const with ID: 24
+Created node: tosa.const with ID: 25
+Created node: tosa.const with ID: 26
+Created node: tosa.const with ID: 27
+Created node: tosa.const with ID: 28
+Created node: tosa.const with ID: 29
+Created node: tosa.const with ID: 30
+Created node: tosa.const with ID: 31
+Created node: tosa.const with ID: 32
+Created node: tosa.const with ID: 33
+Created node: tosa.const with ID: 34
+Created node: tosa.const with ID: 35
+Created node: tosa.const with ID: 36
+Created node: tosa.const with ID: 37
+Created node: tosa.const with ID: 38
+Created node: tosa.const with ID: 39
+Created node: tosa.const with ID: 40
+Created node: tosa.const with ID: 41
+Created node: tosa.const with ID: 42
+Created node: tosa.const with ID: 43
+Created node: tosa.const with ID: 44
+Created node: tosa.const with ID: 45
+Created node: tosa.const with ID: 46
+Created node: tosa.const with ID: 47
+Created node: tosa.const with ID: 48
+Created node: tosa.const with ID: 49
+Created node: tosa.const with ID: 50
+Created node: tosa.const with ID: 51
+Created node: tosa.const with ID: 52
+Created node: tosa.const with ID: 53
+Created node: tosa.const with ID: 54
+Created node: tosa.const with ID: 55
+Created node: tosa.const with ID: 56
+Created node: tosa.const with ID: 57
+Created node: tosa.const with ID: 58
+Created node: tosa.const with ID: 59
+Created node: tosa.const with ID: 60
+Created node: tosa.const with ID: 61
+Created node: tosa.const with ID: 62
+Created node: tosa.const with ID: 63
+Created node: tosa.const with ID: 64
+Created node: tosa.const with ID: 65
+Created node: tosa.const with ID: 66
+Created node: tosa.const with ID: 67
+Created node: tosa.const with ID: 68
+Created node: tosa.const with ID: 69
+Created node: tosa.const with ID: 70
+Created node: tosa.const with ID: 71
+Created node: tosa.const with ID: 72
+Created node: tosa.const with ID: 73
+Created node: tosa.const with ID: 74
+Created node: tosa.const with ID: 75
+Created node: tosa.const with ID: 76
+Created node: tosa.const with ID: 77
+Created node: tosa.const with ID: 78
+Created node: tosa.const with ID: 79
+Created node: tosa.const with ID: 80
+Created node: tosa.const with ID: 81
+Created node: tosa.const with ID: 82
+Created node: tosa.const with ID: 83
+Created node: tosa.const with ID: 84
+Created node: tosa.const with ID: 85
+Created node: tosa.const with ID: 86
+Created node: tosa.const with ID: 87
+Created node: tosa.const with ID: 88
+Created node: tosa.const with ID: 89
+Created node: tosa.const with ID: 90
+Created node: tosa.const with ID: 91
+Created node: tosa.const with ID: 92
+Created node: tosa.const with ID: 93
+Created node: tosa.const with ID: 94
+Created node: tosa.const with ID: 95
+Created node: tosa.const with ID: 96
+Created node: tosa.const with ID: 97
+Created node: tosa.const with ID: 98
+Created node: tosa.const with ID: 99
+Created node: tosa.const with ID: 100
+Created node: tosa.const with ID: 101
+Created node: tosa.const with ID: 102
+Created node: tosa.const with ID: 103
+Created node: tosa.const with ID: 104
+Created node: tosa.const with ID: 105
+Created node: tosa.const with ID: 106
+Created node: tosa.const with ID: 107
+Created node: tosa.conv2d with ID: 108
+Created node: tosa.clamp with ID: 109
+Created node: tosa.depthwise_conv2d with ID: 110
+Created node: tosa.clamp with ID: 111
+Created node: tosa.conv2d with ID: 112
+Created node: tosa.conv2d with ID: 113
+Created node: tosa.clamp with ID: 114
+Created node: tosa.depthwise_conv2d with ID: 115
+Created node: tosa.clamp with ID: 116
+Created node: tosa.conv2d with ID: 117
+Created node: tosa.conv2d with ID: 118
+Created node: tosa.clamp with ID: 119
+Created node: tosa.depthwise_conv2d with ID: 120
+Created node: tosa.clamp with ID: 121
+Created node: tosa.conv2d with ID: 122
+Created node: tosa.add with ID: 123
+Created node: tosa.conv2d with ID: 124
+Created node: tosa.clamp with ID: 125
+Created node: tosa.depthwise_conv2d with ID: 126
+Created node: tosa.clamp with ID: 127
+Created node: tosa.conv2d with ID: 128
+Created node: tosa.conv2d with ID: 129
+Created node: tosa.clamp with ID: 130
+Created node: tosa.depthwise_conv2d with ID: 131
+Created node: tosa.clamp with ID: 132
+Created node: tosa.conv2d with ID: 133
+Created node: tosa.add with ID: 134
+Created node: tosa.conv2d with ID: 135
+Created node: tosa.clamp with ID: 136
+Created node: tosa.depthwise_conv2d with ID: 137
+Created node: tosa.clamp with ID: 138
+Created node: tosa.conv2d with ID: 139
+Created node: tosa.add with ID: 140
+Created node: tosa.conv2d with ID: 141
+Created node: tosa.clamp with ID: 142
+Created node: tosa.depthwise_conv2d with ID: 143
+Created node: tosa.clamp with ID: 144
+Created node: tosa.conv2d with ID: 145
+Created node: tosa.conv2d with ID: 146
+Created node: tosa.clamp with ID: 147
+Created node: tosa.depthwise_conv2d with ID: 148
+Created node: tosa.clamp with ID: 149
+Created node: tosa.conv2d with ID: 150
+Created node: tosa.add with ID: 151
+Created node: tosa.conv2d with ID: 152
+Created node: tosa.clamp with ID: 153
+Created node: tosa.depthwise_conv2d with ID: 154
+Created node: tosa.clamp with ID: 155
+Created node: tosa.conv2d with ID: 156
+Created node: tosa.add with ID: 157
+Created node: tosa.conv2d with ID: 158
+Created node: tosa.clamp with ID: 159
+Created node: tosa.depthwise_conv2d with ID: 160
+Created node: tosa.clamp with ID: 161
+Created node: tosa.conv2d with ID: 162
+Created node: tosa.add with ID: 163
+Created node: tosa.conv2d with ID: 164
+Created node: tosa.clamp with ID: 165
+Created node: tosa.depthwise_conv2d with ID: 166
+Created node: tosa.clamp with ID: 167
+Created node: tosa.conv2d with ID: 168
+Created node: tosa.conv2d with ID: 169
+Created node: tosa.clamp with ID: 170
+Created node: tosa.depthwise_conv2d with ID: 171
+Created node: tosa.clamp with ID: 172
+Created node: tosa.conv2d with ID: 173
+Created node: tosa.add with ID: 174
+Created node: tosa.conv2d with ID: 175
+Created node: tosa.clamp with ID: 176
+Created node: tosa.depthwise_conv2d with ID: 177
+Created node: tosa.clamp with ID: 178
+Created node: tosa.conv2d with ID: 179
+Created node: tosa.add with ID: 180
+Created node: tosa.conv2d with ID: 181
+Created node: tosa.clamp with ID: 182
+Created node: tosa.depthwise_conv2d with ID: 183
+Created node: tosa.clamp with ID: 184
+Created node: tosa.conv2d with ID: 185
+Created node: tosa.conv2d with ID: 186
+Created node: tosa.clamp with ID: 187
+Created node: tosa.depthwise_conv2d with ID: 188
+Created node: tosa.clamp with ID: 189
+Created node: tosa.conv2d with ID: 190
+Created node: tosa.add with ID: 191
+Created node: tosa.conv2d with ID: 192
+Created node: tosa.clamp with ID: 193
+Created node: tosa.depthwise_conv2d with ID: 194
+Created node: tosa.clamp with ID: 195
+Created node: tosa.conv2d with ID: 196
+Created node: tosa.add with ID: 197
+Created node: tosa.conv2d with ID: 198
+Created node: tosa.clamp with ID: 199
+Created node: tosa.depthwise_conv2d with ID: 200
+Created node: tosa.clamp with ID: 201
+Created node: tosa.conv2d with ID: 202
+Created node: tosa.conv2d with ID: 203
+Created node: tosa.clamp with ID: 204
+Created node: tosa.reduce_sum with ID: 205
+Created node: tosa.reduce_sum with ID: 206
+Created node: tosa.reshape with ID: 207
+Created node: tosa.mul with ID: 208
+Created node: tosa.fully_connected with ID: 209
+Created node: tosa.reduce_max with ID: 210
+Created node: tosa.sub with ID: 211
+Created node: tosa.exp with ID: 212
+Created node: tosa.reduce_sum with ID: 213
+Created node: tosa.reciprocal with ID: 214
+Created node: tosa.mul with ID: 215
+Created node: func.return with ID: 216
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.conv2d
+  Added edge from function argument 0 to tosa.conv2d (NodeIDs: 0 -> 108)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 106 -> 108)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 107 -> 108)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.conv2d -> tosa.clamp (NodeIDs: 108 -> 109)
+Processing edges for operation: tosa.depthwise_conv2d
+  Added edge: tosa.clamp -> tosa.depthwise_conv2d (NodeIDs: 109 -> 110)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 17 -> 110)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 105 -> 110)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.depthwise_conv2d -> tosa.clamp (NodeIDs: 110 -> 111)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.clamp -> tosa.conv2d (NodeIDs: 111 -> 112)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 104 -> 112)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 103 -> 112)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.conv2d -> tosa.conv2d (NodeIDs: 112 -> 113)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 102 -> 113)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 101 -> 113)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.conv2d -> tosa.clamp (NodeIDs: 113 -> 114)
+Processing edges for operation: tosa.depthwise_conv2d
+  Added edge: tosa.clamp -> tosa.depthwise_conv2d (NodeIDs: 114 -> 115)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 16 -> 115)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 100 -> 115)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.depthwise_conv2d -> tosa.clamp (NodeIDs: 115 -> 116)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.clamp -> tosa.conv2d (NodeIDs: 116 -> 117)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 99 -> 117)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 98 -> 117)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.conv2d -> tosa.conv2d (NodeIDs: 117 -> 118)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 97 -> 118)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 96 -> 118)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.conv2d -> tosa.clamp (NodeIDs: 118 -> 119)
+Processing edges for operation: tosa.depthwise_conv2d
+  Added edge: tosa.clamp -> tosa.depthwise_conv2d (NodeIDs: 119 -> 120)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 15 -> 120)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 95 -> 120)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.depthwise_conv2d -> tosa.clamp (NodeIDs: 120 -> 121)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.clamp -> tosa.conv2d (NodeIDs: 121 -> 122)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 94 -> 122)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 93 -> 122)
+Processing edges for operation: tosa.add
+  Added edge: tosa.conv2d -> tosa.add (NodeIDs: 117 -> 123)
+  Added edge: tosa.conv2d -> tosa.add (NodeIDs: 122 -> 123)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.add -> tosa.conv2d (NodeIDs: 123 -> 124)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 92 -> 124)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 91 -> 124)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.conv2d -> tosa.clamp (NodeIDs: 124 -> 125)
+Processing edges for operation: tosa.depthwise_conv2d
+  Added edge: tosa.clamp -> tosa.depthwise_conv2d (NodeIDs: 125 -> 126)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 14 -> 126)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 90 -> 126)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.depthwise_conv2d -> tosa.clamp (NodeIDs: 126 -> 127)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.clamp -> tosa.conv2d (NodeIDs: 127 -> 128)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 89 -> 128)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 88 -> 128)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.conv2d -> tosa.conv2d (NodeIDs: 128 -> 129)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 87 -> 129)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 86 -> 129)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.conv2d -> tosa.clamp (NodeIDs: 129 -> 130)
+Processing edges for operation: tosa.depthwise_conv2d
+  Added edge: tosa.clamp -> tosa.depthwise_conv2d (NodeIDs: 130 -> 131)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 13 -> 131)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 85 -> 131)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.depthwise_conv2d -> tosa.clamp (NodeIDs: 131 -> 132)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.clamp -> tosa.conv2d (NodeIDs: 132 -> 133)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 84 -> 133)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 83 -> 133)
+Processing edges for operation: tosa.add
+  Added edge: tosa.conv2d -> tosa.add (NodeIDs: 128 -> 134)
+  Added edge: tosa.conv2d -> tosa.add (NodeIDs: 133 -> 134)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.add -> tosa.conv2d (NodeIDs: 134 -> 135)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 82 -> 135)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 81 -> 135)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.conv2d -> tosa.clamp (NodeIDs: 135 -> 136)
+Processing edges for operation: tosa.depthwise_conv2d
+  Added edge: tosa.clamp -> tosa.depthwise_conv2d (NodeIDs: 136 -> 137)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 12 -> 137)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 80 -> 137)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.depthwise_conv2d -> tosa.clamp (NodeIDs: 137 -> 138)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.clamp -> tosa.conv2d (NodeIDs: 138 -> 139)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 79 -> 139)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 78 -> 139)
+Processing edges for operation: tosa.add
+  Added edge: tosa.add -> tosa.add (NodeIDs: 134 -> 140)
+  Added edge: tosa.conv2d -> tosa.add (NodeIDs: 139 -> 140)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.add -> tosa.conv2d (NodeIDs: 140 -> 141)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 77 -> 141)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 76 -> 141)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.conv2d -> tosa.clamp (NodeIDs: 141 -> 142)
+Processing edges for operation: tosa.depthwise_conv2d
+  Added edge: tosa.clamp -> tosa.depthwise_conv2d (NodeIDs: 142 -> 143)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 11 -> 143)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 75 -> 143)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.depthwise_conv2d -> tosa.clamp (NodeIDs: 143 -> 144)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.clamp -> tosa.conv2d (NodeIDs: 144 -> 145)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 74 -> 145)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 73 -> 145)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.conv2d -> tosa.conv2d (NodeIDs: 145 -> 146)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 72 -> 146)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 71 -> 146)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.conv2d -> tosa.clamp (NodeIDs: 146 -> 147)
+Processing edges for operation: tosa.depthwise_conv2d
+  Added edge: tosa.clamp -> tosa.depthwise_conv2d (NodeIDs: 147 -> 148)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 10 -> 148)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 70 -> 148)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.depthwise_conv2d -> tosa.clamp (NodeIDs: 148 -> 149)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.clamp -> tosa.conv2d (NodeIDs: 149 -> 150)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 69 -> 150)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 68 -> 150)
+Processing edges for operation: tosa.add
+  Added edge: tosa.conv2d -> tosa.add (NodeIDs: 145 -> 151)
+  Added edge: tosa.conv2d -> tosa.add (NodeIDs: 150 -> 151)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.add -> tosa.conv2d (NodeIDs: 151 -> 152)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 67 -> 152)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 66 -> 152)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.conv2d -> tosa.clamp (NodeIDs: 152 -> 153)
+Processing edges for operation: tosa.depthwise_conv2d
+  Added edge: tosa.clamp -> tosa.depthwise_conv2d (NodeIDs: 153 -> 154)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 9 -> 154)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 65 -> 154)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.depthwise_conv2d -> tosa.clamp (NodeIDs: 154 -> 155)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.clamp -> tosa.conv2d (NodeIDs: 155 -> 156)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 64 -> 156)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 63 -> 156)
+Processing edges for operation: tosa.add
+  Added edge: tosa.add -> tosa.add (NodeIDs: 151 -> 157)
+  Added edge: tosa.conv2d -> tosa.add (NodeIDs: 156 -> 157)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.add -> tosa.conv2d (NodeIDs: 157 -> 158)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 62 -> 158)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 61 -> 158)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.conv2d -> tosa.clamp (NodeIDs: 158 -> 159)
+Processing edges for operation: tosa.depthwise_conv2d
+  Added edge: tosa.clamp -> tosa.depthwise_conv2d (NodeIDs: 159 -> 160)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 8 -> 160)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 60 -> 160)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.depthwise_conv2d -> tosa.clamp (NodeIDs: 160 -> 161)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.clamp -> tosa.conv2d (NodeIDs: 161 -> 162)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 59 -> 162)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 58 -> 162)
+Processing edges for operation: tosa.add
+  Added edge: tosa.add -> tosa.add (NodeIDs: 157 -> 163)
+  Added edge: tosa.conv2d -> tosa.add (NodeIDs: 162 -> 163)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.add -> tosa.conv2d (NodeIDs: 163 -> 164)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 57 -> 164)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 56 -> 164)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.conv2d -> tosa.clamp (NodeIDs: 164 -> 165)
+Processing edges for operation: tosa.depthwise_conv2d
+  Added edge: tosa.clamp -> tosa.depthwise_conv2d (NodeIDs: 165 -> 166)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 7 -> 166)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 55 -> 166)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.depthwise_conv2d -> tosa.clamp (NodeIDs: 166 -> 167)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.clamp -> tosa.conv2d (NodeIDs: 167 -> 168)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 54 -> 168)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 53 -> 168)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.conv2d -> tosa.conv2d (NodeIDs: 168 -> 169)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 52 -> 169)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 51 -> 169)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.conv2d -> tosa.clamp (NodeIDs: 169 -> 170)
+Processing edges for operation: tosa.depthwise_conv2d
+  Added edge: tosa.clamp -> tosa.depthwise_conv2d (NodeIDs: 170 -> 171)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 6 -> 171)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 50 -> 171)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.depthwise_conv2d -> tosa.clamp (NodeIDs: 171 -> 172)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.clamp -> tosa.conv2d (NodeIDs: 172 -> 173)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 49 -> 173)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 48 -> 173)
+Processing edges for operation: tosa.add
+  Added edge: tosa.conv2d -> tosa.add (NodeIDs: 168 -> 174)
+  Added edge: tosa.conv2d -> tosa.add (NodeIDs: 173 -> 174)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.add -> tosa.conv2d (NodeIDs: 174 -> 175)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 47 -> 175)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 46 -> 175)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.conv2d -> tosa.clamp (NodeIDs: 175 -> 176)
+Processing edges for operation: tosa.depthwise_conv2d
+  Added edge: tosa.clamp -> tosa.depthwise_conv2d (NodeIDs: 176 -> 177)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 5 -> 177)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 45 -> 177)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.depthwise_conv2d -> tosa.clamp (NodeIDs: 177 -> 178)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.clamp -> tosa.conv2d (NodeIDs: 178 -> 179)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 44 -> 179)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 43 -> 179)
+Processing edges for operation: tosa.add
+  Added edge: tosa.add -> tosa.add (NodeIDs: 174 -> 180)
+  Added edge: tosa.conv2d -> tosa.add (NodeIDs: 179 -> 180)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.add -> tosa.conv2d (NodeIDs: 180 -> 181)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 42 -> 181)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 41 -> 181)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.conv2d -> tosa.clamp (NodeIDs: 181 -> 182)
+Processing edges for operation: tosa.depthwise_conv2d
+  Added edge: tosa.clamp -> tosa.depthwise_conv2d (NodeIDs: 182 -> 183)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 4 -> 183)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 40 -> 183)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.depthwise_conv2d -> tosa.clamp (NodeIDs: 183 -> 184)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.clamp -> tosa.conv2d (NodeIDs: 184 -> 185)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 39 -> 185)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 38 -> 185)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.conv2d -> tosa.conv2d (NodeIDs: 185 -> 186)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 37 -> 186)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 36 -> 186)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.conv2d -> tosa.clamp (NodeIDs: 186 -> 187)
+Processing edges for operation: tosa.depthwise_conv2d
+  Added edge: tosa.clamp -> tosa.depthwise_conv2d (NodeIDs: 187 -> 188)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 3 -> 188)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 35 -> 188)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.depthwise_conv2d -> tosa.clamp (NodeIDs: 188 -> 189)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.clamp -> tosa.conv2d (NodeIDs: 189 -> 190)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 34 -> 190)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 33 -> 190)
+Processing edges for operation: tosa.add
+  Added edge: tosa.conv2d -> tosa.add (NodeIDs: 185 -> 191)
+  Added edge: tosa.conv2d -> tosa.add (NodeIDs: 190 -> 191)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.add -> tosa.conv2d (NodeIDs: 191 -> 192)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 32 -> 192)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 31 -> 192)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.conv2d -> tosa.clamp (NodeIDs: 192 -> 193)
+Processing edges for operation: tosa.depthwise_conv2d
+  Added edge: tosa.clamp -> tosa.depthwise_conv2d (NodeIDs: 193 -> 194)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 2 -> 194)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 30 -> 194)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.depthwise_conv2d -> tosa.clamp (NodeIDs: 194 -> 195)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.clamp -> tosa.conv2d (NodeIDs: 195 -> 196)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 29 -> 196)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 28 -> 196)
+Processing edges for operation: tosa.add
+  Added edge: tosa.add -> tosa.add (NodeIDs: 191 -> 197)
+  Added edge: tosa.conv2d -> tosa.add (NodeIDs: 196 -> 197)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.add -> tosa.conv2d (NodeIDs: 197 -> 198)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 27 -> 198)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 26 -> 198)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.conv2d -> tosa.clamp (NodeIDs: 198 -> 199)
+Processing edges for operation: tosa.depthwise_conv2d
+  Added edge: tosa.clamp -> tosa.depthwise_conv2d (NodeIDs: 199 -> 200)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 1 -> 200)
+  Added edge: tosa.const -> tosa.depthwise_conv2d (NodeIDs: 25 -> 200)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.depthwise_conv2d -> tosa.clamp (NodeIDs: 200 -> 201)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.clamp -> tosa.conv2d (NodeIDs: 201 -> 202)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 24 -> 202)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 23 -> 202)
+Processing edges for operation: tosa.conv2d
+  Added edge: tosa.conv2d -> tosa.conv2d (NodeIDs: 202 -> 203)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 22 -> 203)
+  Added edge: tosa.const -> tosa.conv2d (NodeIDs: 21 -> 203)
+Processing edges for operation: tosa.clamp
+  Added edge: tosa.conv2d -> tosa.clamp (NodeIDs: 203 -> 204)
+Processing edges for operation: tosa.reduce_sum
+  Added edge: tosa.clamp -> tosa.reduce_sum (NodeIDs: 204 -> 205)
+Processing edges for operation: tosa.reduce_sum
+  Added edge: tosa.reduce_sum -> tosa.reduce_sum (NodeIDs: 205 -> 206)
+Processing edges for operation: tosa.reshape
+  Added edge: tosa.reduce_sum -> tosa.reshape (NodeIDs: 206 -> 207)
+Processing edges for operation: tosa.mul
+  Added edge: tosa.reshape -> tosa.mul (NodeIDs: 207 -> 208)
+  Added edge: tosa.const -> tosa.mul (NodeIDs: 18 -> 208)
+Processing edges for operation: tosa.fully_connected
+  Added edge: tosa.mul -> tosa.fully_connected (NodeIDs: 208 -> 209)
+  Added edge: tosa.const -> tosa.fully_connected (NodeIDs: 20 -> 209)
+  Added edge: tosa.const -> tosa.fully_connected (NodeIDs: 19 -> 209)
+Processing edges for operation: tosa.reduce_max
+  Added edge: tosa.fully_connected -> tosa.reduce_max (NodeIDs: 209 -> 210)
+Processing edges for operation: tosa.sub
+  Added edge: tosa.fully_connected -> tosa.sub (NodeIDs: 209 -> 211)
+  Added edge: tosa.reduce_max -> tosa.sub (NodeIDs: 210 -> 211)
+Processing edges for operation: tosa.exp
+  Added edge: tosa.sub -> tosa.exp (NodeIDs: 211 -> 212)
+Processing edges for operation: tosa.reduce_sum
+  Added edge: tosa.exp -> tosa.reduce_sum (NodeIDs: 212 -> 213)
+Processing edges for operation: tosa.reciprocal
+  Added edge: tosa.reduce_sum -> tosa.reciprocal (NodeIDs: 213 -> 214)
+Processing edges for operation: tosa.mul
+  Added edge: tosa.exp -> tosa.mul (NodeIDs: 212 -> 215)
+  Added edge: tosa.reciprocal -> tosa.mul (NodeIDs: 214 -> 215)
+Processing edges for operation: func.return
+  Added edge: tosa.mul -> func.return (NodeIDs: 215 -> 216)
+Processing return operation: func.return
+Created result node: result0 with ID: 217
+  Added edge: tosa.mul -> result0 (NodeIDs: 215 -> 217)
+Node 0 final depth: 0
+Node 1 final depth: 0
+Node 2 final depth: 0
+Node 3 final depth: 0
+Node 4 final depth: 0
+Node 5 final depth: 0
+Node 6 final depth: 0
+Node 7 final depth: 0
+Node 8 final depth: 0
+Node 9 final depth: 0
+Node 10 final depth: 0
+Node 11 final depth: 0
+Node 12 final depth: 0
+Node 13 final depth: 0
+Node 14 final depth: 0
+Node 15 final depth: 0
+Node 16 final depth: 0
+Node 17 final depth: 0
+Node 18 final depth: 0
+Node 19 final depth: 0
+Node 20 final depth: 0
+Node 21 final depth: 0
+Node 22 final depth: 0
+Node 23 final depth: 0
+Node 24 final depth: 0
+Node 25 final depth: 0
+Node 26 final depth: 0
+Node 27 final depth: 0
+Node 28 final depth: 0
+Node 29 final depth: 0
+Node 30 final depth: 0
+Node 31 final depth: 0
+Node 32 final depth: 0
+Node 33 final depth: 0
+Node 34 final depth: 0
+Node 35 final depth: 0
+Node 36 final depth: 0
+Node 37 final depth: 0
+Node 38 final depth: 0
+Node 39 final depth: 0
+Node 40 final depth: 0
+Node 41 final depth: 0
+Node 42 final depth: 0
+Node 43 final depth: 0
+Node 44 final depth: 0
+Node 45 final depth: 0
+Node 46 final depth: 0
+Node 47 final depth: 0
+Node 48 final depth: 0
+Node 49 final depth: 0
+Node 50 final depth: 0
+Node 51 final depth: 0
+Node 52 final depth: 0
+Node 53 final depth: 0
+Node 54 final depth: 0
+Node 55 final depth: 0
+Node 56 final depth: 0
+Node 57 final depth: 0
+Node 58 final depth: 0
+Node 59 final depth: 0
+Node 60 final depth: 0
+Node 61 final depth: 0
+Node 62 final depth: 0
+Node 63 final depth: 0
+Node 64 final depth: 0
+Node 65 final depth: 0
+Node 66 final depth: 0
+Node 67 final depth: 0
+Node 68 final depth: 0
+Node 69 final depth: 0
+Node 70 final depth: 0
+Node 71 final depth: 0
+Node 72 final depth: 0
+Node 73 final depth: 0
+Node 74 final depth: 0
+Node 75 final depth: 0
+Node 76 final depth: 0
+Node 77 final depth: 0
+Node 78 final depth: 0
+Node 79 final depth: 0
+Node 80 final depth: 0
+Node 81 final depth: 0
+Node 82 final depth: 0
+Node 83 final depth: 0
+Node 84 final depth: 0
+Node 85 final depth: 0
+Node 86 final depth: 0
+Node 87 final depth: 0
+Node 88 final depth: 0
+Node 89 final depth: 0
+Node 90 final depth: 0
+Node 91 final depth: 0
+Node 92 final depth: 0
+Node 93 final depth: 0
+Node 94 final depth: 0
+Node 95 final depth: 0
+Node 96 final depth: 0
+Node 97 final depth: 0
+Node 98 final depth: 0
+Node 99 final depth: 0
+Node 100 final depth: 0
+Node 101 final depth: 0
+Node 102 final depth: 0
+Node 103 final depth: 0
+Node 104 final depth: 0
+Node 105 final depth: 0
+Node 106 final depth: 0
+Node 107 final depth: 0
+Node 108 final depth: 1
+Node 109 final depth: 2
+Node 110 final depth: 3
+Node 111 final depth: 4
+Node 112 final depth: 5
+Node 113 final depth: 6
+Node 114 final depth: 7
+Node 115 final depth: 8
+Node 116 final depth: 9
+Node 117 final depth: 10
+Node 118 final depth: 11
+Node 119 final depth: 12
+Node 120 final depth: 13
+Node 121 final depth: 14
+Node 122 final depth: 15
+Node 123 final depth: 16
+Node 124 final depth: 17
+Node 125 final depth: 18
+Node 126 final depth: 19
+Node 127 final depth: 20
+Node 128 final depth: 21
+Node 129 final depth: 22
+Node 130 final depth: 23
+Node 131 final depth: 24
+Node 132 final depth: 25
+Node 133 final depth: 26
+Node 134 final depth: 27
+Node 135 final depth: 28
+Node 136 final depth: 29
+Node 137 final depth: 30
+Node 138 final depth: 31
+Node 139 final depth: 32
+Node 140 final depth: 33
+Node 141 final depth: 34
+Node 142 final depth: 35
+Node 143 final depth: 36
+Node 144 final depth: 37
+Node 145 final depth: 38
+Node 146 final depth: 39
+Node 147 final depth: 40
+Node 148 final depth: 41
+Node 149 final depth: 42
+Node 150 final depth: 43
+Node 151 final depth: 44
+Node 152 final depth: 45
+Node 153 final depth: 46
+Node 154 final depth: 47
+Node 155 final depth: 48
+Node 156 final depth: 49
+Node 157 final depth: 50
+Node 158 final depth: 51
+Node 159 final depth: 52
+Node 160 final depth: 53
+Node 161 final depth: 54
+Node 162 final depth: 55
+Node 163 final depth: 56
+Node 164 final depth: 57
+Node 165 final depth: 58
+Node 166 final depth: 59
+Node 167 final depth: 60
+Node 168 final depth: 61
+Node 169 final depth: 62
+Node 170 final depth: 63
+Node 171 final depth: 64
+Node 172 final depth: 65
+Node 173 final depth: 66
+Node 174 final depth: 67
+Node 175 final depth: 68
+Node 176 final depth: 69
+Node 177 final depth: 70
+Node 178 final depth: 71
+Node 179 final depth: 72
+Node 180 final depth: 73
+Node 181 final depth: 74
+Node 182 final depth: 75
+Node 183 final depth: 76
+Node 184 final depth: 77
+Node 185 final depth: 78
+Node 186 final depth: 79
+Node 187 final depth: 80
+Node 188 final depth: 81
+Node 189 final depth: 82
+Node 190 final depth: 83
+Node 191 final depth: 84
+Node 192 final depth: 85
+Node 193 final depth: 86
+Node 194 final depth: 87
+Node 195 final depth: 88
+Node 196 final depth: 89
+Node 197 final depth: 90
+Node 198 final depth: 91
+Node 199 final depth: 92
+Node 200 final depth: 93
+Node 201 final depth: 94
+Node 202 final depth: 95
+Node 203 final depth: 96
+Node 204 final depth: 97
+Node 205 final depth: 98
+Node 206 final depth: 99
+Node 207 final depth: 100
+Node 208 final depth: 101
+Node 209 final depth: 102
+Node 210 final depth: 103
+Node 211 final depth: 104
+Node 212 final depth: 105
+Node 213 final depth: 106
+Node 214 final depth: 107
+Node 215 final depth: 108
+Node 216 final depth: 109
+Node 217 final depth: 109
+
+nodeId: 0, node: arg0 at depth 0 -> 108
+nodeId: 1, node: tosa.const at depth 0 -> 200
+nodeId: 2, node: tosa.const at depth 0 -> 194
+nodeId: 3, node: tosa.const at depth 0 -> 188
+nodeId: 4, node: tosa.const at depth 0 -> 183
+nodeId: 5, node: tosa.const at depth 0 -> 177
+nodeId: 6, node: tosa.const at depth 0 -> 171
+nodeId: 7, node: tosa.const at depth 0 -> 166
+nodeId: 8, node: tosa.const at depth 0 -> 160
+nodeId: 9, node: tosa.const at depth 0 -> 154
+nodeId: 10, node: tosa.const at depth 0 -> 148
+nodeId: 11, node: tosa.const at depth 0 -> 143
+nodeId: 12, node: tosa.const at depth 0 -> 137
+nodeId: 13, node: tosa.const at depth 0 -> 131
+nodeId: 14, node: tosa.const at depth 0 -> 126
+nodeId: 15, node: tosa.const at depth 0 -> 120
+nodeId: 16, node: tosa.const at depth 0 -> 115
+nodeId: 17, node: tosa.const at depth 0 -> 110
+nodeId: 18, node: tosa.const at depth 0 -> 208
+nodeId: 19, node: tosa.const at depth 0 -> 209
+nodeId: 20, node: tosa.const at depth 0 -> 209
+nodeId: 21, node: tosa.const at depth 0 -> 203
+nodeId: 22, node: tosa.const at depth 0 -> 203
+nodeId: 23, node: tosa.const at depth 0 -> 202
+nodeId: 24, node: tosa.const at depth 0 -> 202
+nodeId: 25, node: tosa.const at depth 0 -> 200
+nodeId: 26, node: tosa.const at depth 0 -> 198
+nodeId: 27, node: tosa.const at depth 0 -> 198
+nodeId: 28, node: tosa.const at depth 0 -> 196
+nodeId: 29, node: tosa.const at depth 0 -> 196
+nodeId: 30, node: tosa.const at depth 0 -> 194
+nodeId: 31, node: tosa.const at depth 0 -> 192
+nodeId: 32, node: tosa.const at depth 0 -> 192
+nodeId: 33, node: tosa.const at depth 0 -> 190
+nodeId: 34, node: tosa.const at depth 0 -> 190
+nodeId: 35, node: tosa.const at depth 0 -> 188
+nodeId: 36, node: tosa.const at depth 0 -> 186
+nodeId: 37, node: tosa.const at depth 0 -> 186
+nodeId: 38, node: tosa.const at depth 0 -> 185
+nodeId: 39, node: tosa.const at depth 0 -> 185
+nodeId: 40, node: tosa.const at depth 0 -> 183
+nodeId: 41, node: tosa.const at depth 0 -> 181
+nodeId: 42, node: tosa.const at depth 0 -> 181
+nodeId: 43, node: tosa.const at depth 0 -> 179
+nodeId: 44, node: tosa.const at depth 0 -> 179
+nodeId: 45, node: tosa.const at depth 0 -> 177
+nodeId: 46, node: tosa.const at depth 0 -> 175
+nodeId: 47, node: tosa.const at depth 0 -> 175
+nodeId: 48, node: tosa.const at depth 0 -> 173
+nodeId: 49, node: tosa.const at depth 0 -> 173
+nodeId: 50, node: tosa.const at depth 0 -> 171
+nodeId: 51, node: tosa.const at depth 0 -> 169
+nodeId: 52, node: tosa.const at depth 0 -> 169
+nodeId: 53, node: tosa.const at depth 0 -> 168
+nodeId: 54, node: tosa.const at depth 0 -> 168
+nodeId: 55, node: tosa.const at depth 0 -> 166
+nodeId: 56, node: tosa.const at depth 0 -> 164
+nodeId: 57, node: tosa.const at depth 0 -> 164
+nodeId: 58, node: tosa.const at depth 0 -> 162
+nodeId: 59, node: tosa.const at depth 0 -> 162
+nodeId: 60, node: tosa.const at depth 0 -> 160
+nodeId: 61, node: tosa.const at depth 0 -> 158
+nodeId: 62, node: tosa.const at depth 0 -> 158
+nodeId: 63, node: tosa.const at depth 0 -> 156
+nodeId: 64, node: tosa.const at depth 0 -> 156
+nodeId: 65, node: tosa.const at depth 0 -> 154
+nodeId: 66, node: tosa.const at depth 0 -> 152
+nodeId: 67, node: tosa.const at depth 0 -> 152
+nodeId: 68, node: tosa.const at depth 0 -> 150
+nodeId: 69, node: tosa.const at depth 0 -> 150
+nodeId: 70, node: tosa.const at depth 0 -> 148
+nodeId: 71, node: tosa.const at depth 0 -> 146
+nodeId: 72, node: tosa.const at depth 0 -> 146
+nodeId: 73, node: tosa.const at depth 0 -> 145
+nodeId: 74, node: tosa.const at depth 0 -> 145
+nodeId: 75, node: tosa.const at depth 0 -> 143
+nodeId: 76, node: tosa.const at depth 0 -> 141
+nodeId: 77, node: tosa.const at depth 0 -> 141
+nodeId: 78, node: tosa.const at depth 0 -> 139
+nodeId: 79, node: tosa.const at depth 0 -> 139
+nodeId: 80, node: tosa.const at depth 0 -> 137
+nodeId: 81, node: tosa.const at depth 0 -> 135
+nodeId: 82, node: tosa.const at depth 0 -> 135
+nodeId: 83, node: tosa.const at depth 0 -> 133
+nodeId: 84, node: tosa.const at depth 0 -> 133
+nodeId: 85, node: tosa.const at depth 0 -> 131
+nodeId: 86, node: tosa.const at depth 0 -> 129
+nodeId: 87, node: tosa.const at depth 0 -> 129
+nodeId: 88, node: tosa.const at depth 0 -> 128
+nodeId: 89, node: tosa.const at depth 0 -> 128
+nodeId: 90, node: tosa.const at depth 0 -> 126
+nodeId: 91, node: tosa.const at depth 0 -> 124
+nodeId: 92, node: tosa.const at depth 0 -> 124
+nodeId: 93, node: tosa.const at depth 0 -> 122
+nodeId: 94, node: tosa.const at depth 0 -> 122
+nodeId: 95, node: tosa.const at depth 0 -> 120
+nodeId: 96, node: tosa.const at depth 0 -> 118
+nodeId: 97, node: tosa.const at depth 0 -> 118
+nodeId: 98, node: tosa.const at depth 0 -> 117
+nodeId: 99, node: tosa.const at depth 0 -> 117
+nodeId: 100, node: tosa.const at depth 0 -> 115
+nodeId: 101, node: tosa.const at depth 0 -> 113
+nodeId: 102, node: tosa.const at depth 0 -> 113
+nodeId: 103, node: tosa.const at depth 0 -> 112
+nodeId: 104, node: tosa.const at depth 0 -> 112
+nodeId: 105, node: tosa.const at depth 0 -> 110
+nodeId: 106, node: tosa.const at depth 0 -> 108
+nodeId: 107, node: tosa.const at depth 0 -> 108
+nodeId: 108, node: tosa.conv2d at depth 1 -> 109
+nodeId: 109, node: tosa.clamp at depth 2 -> 110
+nodeId: 110, node: tosa.depthwise_conv2d at depth 3 -> 111
+nodeId: 111, node: tosa.clamp at depth 4 -> 112
+nodeId: 112, node: tosa.conv2d at depth 5 -> 113
+nodeId: 113, node: tosa.conv2d at depth 6 -> 114
+nodeId: 114, node: tosa.clamp at depth 7 -> 115
+nodeId: 115, node: tosa.depthwise_conv2d at depth 8 -> 116
+nodeId: 116, node: tosa.clamp at depth 9 -> 117
+nodeId: 117, node: tosa.conv2d at depth 10 -> 118, 123
+nodeId: 118, node: tosa.conv2d at depth 11 -> 119
+nodeId: 119, node: tosa.clamp at depth 12 -> 120
+nodeId: 120, node: tosa.depthwise_conv2d at depth 13 -> 121
+nodeId: 121, node: tosa.clamp at depth 14 -> 122
+nodeId: 122, node: tosa.conv2d at depth 15 -> 123
+nodeId: 123, node: tosa.add at depth 16 -> 124
+nodeId: 124, node: tosa.conv2d at depth 17 -> 125
+nodeId: 125, node: tosa.clamp at depth 18 -> 126
+nodeId: 126, node: tosa.depthwise_conv2d at depth 19 -> 127
+nodeId: 127, node: tosa.clamp at depth 20 -> 128
+nodeId: 128, node: tosa.conv2d at depth 21 -> 129, 134
+nodeId: 129, node: tosa.conv2d at depth 22 -> 130
+nodeId: 130, node: tosa.clamp at depth 23 -> 131
+nodeId: 131, node: tosa.depthwise_conv2d at depth 24 -> 132
+nodeId: 132, node: tosa.clamp at depth 25 -> 133
+nodeId: 133, node: tosa.conv2d at depth 26 -> 134
+nodeId: 134, node: tosa.add at depth 27 -> 135, 140
+nodeId: 135, node: tosa.conv2d at depth 28 -> 136
+nodeId: 136, node: tosa.clamp at depth 29 -> 137
+nodeId: 137, node: tosa.depthwise_conv2d at depth 30 -> 138
+nodeId: 138, node: tosa.clamp at depth 31 -> 139
+nodeId: 139, node: tosa.conv2d at depth 32 -> 140
+nodeId: 140, node: tosa.add at depth 33 -> 141
+nodeId: 141, node: tosa.conv2d at depth 34 -> 142
+nodeId: 142, node: tosa.clamp at depth 35 -> 143
+nodeId: 143, node: tosa.depthwise_conv2d at depth 36 -> 144
+nodeId: 144, node: tosa.clamp at depth 37 -> 145
+nodeId: 145, node: tosa.conv2d at depth 38 -> 146, 151
+nodeId: 146, node: tosa.conv2d at depth 39 -> 147
+nodeId: 147, node: tosa.clamp at depth 40 -> 148
+nodeId: 148, node: tosa.depthwise_conv2d at depth 41 -> 149
+nodeId: 149, node: tosa.clamp at depth 42 -> 150
+nodeId: 150, node: tosa.conv2d at depth 43 -> 151
+nodeId: 151, node: tosa.add at depth 44 -> 152, 157
+nodeId: 152, node: tosa.conv2d at depth 45 -> 153
+nodeId: 153, node: tosa.clamp at depth 46 -> 154
+nodeId: 154, node: tosa.depthwise_conv2d at depth 47 -> 155
+nodeId: 155, node: tosa.clamp at depth 48 -> 156
+nodeId: 156, node: tosa.conv2d at depth 49 -> 157
+nodeId: 157, node: tosa.add at depth 50 -> 158, 163
+nodeId: 158, node: tosa.conv2d at depth 51 -> 159
+nodeId: 159, node: tosa.clamp at depth 52 -> 160
+nodeId: 160, node: tosa.depthwise_conv2d at depth 53 -> 161
+nodeId: 161, node: tosa.clamp at depth 54 -> 162
+nodeId: 162, node: tosa.conv2d at depth 55 -> 163
+nodeId: 163, node: tosa.add at depth 56 -> 164
+nodeId: 164, node: tosa.conv2d at depth 57 -> 165
+nodeId: 165, node: tosa.clamp at depth 58 -> 166
+nodeId: 166, node: tosa.depthwise_conv2d at depth 59 -> 167
+nodeId: 167, node: tosa.clamp at depth 60 -> 168
+nodeId: 168, node: tosa.conv2d at depth 61 -> 169, 174
+nodeId: 169, node: tosa.conv2d at depth 62 -> 170
+nodeId: 170, node: tosa.clamp at depth 63 -> 171
+nodeId: 171, node: tosa.depthwise_conv2d at depth 64 -> 172
+nodeId: 172, node: tosa.clamp at depth 65 -> 173
+nodeId: 173, node: tosa.conv2d at depth 66 -> 174
+nodeId: 174, node: tosa.add at depth 67 -> 175, 180
+nodeId: 175, node: tosa.conv2d at depth 68 -> 176
+nodeId: 176, node: tosa.clamp at depth 69 -> 177
+nodeId: 177, node: tosa.depthwise_conv2d at depth 70 -> 178
+nodeId: 178, node: tosa.clamp at depth 71 -> 179
+nodeId: 179, node: tosa.conv2d at depth 72 -> 180
+nodeId: 180, node: tosa.add at depth 73 -> 181
+nodeId: 181, node: tosa.conv2d at depth 74 -> 182
+nodeId: 182, node: tosa.clamp at depth 75 -> 183
+nodeId: 183, node: tosa.depthwise_conv2d at depth 76 -> 184
+nodeId: 184, node: tosa.clamp at depth 77 -> 185
+nodeId: 185, node: tosa.conv2d at depth 78 -> 186, 191
+nodeId: 186, node: tosa.conv2d at depth 79 -> 187
+nodeId: 187, node: tosa.clamp at depth 80 -> 188
+nodeId: 188, node: tosa.depthwise_conv2d at depth 81 -> 189
+nodeId: 189, node: tosa.clamp at depth 82 -> 190
+nodeId: 190, node: tosa.conv2d at depth 83 -> 191
+nodeId: 191, node: tosa.add at depth 84 -> 192, 197
+nodeId: 192, node: tosa.conv2d at depth 85 -> 193
+nodeId: 193, node: tosa.clamp at depth 86 -> 194
+nodeId: 194, node: tosa.depthwise_conv2d at depth 87 -> 195
+nodeId: 195, node: tosa.clamp at depth 88 -> 196
+nodeId: 196, node: tosa.conv2d at depth 89 -> 197
+nodeId: 197, node: tosa.add at depth 90 -> 198
+nodeId: 198, node: tosa.conv2d at depth 91 -> 199
+nodeId: 199, node: tosa.clamp at depth 92 -> 200
+nodeId: 200, node: tosa.depthwise_conv2d at depth 93 -> 201
+nodeId: 201, node: tosa.clamp at depth 94 -> 202
+nodeId: 202, node: tosa.conv2d at depth 95 -> 203
+nodeId: 203, node: tosa.conv2d at depth 96 -> 204
+nodeId: 204, node: tosa.clamp at depth 97 -> 205
+nodeId: 205, node: tosa.reduce_sum at depth 98 -> 206
+nodeId: 206, node: tosa.reduce_sum at depth 99 -> 207
+nodeId: 207, node: tosa.reshape at depth 100 -> 208
+nodeId: 208, node: tosa.mul at depth 101 -> 209
+nodeId: 209, node: tosa.fully_connected at depth 102 -> 210, 211
+nodeId: 210, node: tosa.reduce_max at depth 103 -> 211
+nodeId: 211, node: tosa.sub at depth 104 -> 212
+nodeId: 212, node: tosa.exp at depth 105 -> 213, 215
+nodeId: 213, node: tosa.reduce_sum at depth 106 -> 214
+nodeId: 214, node: tosa.reciprocal at depth 107 -> 215
+nodeId: 215, node: tosa.mul at depth 108 -> 216, 217
+nodeId: 216, node: func.return at depth 109 sink
+nodeId: 217, node: result0 at depth 109 sink
+

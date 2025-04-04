@@ -164,11 +164,30 @@ namespace sw {
                     }
                 }
 
+                std::size_t in_degree(nodeId_t node_id) const {
+                    if (!has_node(node_id)) {
+                        throw std::invalid_argument{ "Node with ID [" + std::to_string(node_id) + "] not found in graph." };
+                    }
+                    // For directed graphs, count how many nodes have the target as their neighbor
+                    if constexpr (graph_t) {
+                        std::size_t count = 0;
+                        for (const auto& [source_id, targets] : m_adjacencyList) {
+                            if (targets.find(node_id) != targets.end()) {
+                                ++count;
+                            }
+                        }
+                        return count;
+                    }
+                    else {
+                        // For undirected graphs, in-degree equals the number of neighbors
+                        return neighbors(node_id).size();
+                    }
+                }
+
                 // node selectors
                 node_t& node(nodeId_t node_id) {
                     return const_cast<node_t&>(const_cast<const graph<node_t, edge_t, graph_t>*>(this)->node(node_id));
                 }
-
                 const node_t& node(nodeId_t node_id) const {
                     if (!has_node(node_id)) {
                         throw std::invalid_argument{ "Node with ID [" + std::to_string(node_id) + "] not found in graph." };
@@ -219,7 +238,8 @@ namespace sw {
                     return it->second;  // Return the nodeSet_t associated with node_id
 #endif
                 }
-
+                std::unordered_map<nodeId_t, nodeSet_t> adjacencyList() const { return m_adjacencyList; }
+                
                 // Modifiers
                 void clear() {
                     m_runningNodeId = 0;
@@ -320,16 +340,22 @@ namespace sw {
                     nodeId_t nodeId = r.first;
 					const auto& op = r.second; // this is the node object as defined by the graph, i.e. <NNodeType>
 					// for each node, print its nodeId in the graph and the NodeType content
-                    ostr << "nodeId: " << nodeId << ", node: " << op << std::endl;
+                    ostr << "nodeId: " << nodeId << ", node: " << op;
 					// Print the neighbors of the current node to reflect the edges                   
                     auto neighbors = gr.neighbors(nodeId); // Get neighbors safely using the neighbors() method
+					bool bNeighbor = false;
                     for (auto it = neighbors.begin(); it != neighbors.end(); ++it) {
+                        bNeighbor = true;
+						if (it == neighbors.begin()) {
+							ostr << " -> ";  // Add arrow before the first neighbor
+						}
                         ostr << *it;
                         if (std::next(it) != neighbors.end()) {
                             ostr << ", ";  // Add separator between neighbors
                         }
                     }
-                    ostr << "\n";  // Newline after each node and its neighbors
+					if (!bNeighbor) ostr << " sink";  // Indicate if there are no neighbors
+                    ostr << '\n';  // Newline after each node and its neighbors
                 }
                 return ostr;
             }

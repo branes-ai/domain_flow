@@ -16,6 +16,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include <string>
 #include <vector>
+#include <queue>
 #include <dfa/graph/graph.hpp>
 
 namespace sw {
@@ -24,10 +25,11 @@ namespace sw {
         // DL Graph node type
         struct TosaOperator {
             std::string name;
-            unsigned depth;   // 0 is a source
+            int depth;   // 0 is a source
 
             // Constructor to initialize the node with just a string of the operator
             TosaOperator(std::string name) : name{ name }, depth{ 0 } {}
+            void setDepth(int d) { depth = d; }
         };
         std::ostream& operator<<(std::ostream& ostr, const TosaOperator& op) {
             return ostr << op.name << " at depth " << op.depth;
@@ -554,50 +556,92 @@ namespace sw {
                 }
             }
 
-			if (op.getNumRegions() > 0) {
+            if (op.getNumRegions() > 0) {
                 // Parse blocks
                 parseBlocks(op, os);
-			}
-
+            }
         }
 
-        // process an MLIR module into a directed_graph ready to visualize
-        void processModule_(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::ModuleOp& module) {
-            std::string output;
-            llvm::raw_string_ostream os(output);
+        template <typename NodeType, typename EdgeType, bool GraphType>
+        std::unordered_map<graph::nodeId_t, std::size_t> calculate_node_depths(const graph::graph<NodeType, EdgeType, GraphType>& gr) {
+            std::unordered_map<graph::nodeId_t, std::size_t> depths;
 
-            // Walk through the operations in the module and analyze them
-            for (auto func : module.getOps<mlir::func::FuncOp>()) {
-                os << "Processing function: " << func.getName() << "\n";
-                for (auto& op : func.getBody().getOps()) {
-					std::string opName = op.getName().getStringRef().str();
-					auto nodeId = gr.add_node(opName);
-                    parseOperation(gr, op, os);
-					os << "Operation: " << opName << "\n";
-                    // Iterate through the operands of tosa operation
-                    int opNr{ 0 };
-					for (mlir::Value operand : op.getOperands()) {
-                        os << "%" << std::to_string(opNr++) << " : ";
-						// Get the defining operation of the operand
-						if (auto definingOp = operand.getDefiningOp()) {
-							std::string operandName = definingOp->getName().getStringRef().str();
-							os << operandName << "\n";
-							//auto resultType = definingOp->getResult(0).getType();
-							//auto operandType = definingOp->getOperand(0).getType();
-							//os << "Operand: " << operandName << " result type " << resultType << " operand type " << operandType << "\n";
-							//gr.add_edge(nodeId, operandId, 1, false); // Add edge with flow 1 and stationair false
-						}
-                        else {
-                            os << "no operand\n";
-                        }
-					}
+            // Handle empty graph
+            if (gr.nrNodes() == 0) {
+                return depths;
+            }
+
+            // For undirected graphs, we can't determine dependency direction
+            if constexpr (!GraphType) {
+                throw std::runtime_error("Node depth calculation is only meaningful for directed graphs");
+            }
+
+            // Helper function to compute depth recursively
+            std::function<std::size_t(graph::nodeId_t, std::unordered_set<graph::nodeId_t>&)> compute_depth =
+                [&](graph::nodeId_t node_id, std::unordered_set<graph::nodeId_t>& visited) -> std::size_t {
+                // If already calculated, return cached result
+                if (depths.find(node_id) != depths.end()) {
+                    return depths[node_id];
+                }
+
+                // Check for cycles
+                if (visited.find(node_id) != visited.end()) {
+                    throw std::runtime_error("Cycle detected in graph at node " + std::to_string(node_id));
+                }
+                visited.insert(node_id);
+
+                // Get nodes that point to current node (dependencies)
+                std::unordered_set<graph::nodeId_t> dependencies;
+                for (const auto& [source_id, targets] : gr.adjacencyList()) {
+                    if (targets.find(node_id) != targets.end()) {
+                        dependencies.insert(source_id);
+                    }
+                }
+
+                // Base case: no incoming edges (leaf node)
+                if (dependencies.empty()) {
+                    depths[node_id] = 0;
+                    visited.erase(node_id);
+                    return 0;
+                }
+
+                // Recursively compute maximum depth from dependencies
+                std::size_t max_depth = 0;
+                for (const auto& dep_id : dependencies) {
+                    std::size_t dep_depth = compute_depth(dep_id, visited);
+                    max_depth = std::max(max_depth, dep_depth + 1);
+                }
+
+                depths[node_id] = max_depth;
+                visited.erase(node_id);
+                return max_depth;
+            };
+
+            // Calculate depth for all nodes
+            std::unordered_set<graph::nodeId_t> visited;
+            for (const auto& [node_id, _] : gr.nodes()) {
+                if (depths.find(node_id) == depths.end()) {
+                    compute_depth(node_id, visited);
                 }
             }
 
-            // Print or save the output
-            std::cout << output << std::endl;
+            return depths;
         }
 
+        // Assign depth values to nodes based on their maximum distance from inputs
+        void assignNodeDepths(graph::directed_graph<TosaOperator, DataFlow>& gr, llvm::raw_string_ostream& os) {
+            auto nodeDepths = calculate_node_depths(gr);
+            // Store depth values in the TosaOperator objects
+            for (int i = 0; i < gr.nrNodes(); ++i) {
+                // Access node data and set depth
+                TosaOperator& op = gr.node(i);
+                op.setDepth(nodeDepths[i]);
+                os << "Node " << i << " final depth: " << nodeDepths[i] << "\n";
+            }
+        }
+
+
+		// Function to process the MLIR module and build the domain flow graph
         void processModule(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::ModuleOp& module) {
             std::string output;
             llvm::raw_string_ostream os(output);
@@ -605,7 +649,7 @@ namespace sw {
             // Map to store operation to node ID mapping
             std::map<mlir::Operation*, int> opToNodeId;
 
-            // First pass: Create nodes for all operations
+			// For each function in the module, build the domain flow graph
             for (auto func : module.getOps<mlir::func::FuncOp>()) {
                 os << "Processing function: " << func.getName() << "\n";
 
@@ -616,7 +660,7 @@ namespace sw {
                     opToNodeId[nullptr] = nodeId; // Special case for function arguments
                 }
 
-                // Create nodes for all operations
+                // First pass: Create nodes for all operations
                 for (auto& op : func.getBody().getOps()) {
                     std::string opName = op.getName().getStringRef().str();
                     int nodeId = gr.add_node(TosaOperator(opName));
@@ -674,9 +718,67 @@ namespace sw {
                         }
                     }
                 }
+            
+                // Handle function results by finding return operations and their operands
+                for (auto& returnOp : llvm::make_early_inc_range(func.getOps<mlir::func::ReturnOp>())) {
+                    // Return operations don't have names like other operations, so use the operation name directly
+                    std::string returnName = "func.return";
+                    os << "Processing return operation: " << returnName << "\n";
+
+                    // Create result nodes
+                    for (unsigned i = 0; i < returnOp.getNumOperands(); ++i) {
+                        std::string resultName = "result" + std::to_string(i);
+                        int resultNodeId = gr.add_node(TosaOperator(resultName));
+                        os << "Created result node: " << resultName << " with ID: " << resultNodeId << "\n";
+
+                        // Get the operand that is being returned
+                        mlir::Value resultValue = returnOp.getOperand(i);
+
+                        // Get the defining operation of this result value
+                        if (auto definingOp = resultValue.getDefiningOp()) {
+                            int definingOpNodeId = opToNodeId[definingOp];
+
+                            // Create an edge from the defining op to the result node
+                            DataFlow flow(1);
+                            gr.add_edge(definingOpNodeId, resultNodeId, flow);
+
+                            std::string definingOpName = definingOp->getName().getStringRef().str();
+                            os << "  Added edge: " << definingOpName << " -> " << resultName
+                                << " (NodeIDs: " << definingOpNodeId << " -> " << resultNodeId << ")\n";
+                        }
+                        else if (resultValue.isa<mlir::BlockArgument>()) {
+                            // Handle block arguments that are directly returned
+                            auto blockArg = resultValue.cast<mlir::BlockArgument>();
+                            int argIdx = blockArg.getArgNumber();
+                            std::string argName = "arg" + std::to_string(argIdx);
+
+                            // Find the corresponding argument node ID
+                            int argNodeId = -1;
+                            for (auto& entry : opToNodeId) {
+                                if (entry.first == nullptr) {  // This is a simplification - you'd need better tracking for multiple args
+                                    argNodeId = entry.second;
+                                    break;
+                                }
+                            }
+
+                            if (argNodeId != -1) {
+                                // Create an edge from the argument node to the result node
+                                DataFlow flow(1);
+                                gr.add_edge(argNodeId, resultNodeId, flow);
+
+                                os << "  Added edge from function argument " << argIdx << " to result " << i
+                                    << " (NodeIDs: " << argNodeId << " -> " << resultNodeId << ")\n";
+                            }
+                        }
+                    }
+                }
+
+				// at this point, the graph structure is built, 
+                // and we can order the nodes according to the distance from the inputs
+				assignNodeDepths(gr, os);
             }
 
-            // Print or save the output
+            // Print the graph construction trace
             std::cout << output << std::endl;
         }
 
