@@ -1,0 +1,26 @@
+Processing function: simple_tosa_func
+Created node: tosa.const with ID: 2
+Created node: tosa.add with ID: 3
+Created node: tosa.mul with ID: 4
+Created node: func.return with ID: 5
+Processing edges for operation: tosa.const
+Processing edges for operation: tosa.add
+  Added edge from function argument 0 to tosa.add (NodeIDs: 1 -> 3)
+  Added edge: tosa.const -> tosa.add (NodeIDs: 2 -> 3)
+Processing edges for operation: tosa.mul
+  Added edge: tosa.add -> tosa.mul (NodeIDs: 3 -> 4)
+  Added edge from function argument 1 to tosa.mul (NodeIDs: 1 -> 4)
+Processing edges for operation: func.return
+  Added edge: tosa.mul -> func.return (NodeIDs: 4 -> 5)
+Processing function: another_func
+Created node: func.return with ID: 6
+Processing edges for operation: func.return
+
+nodeId: 0, operator: arg0 at depth 0
+nodeId: 1, operator: arg1 at depth 0
+nodeId: 2, operator: tosa.const at depth 0
+nodeId: 3, operator: tosa.add at depth 0
+nodeId: 4, operator: tosa.mul at depth 0
+nodeId: 5, operator: func.return at depth 0
+nodeId: 6, operator: func.return at depth 0
+
