@@ -107,7 +107,9 @@ int main() {
             // Get the symbolic name of the result
             std::string resultName;
             llvm::raw_string_ostream rso(resultName);
-            result.print(rso);
+            //result.print(rso);
+            mlir::OpPrintingFlags flags;
+            result.printAsOperand(rso, flags);
 
             std::cout << "tosa.add result: " << resultName << std::endl;
         }
@@ -124,6 +126,8 @@ int main() {
                     // For non-block arguments, use the original print method
                     llvm::raw_string_ostream rso(operandName);
                     mlir::OpPrintingFlags flags;
+                    //flags.printGenericOpForm(false);
+					flags.useLocalScope();
                     operand.printAsOperand(rso, flags);
                 }
                 std::cout << "tosa.matmul operand: " << operandName << std::endl;
