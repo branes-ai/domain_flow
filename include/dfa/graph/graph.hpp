@@ -315,15 +315,14 @@ namespace sw {
             // ostream operator
             template<typename NNodeType, typename EEdgeType, bool GGraphType>
             std::ostream& operator<<(std::ostream& ostr, const graph<NNodeType, EEdgeType, GGraphType>& gr) {
-
-                // Iterate over the unordered_map using an iterator
+                // Iterate over the graph nodes
                 for (auto const& r : gr.m_nodes) {
                     nodeId_t nodeId = r.first;
 					const auto& op = r.second; // this is the node object as defined by the graph, i.e. <NNodeType>
-
-                    std::cout << "nodeId: " << nodeId << ", operator: " << op << std::endl;
-                    // Get neighbors safely using the neighbors() method
-                    auto neighbors = gr.neighbors(nodeId);
+					// for each node, print its nodeId in the graph and the NodeType content
+                    ostr << "nodeId: " << nodeId << ", node: " << op << std::endl;
+					// Print the neighbors of the current node to reflect the edges                   
+                    auto neighbors = gr.neighbors(nodeId); // Get neighbors safely using the neighbors() method
                     for (auto it = neighbors.begin(); it != neighbors.end(); ++it) {
                         ostr << *it;
                         if (std::next(it) != neighbors.end()) {
