@@ -206,10 +206,18 @@ namespace sw {
 
                 // node set selectors
                 nodeSet_t neighbors(nodeId_t node_id) const {
+#ifdef CPP20
                     if (!m_adjacencyList.contains(node_id)) {
                         return {};
                     }
                     return m_adjacencyList.at(node_id);
+#else
+                    auto it = m_adjacencyList.find(node_id);
+                    if (it == m_adjacencyList.end()) {
+                        return {};
+                    }
+                    return it->second;  // Return the nodeSet_t associated with node_id
+#endif
                 }
 
                 // Modifiers
@@ -262,15 +270,13 @@ namespace sw {
 
                     if constexpr (graph_t) {
                         m_adjacencyList[lhs].insert(rhs);
-                        m_edges.emplace(std::make_pair(lhs, rhs),
-                            std::forward<AddEdgeType>(edge));
+                        m_edges.emplace(std::make_pair(lhs, rhs), std::forward<AddEdgeType>(edge));
                         return;
                     }
                     else {
                         m_adjacencyList[lhs].insert(rhs);
                         m_adjacencyList[rhs].insert(lhs);
-                        m_edges.emplace(detail::make_sorted_pair(lhs, rhs),
-                            std::forward<AddEdgeType>(edge));
+                        m_edges.emplace(detail::make_sorted_pair(lhs, rhs), std::forward<AddEdgeType>(edge));
                         return;
                     }
                 }
@@ -312,10 +318,19 @@ namespace sw {
 
                 // Iterate over the unordered_map using an iterator
                 for (auto const& r : gr.m_nodes) {
-                    int nodeId = r.first;
-                    const auto& op = r.second;
+                    nodeId_t nodeId = r.first;
+					const auto& op = r.second; // this is the node object as defined by the graph, i.e. <NNodeType>
 
                     std::cout << "nodeId: " << nodeId << ", operator: " << op << std::endl;
+                    // Get neighbors safely using the neighbors() method
+                    auto neighbors = gr.neighbors(nodeId);
+                    for (auto it = neighbors.begin(); it != neighbors.end(); ++it) {
+                        ostr << *it;
+                        if (std::next(it) != neighbors.end()) {
+                            ostr << ", ";  // Add separator between neighbors
+                        }
+                    }
+                    ostr << "\n";  // Newline after each node and its neighbors
                 }
                 return ostr;
             }
