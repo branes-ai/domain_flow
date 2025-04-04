@@ -41,7 +41,7 @@ namespace sw {
             int weight() const noexcept override {
                 return flow;
             }
-            DataFlow(int flow, bool stationair) : flow{ flow }, stationair{ stationair } {}
+            DataFlow(int flow, bool stationair = true) : flow{ flow }, stationair{ stationair } {}
             ~DataFlow() {}
         };
 
@@ -561,8 +561,8 @@ namespace sw {
 
         }
 
-        // Example of how to use these functions with your code pattern
-        void processModule(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::ModuleOp& module) {
+        // process an MLIR module into a directed_graph ready to visualize
+        void processModule_(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::ModuleOp& module) {
             std::string output;
             llvm::raw_string_ostream os(output);
 
@@ -598,29 +598,87 @@ namespace sw {
             std::cout << output << std::endl;
         }
 
-        // Example of how to use the above functions with a TOSA Conv2D operation
-        // Note: This function wouldn't be compiled as it would need an actual IR context and module
-        void exampleWithTosaConv2D() {
-            /*
-             This would be equivalent to the following MLIR code:
+        void processModule(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::ModuleOp& module) {
+            std::string output;
+            llvm::raw_string_ostream os(output);
 
-             %0 = tosa.conv2d %input, %weights, %bias {
-               pad = [1, 1, 1, 1],
-               stride = [1, 1],
-               dilation = [1, 1]
-             } : (tensor<1x32x32x3xf32>, tensor<16x3x3x3xf32>, tensor<16xf32>) -> tensor<1x32x32x16xf32>
+            // Map to store operation to node ID mapping
+            std::map<mlir::Operation*, int> opToNodeId;
 
-             The usage would be:
+            // First pass: Create nodes for all operations
+            for (auto func : module.getOps<mlir::func::FuncOp>()) {
+                os << "Processing function: " << func.getName() << "\n";
 
-             mlir::Operation* op = ... // Get the operation from somewhere
-             std::string output;
-             llvm::raw_string_ostream os(output);
-             parseOperation(op, os);
-             std::cout << output << std::endl;
-             */
+                // Handle function arguments as potential input nodes
+                for (unsigned i = 0; i < func.getNumArguments(); ++i) {
+                    std::string argName = "arg" + std::to_string(i);
+                    int nodeId = gr.add_node(TosaOperator(argName));
+                    opToNodeId[nullptr] = nodeId; // Special case for function arguments
+                }
+
+                // Create nodes for all operations
+                for (auto& op : func.getBody().getOps()) {
+                    std::string opName = op.getName().getStringRef().str();
+                    int nodeId = gr.add_node(TosaOperator(opName));
+                    opToNodeId[&op] = nodeId;
+                    os << "Created node: " << opName << " with ID: " << nodeId << "\n";
+                }
+
+                // Second pass: Create edges based on operand-result relationships
+                for (auto& op : func.getBody().getOps()) {
+                    int srcNodeId = opToNodeId[&op];
+                    std::string opName = op.getName().getStringRef().str();
+                    os << "Processing edges for operation: " << opName << "\n";
+
+                    // For each operand, find its defining operation and add an edge
+                    for (unsigned i = 0; i < op.getNumOperands(); ++i) {
+                        mlir::Value operand = op.getOperand(i);
+
+                        // Get the defining operation of the operand
+                        if (auto definingOp = operand.getDefiningOp()) {
+                            // The edge direction is from defining op to current op (data flows from producer to consumer)
+                            int destNodeId = srcNodeId;
+                            int srcDefiningNodeId = opToNodeId[definingOp];
+
+                            // Create a DataFlow object with appropriate metadata
+                            DataFlow flow(1);  // Assuming DataFlow constructor takes a flow value
+
+                            // Add edge: from defining op to current op
+                            gr.add_edge(srcDefiningNodeId, destNodeId, flow);
+
+                            std::string definingOpName = definingOp->getName().getStringRef().str();
+                            os << "  Added edge: " << definingOpName << " -> " << opName
+                                << " (NodeIDs: " << srcDefiningNodeId << " -> " << destNodeId << ")\n";
+                        }
+                        else if (operand.isa<mlir::BlockArgument>()) {
+                            // Handle block arguments (function inputs)
+                            auto blockArg = operand.cast<mlir::BlockArgument>();
+                            int argIdx = blockArg.getArgNumber();
+                            std::string argName = "arg" + std::to_string(argIdx);
+
+                            // Use the special node ID we created for arguments
+                            int srcArgNodeId = opToNodeId[nullptr];  // This is simplified - in reality you might want to map each arg separately
+                            int destNodeId = srcNodeId;
+
+                            // Create a DataFlow object with appropriate metadata
+                            DataFlow flow(1);
+
+                            // Add edge: from argument to current op
+                            gr.add_edge(srcArgNodeId, destNodeId, flow);
+
+                            os << "  Added edge from function argument " << argIdx << " to " << opName
+                                << " (NodeIDs: " << srcArgNodeId << " -> " << destNodeId << ")\n";
+                        }
+                        else {
+                            os << "  Operand " << i << " has no defining operation (might be a constant or external input)\n";
+                        }
+                    }
+                }
+            }
+
+            // Print or save the output
+            std::cout << output << std::endl;
         }
-
-
 
     }
 }
@@ -649,22 +707,6 @@ int main(int argc, char **argv) {
     // Walk through the operations in the module and parse them
     sw::dfa::graph::directed_graph<sw::dfa::TosaOperator, sw::dfa::DataFlow> gr; // Deep Learning graph
     sw::dfa::processModule(gr, *module);
-
-   // std::string output;
-   // llvm::raw_string_ostream os(output);
-
-   // // Walk through the operations in the module and analyze them
-   // 
-   // for (auto func : module->getOps<mlir::func::FuncOp>()) {
-   //     os << "Processing function: " << func.getName() << "\n";
-   //     for (auto& op : func.getBody().getOps()) {
-   //         sw::dfa::parseOperation(gr, op, os);
-			//// op.dumpPretty();
-   //     }
-   // }
-
-   // // Print or save the output
-   // std::cout << output << std::endl;
 
     // Print the graph
     std::cout << gr << std::endl;
