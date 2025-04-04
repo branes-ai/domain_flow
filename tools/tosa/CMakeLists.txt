@@ -44,7 +44,7 @@ llvm_update_compile_flags(${DFA_MLIR_WALK_RESULTS})
 mlir_check_all_link_libraries(${DFA_MLIR_WALK_RESULTS})
 set_target_properties(${DFA_MLIR_WALK_RESULTS} PROPERTIES FOLDER "dfa/tools/tosa")
 
-# Create the mlir TOSA parser executable
+# Create the TOSA parser executable
 set(DFA_TOSA_PARSER tosa_parser)
 set(DFA_TOSA_PARSER_SRC tosa_parser.cpp)
 add_mlir_tool(${DFA_TOSA_PARSER} 
@@ -59,7 +59,7 @@ llvm_update_compile_flags(${DFA_TOSA_PARSER})
 mlir_check_all_link_libraries(${DFA_TOSA_PARSER})
 set_target_properties(${DFA_TOSA_PARSER} PROPERTIES FOLDER "dfa/tools/tosa")
 
-# Create the mlir text parser executable
+# Create TOSA graph executor executable
 set(DFA_TOSA_MLIR tosa_mlir)
 # regular Cmake doesn't work
 set(DFA_TOSA_MLIR_SRC tosa_mlir_scanner.cpp)
@@ -74,3 +74,19 @@ target_link_libraries(${DFA_TOSA_MLIR} ${LIBS})
 llvm_update_compile_flags(${DFA_TOSA_MLIR})
 mlir_check_all_link_libraries(${DFA_TOSA_MLIR})
 set_target_properties(${DFA_TOSA_MLIR} PROPERTIES FOLDER "dfa/tools/tosa")
+
+# Create a Domain Flow TOSA analyzer
+set(DFA_TOSA_ANALYZER analyzer)
+# regular Cmake doesn't work
+set(DFA_TOSA_ANALYZER_SRC analyzer.cpp)
+add_mlir_tool(${DFA_TOSA_ANALYZER} 
+    ${DFA_TOSA_ANALYZER_SRC}
+    PARTIAL_SOURCES_INTENDED
+    
+    DEPENDS
+    ${LIBS}
+)
+target_link_libraries(${DFA_TOSA_ANALYZER} ${LIBS})
+llvm_update_compile_flags(${DFA_TOSA_ANALYZER})
+mlir_check_all_link_libraries(${DFA_TOSA_ANALYZER})
+set_target_properties(${DFA_TOSA_ANALYZER} PROPERTIES FOLDER "dfa/tools/tosa")
