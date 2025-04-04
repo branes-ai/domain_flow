@@ -571,8 +571,26 @@ namespace sw {
                 os << "Processing function: " << func.getName() << "\n";
                 for (auto& op : func.getBody().getOps()) {
 					std::string opName = op.getName().getStringRef().str();
-					gr.add_node(opName);
+					auto nodeId = gr.add_node(opName);
                     parseOperation(gr, op, os);
+					os << "Operation: " << opName << "\n";
+                    // Iterate through the operands of tosa operation
+                    int opNr{ 0 };
+					for (mlir::Value operand : op.getOperands()) {
+                        os << "%" << std::to_string(opNr++) << " : ";
+						// Get the defining operation of the operand
+						if (auto definingOp = operand.getDefiningOp()) {
+							std::string operandName = definingOp->getName().getStringRef().str();
+							os << operandName << "\n";
+							//auto resultType = definingOp->getResult(0).getType();
+							//auto operandType = definingOp->getOperand(0).getType();
+							//os << "Operand: " << operandName << " result type " << resultType << " operand type " << operandType << "\n";
+							//gr.add_edge(nodeId, operandId, 1, false); // Add edge with flow 1 and stationair false
+						}
+                        else {
+                            os << "no operand\n";
+                        }
+					}
                 }
             }
 
