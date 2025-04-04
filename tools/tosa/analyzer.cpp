@@ -137,13 +137,12 @@ namespace sw {
 
 
 		// Function to extract Const specific attributes
-		void parseConst(mlir::Operation& op, llvm::raw_ostream& os) {
+		void parseConst(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 			auto constOp = mlir::cast<mlir::tosa::ConstOp>(op);
 			// Parse basic operation information
 			os << "TOSA Const Operation:\n";
 			// Parse operands
-			os << "Result:\n";
-			os << "  " << constOp.getOutput().getType() << "\n";
+            // constOp does not have any operands
 			// Parse attributes
             std::vector<AttributeInfo> attributes = parseAttributes(op);
             os << "Attributes (" << attributes.size() << "):\n";
@@ -151,6 +150,10 @@ namespace sw {
             //    os << "  " << attr.name << "\n";
             //    //os << "  " << attr.name << ": " << attr.valueStr << "\n";
             //}
+            // report result type
+            os << "Result:\n";
+            os << "  " << constOp.getOutput().getType() << "\n";
+			gr.add_node("ConstOp");
 		}
 
         // Function to extract Clamp specific attributes
@@ -181,13 +184,13 @@ namespace sw {
         }
 
         // A specialized function to parse TOSA Clamp operation
-        void parseTosaClamp(mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaClamp(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             auto clampOp = mlir::cast<mlir::tosa::ClampOp>(op);
 
             // Parse basic operation information
             os << "TOSA Clamp Operation:\n";
-            return;
+
             // Parse operands
             os << "Operands:\n";
             os << "  Input: " << clampOp.getInput().getType() << "\n";
@@ -204,6 +207,9 @@ namespace sw {
             // Parse result
             os << "Result:\n";
             os << "  " << clampOp.getOutput().getType() << "\n";
+
+			// Add the Clamp operation to the graph
+			gr.add_node("Clamp");
         }
 
         // Function to extract Conv2D specific attributes
@@ -232,23 +238,19 @@ namespace sw {
         }
 
         // A specialized function to parse TOSA Conv2D operations
-        void parseTosaConv2D(mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaConv2D(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             auto convOp = mlir::cast<mlir::tosa::Conv2DOp>(op);
 
             // Parse basic operation information
             os << "TOSA Conv2D Operation:\n";
-            return;
+
             // Parse operands
             os << "Operands:\n";
             os << "  Input: " << convOp.getInput().getType() << "\n";
             os << "  Weight: " << convOp.getWeight().getType() << "\n";
             if (convOp.getBias())
                 os << "  Bias: " << convOp.getBias().getType() << "\n";
-
-            // Parse result
-            os << "Result:\n";
-            os << "  " << convOp.getOutput().getType() << "\n";
 
             // Parse Conv2D specific attributes
             Conv2DAttributes convAttrs = parseConv2DAttributes(convOp);
@@ -260,88 +262,162 @@ namespace sw {
                 os << convAttrs.pad[i];
             }
             os << "]\n";
-
             os << "  Stride: [";
             for (size_t i = 0; i < convAttrs.stride.size(); ++i) {
                 if (i > 0) os << ", ";
                 os << convAttrs.stride[i];
             }
             os << "]\n";
-
             os << "  Dilation: [";
             for (size_t i = 0; i < convAttrs.dilation.size(); ++i) {
                 if (i > 0) os << ", ";
                 os << convAttrs.dilation[i];
             }
             os << "]\n";
+
+            // Parse result
+            os << "Result:\n";
+            os << "  " << convOp.getOutput().getType() << "\n";
+
+			// Add the Conv2D operation to the graph
+            gr.add_node("Conv2D");
         }
 
 		// A specialized function to parse TOSA Reshape operations
-		void parseTosaReshape(mlir::Operation& op, llvm::raw_ostream& os) {
+		void parseTosaReshape(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+
+			// add Reshape operation to the graph
+			gr.add_node("Reshape");
         }
 		// A specialized function to parse TOSA Transpose operations
-		void parseTosaTranspose(mlir::Operation& op, llvm::raw_ostream& os) {
+		void parseTosaTranspose(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+
+			// add Transpose operation to the graph
+			gr.add_node("Transpose");
 		}
         // A specialized function to parse TOSA DepthwiseConv2D operations
-        void parseTosaDepthwiseConv2D(mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaDepthwiseConv2D(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+
+			// add DepthwiseConv2D operation to the graph
+			gr.add_node("DepthwiseConv2D");
         }
 		// A specialized function to parse TOSA TransposeConv2D operations
-		void parseTosaTransposeConv2D(mlir::Operation& op, llvm::raw_ostream& os) {
+		void parseTosaTransposeConv2D(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+
+			// add TransposeConv2D operation to the graph
+			gr.add_node("TransposeConv2D");
 		}
 		// A specialized function to parse TOSA FullyConnected operations
-		void parseTosaFullyConnected(mlir::Operation& op, llvm::raw_ostream& os) {
+		void parseTosaFullyConnected(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+
+			// add FullyConnected operation to the graph
+			gr.add_node("FullyConnected");
 		}
+        // A specialized function to parse TOSA Matmul operations
+        void parseTosaMatmul(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+
+            // add matmul operation to the graph
+            gr.add_node("Matmul");
+        }
         // A specialized function to parse TOSA Add operations
-        void parseTosaAdd(mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaAdd(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+
+			// add Add operation to the graph
+			gr.add_node("Add");
         }
         // A specialized function to parse TOSA Sub operations
-        void parseTosaSub(mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaSub(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+
+			// add Sub operation to the graph
+			gr.add_node("Sub");
         }
 		// A specialized function to parse TOSA Mul operations
-		void parseTosaMul(mlir::Operation& op, llvm::raw_ostream& os) {
+		void parseTosaMul(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+
+			// add Mul operation to the graph
+			gr.add_node("Mul");
 		}
 		// A specialized function to parse TOSA Negate operations
-		void parseTosaNegate(mlir::Operation& op, llvm::raw_ostream& os) {
+		void parseTosaNegate(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+
+			// add Negate operation to the graph
+			gr.add_node("Negate");
 		}
 
 		// A specialized function to parse TOSA Pad operations
-		void parseTosaPad(mlir::Operation& op, llvm::raw_ostream& os) {
+		void parseTosaPad(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+
+			// add Pad operation to the graph
+			gr.add_node("Pad");
 		}
 		// A specialized function to parse TOSA Cast operations
-		void parseTosaCast(mlir::Operation& op, llvm::raw_ostream& os) {
+		void parseTosaCast(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+
+			// add Cast operation to the graph
+			gr.add_node("Cast");
 		}
 		// A specialized function to parse TOSA Gather operations
-		void parseTosaGather(mlir::Operation& op, llvm::raw_ostream& os) {
+		void parseTosaGather(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+
+			// add Gather operation to the graph
+			gr.add_node("Gather");
 		}
 
         // function ops
 		// A specialized function to parse TOSA Reciprocal operations
-		void parseTosaReciprocal(mlir::Operation& op, llvm::raw_ostream& os) {
+		void parseTosaReciprocal(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+
+			// add Reciprocal operation to the graph
+			gr.add_node("Reciprocal");
 		}
 		// A specialized function to parse TOSA ReduceAll operations
-		void parseTosaReduceAll(mlir::Operation& op, llvm::raw_ostream& os) {
+		void parseTosaReduceAll(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+
+			// add ReduceAll operation to the graph
+			gr.add_node("ReduceAll");
 		}
 		// A specialized function to parse TOSA ReduceMax operations
-		void parseTosaReduceMax(mlir::Operation& op, llvm::raw_ostream& os) {
+		void parseTosaReduceMax(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+
+			// add ReduceMax operation to the graph
+			gr.add_node("ReduceMax");
 		}
 		// A specialized function to parse TOSA ReduceMin operations
-		void parseTosaReduceMin(mlir::Operation& op, llvm::raw_ostream& os) {
+		void parseTosaReduceMin(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+
+			// add ReduceMin operation to the graph
+			gr.add_node("ReduceMin");
 		}
 		// A specialized function to parse TOSA ReduceSum operations
-		void parseTosaReduceSum(mlir::Operation& op, llvm::raw_ostream& os) {
+		void parseTosaReduceSum(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+
+			// add ReduceSum operation to the graph
+			gr.add_node("ReduceSum");
 		}
 		// A specialized function to parse TOSA ReduceProd operations
-		void parseTosaReduceProd(mlir::Operation& op, llvm::raw_ostream& os) {
+		void parseTosaReduceProd(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+
+			// add ReduceProd operation to the graph
+			gr.add_node("ReduceProd");
 		}
 
 		// A specialized function to parse TOSA Exp operations
-		void parseTosaExp(mlir::Operation& op, llvm::raw_ostream& os) {
+		void parseTosaExp(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+
+			// add Exp operation to the graph
+			gr.add_node("Exp");
 		}
 		// A specialized function to parse TOSA Abs operations
-		void parseTosaAbs(mlir::Operation& op, llvm::raw_ostream& os) {
+		void parseTosaAbs(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+
+			// add Abs operation to the graph
+			gr.add_node("Abs");
 		}
 		// A specialized function to parse TOSA Concat operations
-		void parseTosaConcat(mlir::Operation& op, llvm::raw_ostream& os) {
+		void parseTosaConcat(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+
+			// add Concat operation to the graph
+			gr.add_node("Concat");
 		}
 
 
@@ -351,99 +427,103 @@ namespace sw {
         void parseOperation(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             if (mlir::isa<mlir::tosa::ConstOp>(op)) {
                 os << "\nDetected TOSA ConstOp:\n";
-                parseConst(op, os);
+                parseConst(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::Conv2DOp>(op)) {
                 os << "\nDetected TOSA Conv2DOp:\n";
-                parseTosaConv2D(op, os);
+                parseTosaConv2D(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::ClampOp>(op)) {
                 os << "\nDetected TOSA ClampOp:\n";
-                parseTosaClamp(op, os);
+                parseTosaClamp(gr, op, os);
             }
 			else if (mlir::isa<mlir::tosa::ReshapeOp>(op)) {
 				os << "\nDetected TOSA ReshapeOp:\n";
-				parseTosaReshape(op, os);
+				parseTosaReshape(gr, op, os);
 			}
 			else if (mlir::isa<mlir::tosa::TransposeOp>(op)) {
 				os << "\nDetected TOSA TransposeOp:\n";
-				parseTosaTranspose(op, os);
+				parseTosaTranspose(gr, op, os);
 			}
             else if (mlir::isa<mlir::tosa::DepthwiseConv2DOp>(op)) {
                 os << "\nDetected TOSA DepthwiseConv2DOp:\n";
-                parseTosaDepthwiseConv2D(op, os);
+                parseTosaDepthwiseConv2D(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::TransposeConv2DOp>(op)) {
                 os << "\nDetected TOSA TransposeConv2DOp:\n";
-                parseTosaTransposeConv2D(op, os);
+                parseTosaTransposeConv2D(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::PadOp>(op)) {
                 os << "\nDetected TOSA PadOp:\n";
-                parseTosaPad(op, os);
+                parseTosaPad(gr, op, os);
             }
 			else if (mlir::isa<mlir::tosa::FullyConnectedOp>(op)) {
 				os << "\nDetected TOSA FullyConnectedOp:\n";
-				parseTosaFullyConnected(op, os);
+				parseTosaFullyConnected(gr, op, os);
+			}
+			else if (mlir::isa<mlir::tosa::MatMulOp>(op)) {
+				os << "\nDetected TOSA MatMulOp:\n";
+				parseTosaMatmul(gr, op, os);
 			}
 			else if (mlir::isa<mlir::tosa::AddOp>(op)) {
 				os << "\nDetected TOSA AddOp:\n";
-				parseTosaAdd(op, os);
+				parseTosaAdd(gr, op, os);
 			}
 			else if (mlir::isa<mlir::tosa::SubOp>(op)) {
 				os << "\nDetected TOSA SubOp:\n";
-				parseTosaSub(op, os);
+				parseTosaSub(gr, op, os);
 			}
             else if (mlir::isa<mlir::tosa::MulOp>(op)) {
                 os << "\nDetected TOSA MulOp:\n";
-                parseTosaMul(op, os);
+                parseTosaMul(gr, op, os);
             }
 			else if (mlir::isa<mlir::tosa::NegateOp>(op)) {
 				os << "\nDetected TOSA NegateOp:\n";
-				parseTosaNegate(op, os);
+				parseTosaNegate(gr, op, os);
 			}
             else if (mlir::isa<mlir::tosa::ExpOp>(op)) {
                 os << "\nDetected TOSA ExpOp:\n";
-                parseTosaExp(op, os);
+                parseTosaExp(gr, op, os);
 			}
             else if (mlir::isa<mlir::tosa::AbsOp>(op)) {
                 os << "\nDetected TOSA AbsOp:\n";
-                parseTosaAbs(op, os);
+                parseTosaAbs(gr, op, os);
 			}
 			else if (mlir::isa<mlir::tosa::ConcatOp>(op)) {
 				os << "\nDetected TOSA ConcatOp:\n";
-				parseTosaConcat(op, os);
+				parseTosaConcat(gr, op, os);
 			}
 			else if (mlir::isa<mlir::tosa::CastOp>(op)) {
 				os << "\nDetected TOSA CastOp:\n";
-				parseTosaCast(op, os);
+				parseTosaCast(gr, op, os);
 			}
 			else if (mlir::isa<mlir::tosa::GatherOp>(op)) {
 				os << "\nDetected TOSA GatherOp:\n";
-				parseTosaGather(op, os);
+				parseTosaGather(gr, op, os);
 			}
 			else if (mlir::isa<mlir::tosa::ReciprocalOp>(op)) {
 				os << "\nDetected TOSA ReciprocalOp:\n";
-				parseTosaReciprocal(op, os);
+				parseTosaReciprocal(gr, op, os);
 			}
 			else if (mlir::isa<mlir::tosa::ReduceAllOp>(op)) {
 				os << "\nDetected TOSA ReduceAllOp:\n";
-				parseTosaReduceAll(op, os);
+				parseTosaReduceAll(gr, op, os);
 			}
 			else if (mlir::isa<mlir::tosa::ReduceMaxOp>(op)) {
 				os << "\nDetected TOSA ReduceMaxOp:\n";
-				parseTosaReduceMax(op, os);
+				parseTosaReduceMax(gr, op, os);
 			}
 			else if (mlir::isa<mlir::tosa::ReduceMinOp>(op)) {
 				os << "\nDetected TOSA ReduceMinOp:\n";
-				parseTosaReduceMin(op, os);
+				parseTosaReduceMin(gr, op, os);
 			}
 			else if (mlir::isa<mlir::tosa::ReduceSumOp>(op)) {
 				os << "\nDetected TOSA ReduceSumOp:\n";
-				parseTosaReduceSum(op, os);
+				parseTosaReduceSum(gr, op, os);
 			}
 			else if (mlir::isa<mlir::tosa::ReduceProdOp>(op)) {
 				os << "\nDetected TOSA ReduceProdOp:\n";
-				parseTosaReduceProd(op, os);
+				parseTosaReduceProd(gr, op, os);
 			}
 
             else {
@@ -488,13 +568,13 @@ namespace sw {
                     // For TOSA Clamp operations, you can also use the specialized parser
                     if (mlir::isa<mlir::tosa::ClampOp>(op)) {
                         os << "\nDetailed TOSA Conv2D analysis:\n";
-                        parseTosaClamp(op, os);
+                        parseTosaClamp(gr, op, os);
                     }
 
                     // For TOSA Conv2D operations, you can also use the specialized parser
                     if (mlir::isa<mlir::tosa::Conv2DOp>(op)) {
                         os << "\nDetailed TOSA Conv2D analysis:\n";
-                        parseTosaConv2D(op, os);
+                        parseTosaConv2D(gr, op, os);
                     }
                 }
             }
@@ -562,7 +642,7 @@ int main(int argc, char **argv) {
         os << "Processing function: " << func.getName() << "\n";
         for (auto& op : func.getBody().getOps()) {
             sw::dfa::parseOperation(gr, op, os);
-			op.dumpPretty();
+			// op.dumpPretty();
         }
     }
 

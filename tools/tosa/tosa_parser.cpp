@@ -187,7 +187,7 @@ namespace sw {
 
             // Parse basic operation information
             os << "TOSA Clamp Operation:\n";
-            return;
+
             // Parse operands
             os << "Operands:\n";
             os << "  Input: " << clampOp.getInput().getType() << "\n";
@@ -238,7 +238,7 @@ namespace sw {
 
             // Parse basic operation information
             os << "TOSA Conv2D Operation:\n";
-            return;
+
             // Parse operands
             os << "Operands:\n";
             os << "  Input: " << convOp.getInput().getType() << "\n";
