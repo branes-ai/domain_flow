@@ -26,19 +26,29 @@ namespace sw {
         struct TosaOperator {
             std::string operatorName;
             int depth;   // 0 is a source
-            std::string resultType;
+            std::vector<std::string> resultValue;   // string version of mlir::Value
+			std::vector<std::string> resultType;     // string version of mlir::Type
 
             // Constructor to initialize the node with just a string of the operator
             TosaOperator(std::string name) : operatorName{ name }, depth{ 0 } {}
             void setDepth(int d) { depth = d; }
 			void setOperator(std::string name) { this->operatorName = name; }
-			void setResultType(std::string type) { this->resultType = type; }
+
+			void addResult(const std::string& valueStr, const std::string& typeStr) {
+				resultValue.push_back(valueStr);
+				resultType.push_back(typeStr);
+			}
 			std::string getName() const noexcept { return operatorName; }
 			int getDepth() const noexcept { return depth; }
-			std::string getResultType() const noexcept { return resultType; }
+            std::string getResultValue(std::size_t idx) const noexcept { return resultValue[idx]; }
+			std::string getResultType(std::size_t idx) const noexcept { return resultType[idx]; }
         };
         std::ostream& operator<<(std::ostream& ostr, const TosaOperator& op) {
-            return ostr << op.operatorName << " at depth " << op.depth;
+            ostr << op.operatorName << " at depth " << op.depth;
+			for (std::size_t idx = 0; idx < op.resultValue.size(); ++idx) {
+				ostr << " -> " << op.resultValue[idx] << " of type " << op.resultType[idx];
+			}
+            return ostr;
         }
 
         // DL Graph edge type
@@ -669,7 +679,54 @@ namespace sw {
                 // First pass: Create nodes for all operations
                 for (auto& op : func.getBody().getOps()) {
                     std::string opName = op.getName().getStringRef().str();
-                    int nodeId = gr.add_node(TosaOperator(opName));
+					int nrResults = op.getNumResults();
+                    // Enumerate all results (outputs) of the operation
+                    auto graphNode = TosaOperator(opName);
+                    for (int idx = 0; idx < nrResults; ++idx) {
+
+                        // mlir::Value::print() outputs a more verbose representation, 
+                        // often including the operation that defines the value, rather 
+                        // than just the SSA name (e.g., %0 = "op"() instead of just %0). 
+                        // To get only the SSA symbolic name, MLIR doesn't provide a 
+                        // direct method to extract just the name as a string, but we 
+                        // can work around this by leveraging the fact that SSA values 
+                        // are typically represented as % followed by an identifier (like %0, %1, etc.) in the IR.
+
+                        // Since print() gives us more than we want, and there’s no built - in API to directly 
+                        // get just the SSA name as a string, we can either :
+                        // 
+                        // 1. Use result.getName() if you're in a context where values have been assigned debug names (rare in most IRs), or
+                        // 2. Generate the SSA name ourselves based on the result index and operation context, or
+                        // 3. Parse the output of print() to extract the SSA name.
+                        // The simplest and most reliable approach here, given our use case, is to construct 
+                        // the SSA name manually using the result index, since MLIR’s default SSA names are 
+                        // predictable(% 0, % 1, etc.) within the operation’s scope.
+                        // However, if you need the exact name as it appears in the IR(accounting for potential custom naming), 
+                        // we’ll need to parse the output.
+
+                        mlir::Value result = op.getResult(idx);
+                        mlir::Type resultType = result.getType();
+
+                        // Convert result (Value) to string
+                        std::string valueStr;
+                        //llvm::raw_string_ostream valueOs(valueStr);
+                        //result.print(valueOs);  // Print the SSA value (e.g., %0, %1, etc.)
+                        //valueOs.flush();  // Ensure the string is populated
+						valueStr = std::string("result_") + std::to_string(idx); // Use the index as a simple identifier
+
+                        // Convert resultType (Type) to string
+                        std::string typeStr;
+                        llvm::raw_string_ostream typeOs(typeStr);
+                        resultType.print(typeOs);  // Print the type (e.g., f32, i32, tensor<...>)
+                        typeOs.flush();  // Ensure the string is populated
+
+                        // Add the string representations to the graph node
+                        graphNode.addResult(valueStr, typeStr);
+                        // Create a name for this result
+                        //std::string resultName = opName + "_result" + std::to_string(idx);
+
+                    }
+                    int nodeId = gr.add_node(graphNode);
                     opToNodeId[&op] = nodeId;
                     os << "Created node: " << opName << " with ID: " << nodeId << "\n";
                 }
@@ -821,7 +878,7 @@ int main(int argc, char **argv) {
 
 	// Print the nodes and their properties
 	for (auto& node : gr.nodes()) {
-		std::cout << "Node ID: " << node.first << ", Name: " << node.second.getName() << ", Depth: " << node.second.getDepth() << " In degree: " << gr.in_degree(node.first) << " Out degree: " << gr.out_degree(node.first) << '\n';
+		std::cout << "Node ID: " << node.first << ": " << node.second << " In degree: " << gr.in_degree(node.first) << " Out degree: " << gr.out_degree(node.first) << '\n';
 	}
 
     return 0;

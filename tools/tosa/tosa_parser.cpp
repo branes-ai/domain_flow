@@ -136,21 +136,24 @@ namespace sw {
         }
 
 
-		// Function to extract Const specific attributes
-		void parseConst(mlir::Operation& op, llvm::raw_ostream& os) {
-			auto constOp = mlir::cast<mlir::tosa::ConstOp>(op);
-			// Parse basic operation information
-			os << "TOSA Const Operation:\n";
-			// Parse operands
-			os << "Result:\n";
-			os << "  " << constOp.getOutput().getType() << "\n";
-			// Parse attributes
+        // Function to extract Const specific attributes
+        void parseConst(mlir::Operation& op, llvm::raw_ostream& os) {
+	        auto constOp = mlir::cast<mlir::tosa::ConstOp>(op);
+	        // Parse basic operation information
+	        os << "TOSA Const Operation:\n";
+	        // Parse operands
+	        // constOp does not have any operands
+	        // Parse attributes
             std::vector<AttributeInfo> attributes = parseAttributes(op);
             os << "Attributes (" << attributes.size() << "):\n";
             //for (const auto& attr : attributes) {
             //    os << "  " << attr.name << "\n";
             //    //os << "  " << attr.name << ": " << attr.valueStr << "\n";
             //}
+
+            // Parse result
+            os << "Result:\n";
+            os << "  " << constOp.getOutput().getType() << "\n";
 		}
 
         // Function to extract Clamp specific attributes
@@ -196,10 +199,10 @@ namespace sw {
             ClampAttributes clampAttrs = parseClampAttributes(clampOp);
 
             os << "Attributes:\n";
-			os << "  Min Int: " << clampAttrs.minInt << "\n";
-			os << "  Max Int: " << clampAttrs.maxInt << "\n";
-			os << "  Min FP: " << clampAttrs.minFp << "\n";
-			os << "  Max FP: " << clampAttrs.maxFp << "\n";
+            os << "  Min Int: " << clampAttrs.minInt << "\n";
+            os << "  Max Int: " << clampAttrs.maxInt << "\n";
+            os << "  Min FP: " << clampAttrs.minFp << "\n";
+            os << "  Max FP: " << clampAttrs.maxFp << "\n";
 
             // Parse result
             os << "Result:\n";
