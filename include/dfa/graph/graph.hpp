@@ -183,7 +183,24 @@ namespace sw {
                         return neighbors(node_id).size();
                     }
                 }
+                std::size_t out_degree(nodeId_t node_id) const {
+                    if (!has_node(node_id)) {
+                        throw std::invalid_argument{ "Node with ID [" + std::to_string(node_id) + "] not found in graph." };
+                    }
 
+                    // For directed graphs, out-degree is the number of nodes this node points to
+                    if constexpr (graph_t) {
+                        auto it = m_adjacencyList.find(node_id);
+                        if (it == m_adjacencyList.end()) {
+                            return 0;
+                        }
+                        return it->second.size();
+                    }
+                    else {
+                        // For undirected graphs, out-degree equals in-degree which equals the number of neighbors
+                        return neighbors(node_id).size();
+                    }
+                }
                 // node selectors
                 node_t& node(nodeId_t node_id) {
                     return const_cast<node_t&>(const_cast<const graph<node_t, edge_t, graph_t>*>(this)->node(node_id));

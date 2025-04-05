@@ -24,15 +24,21 @@ namespace sw {
 
         // DL Graph node type
         struct TosaOperator {
-            std::string name;
+            std::string operatorName;
             int depth;   // 0 is a source
+            std::string resultType;
 
             // Constructor to initialize the node with just a string of the operator
-            TosaOperator(std::string name) : name{ name }, depth{ 0 } {}
+            TosaOperator(std::string name) : operatorName{ name }, depth{ 0 } {}
             void setDepth(int d) { depth = d; }
+			void setOperator(std::string name) { this->operatorName = name; }
+			void setResultType(std::string type) { this->resultType = type; }
+			std::string getName() const noexcept { return operatorName; }
+			int getDepth() const noexcept { return depth; }
+			std::string getResultType() const noexcept { return resultType; }
         };
         std::ostream& operator<<(std::ostream& ostr, const TosaOperator& op) {
-            return ostr << op.name << " at depth " << op.depth;
+            return ostr << op.operatorName << " at depth " << op.depth;
         }
 
         // DL Graph edge type
@@ -811,7 +817,12 @@ int main(int argc, char **argv) {
     sw::dfa::processModule(gr, *module);
 
     // Print the graph
-    std::cout << gr << std::endl;
+    //std::cout << gr << std::endl;
+
+	// Print the nodes and their properties
+	for (auto& node : gr.nodes()) {
+		std::cout << "Node ID: " << node.first << ", Name: " << node.second.getName() << ", Depth: " << node.second.getDepth() << " In degree: " << gr.in_degree(node.first) << " Out degree: " << gr.out_degree(node.first) << '\n';
+	}
 
     return 0;
 }
