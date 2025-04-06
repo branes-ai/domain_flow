@@ -20,6 +20,7 @@
 
 
 int main(int argc, char **argv) {
+    using namespace sw::dfa;
     // Ensure an MLIR file is provided as input.
     if (argc < 2) {
         std::cerr << "Usage: " << argv[0] << " <MLIR file>\n";
@@ -41,16 +42,11 @@ int main(int argc, char **argv) {
     }
 
     // Walk through the operations in the module and parse them
-    sw::dfa::DomainFlowGraph gr(argv[1]); // Deep Learning graph
-    sw::dfa::processModule(gr, *module);
+    DomainFlowGraph gr(argv[1]); // Deep Learning graph
+    processModule(gr, *module);
 
     // Print the graph
-    //std::cout << gr << std::endl;
-
-	// Print the nodes and their properties
-	for (auto& node : gr.graph.nodes()) {
-		std::cout << "Node ID: " << node.first << ": " << node.second << " In degree: " << gr.graph.in_degree(node.first) << " Out degree: " << gr.graph.out_degree(node.first) << '\n';
-	}
+    std::cout << gr << std::endl;
 
     return 0;
 }

@@ -78,6 +78,16 @@ namespace sw {
 			}
 			~DomainFlowGraph() {}
 		};
+		std::ostream& operator<<(std::ostream& ostr, const DomainFlowGraph& g) {
+			ostr << "Domain Flow Graph: " << g.name << "\n";
+            // Print the nodes and their properties
+            for (auto& node : g.graph.nodes()) {
+                std::cout << "Node ID: " << node.first << ": " << node.second << " In degree: " << g.graph.in_degree(node.first) << " Out degree: " << g.graph.out_degree(node.first) << '\n';
+            }
+			return ostr;
+		}
+
+
     }
 }
 
