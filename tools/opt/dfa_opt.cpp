@@ -5,6 +5,9 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
+#if WIN32
+#pragma warning(disable : 4996)
+#endif
 #include <iostream>
 #include <filesystem>
 
@@ -151,9 +154,11 @@ namespace mlir {
 				if (auto convOp = mlir::dyn_cast<tosa::Conv2DOp>(op)) {
 					// Example: Calculate complexity for Conv2D
 					llvm::outs() << "Conv2D Op Found: " << op->getName() << "\n";
-					//Accessing the operands of the convolution operation.
-					auto inputShape = convOp.getInput().getType().cast<mlir::TensorType>().getShape();
-					//auto filterShape = convOp.getFilter().getType().cast<mlir::TensorType>().getShape();
+					// Accessing the operands of the convolution operation.
+					//auto inputShape = convOp.getInput().getType().cast<mlir::TensorType>().getShape();  // old style, replace with pattern below
+					auto inputShape = mlir::cast<mlir::TensorType>(convOp.getInput().getType()).getShape();
+					//auto filterShape = convOp.getFilter().getType().cast<mlir::TensorType>().getShape();  // old style replace with below
+					// auto filterShape = mlir::cast<mlir::TensorType>(convOp.getFilter().getType()).getShape();
 
 					//Simple example of calculating complexity.
 					long long complexity = 1;

@@ -376,6 +376,73 @@ namespace sw {
                 }
                 return ostr;
             }
+
+            template <typename NodeType, typename EdgeType, bool GraphType>
+            std::unordered_map<nodeId_t, std::size_t> calculateNodeDepths(const graph<NodeType, EdgeType, GraphType>& gr) {
+                std::unordered_map<nodeId_t, std::size_t> depths;
+
+                // Handle empty graph
+                if (gr.nrNodes() == 0) {
+                    return depths;
+                }
+
+                // For undirected graphs, we can't determine dependency direction
+                if constexpr (!GraphType) {
+                    throw std::runtime_error("Node depth calculation is only meaningful for directed graphs");
+                }
+
+                // Helper function to compute depth recursively
+                std::function<std::size_t(nodeId_t, std::unordered_set<nodeId_t>&)> compute_depth =
+                    [&](nodeId_t node_id, std::unordered_set<nodeId_t>& visited) -> std::size_t {
+                    // If already calculated, return cached result
+                    if (depths.find(node_id) != depths.end()) {
+                        return depths[node_id];
+                    }
+
+                    // Check for cycles
+                    if (visited.find(node_id) != visited.end()) {
+                        throw std::runtime_error("Cycle detected in graph at node " + std::to_string(node_id));
+                    }
+                    visited.insert(node_id);
+
+                    // Get nodes that point to current node (dependencies)
+                    std::unordered_set<nodeId_t> dependencies;
+                    for (const auto& [source_id, targets] : gr.adjacencyList()) {
+                        if (targets.find(node_id) != targets.end()) {
+                            dependencies.insert(source_id);
+                        }
+                    }
+
+                    // Base case: no incoming edges (leaf node)
+                    if (dependencies.empty()) {
+                        depths[node_id] = 0;
+                        visited.erase(node_id);
+                        return 0;
+                    }
+
+                    // Recursively compute maximum depth from dependencies
+                    std::size_t max_depth = 0;
+                    for (const auto& dep_id : dependencies) {
+                        std::size_t dep_depth = compute_depth(dep_id, visited);
+                        max_depth = std::max(max_depth, dep_depth + 1);
+                    }
+
+                    depths[node_id] = max_depth;
+                    visited.erase(node_id);
+                    return max_depth;
+                    };
+
+                // Calculate depth for all nodes
+                std::unordered_set<nodeId_t> visited;
+                for (const auto& [node_id, _] : gr.nodes()) {
+                    if (depths.find(node_id) == depths.end()) {
+                        compute_depth(node_id, visited);
+                    }
+                }
+
+                return depths;
+            }
+
         }
     }
 }  // namespace sw::dfa

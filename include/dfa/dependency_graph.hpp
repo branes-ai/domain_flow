@@ -2,15 +2,14 @@
 #include <string>
 #include <sstream>
 
+#include <memory>
 #include <vector>
 #include <map>
-#include <memory>
+#include <stack>
+#include <queue>
+#include <unordered_set>
 
 #include <algorithm>
-#include <stack>
-#include <unordered_set>
-#include <queue>
-
 #include <cmath>
 #include <functional>
 #include <numeric>
@@ -644,9 +643,13 @@ namespace sw {
                 const double radius = 200;
                 const double centerX = 400;
                 const double centerY = 300;
-
+#if CPP20
+				const double PI = std::numbers::pi;
+#else
+				const double PI = 3.14159265358979323846;
+#endif
                 for (size_t i = 0; i < variables.size(); i++) {
-                    double angle = (2 * std::numbers::pi * i) / variables.size();
+                    double angle = (2 * PI * i) / variables.size();
                     positions[variables[i].get()] = {
                         centerX + radius * cos(angle),
                         centerY + radius * sin(angle)
