@@ -77,6 +77,20 @@ namespace sw {
 				name{ name }, graph{ graph }, source{ source }, sink{ sink } {
 			}
 			~DomainFlowGraph() {}
+
+            std::map<std::string, int> operatorStats() const {
+				std::map<std::string, int> opCount;
+                for (auto& node : graph.nodes()) {
+                    auto op = node.second.getName();
+                    if (opCount.find(op) == opCount.end()) {
+                        opCount[op] = 1;
+                    }
+                    else {
+                        opCount[op]++;
+                    }
+                }
+                return opCount;
+            }
 		};
 		std::ostream& operator<<(std::ostream& ostr, const DomainFlowGraph& g) {
 			ostr << "Domain Flow Graph: " << g.name << "\n";
