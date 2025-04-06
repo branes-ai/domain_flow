@@ -97,6 +97,8 @@ macro (compile_all testing prefix folder)
     endforeach (source)
 endmacro (compile_all)
 
+# the base graph library tests
+add_subdirectory(src/graph/tests)
 # the domain flow library tests
 add_subdirectory(src/dfa/tests)
 

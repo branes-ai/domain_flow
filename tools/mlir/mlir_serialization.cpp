@@ -1,5 +1,5 @@
 #if WIN32
-#pragma warning(disable : 4244 4267)
+#pragma warning(disable : 4244 4267 4996)
 #endif
 
 #include "llvm/Support/InitLLVM.h"

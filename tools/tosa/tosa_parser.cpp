@@ -560,7 +560,7 @@ int main(int argc, char **argv) {
     llvm::raw_string_ostream os(output);
 
     // Walk through the operations in the module and analyze them
-    sw::dfa::graph::directed_graph<sw::dfa::TosaOperator, sw::dfa::DataFlow> gr; // Deep Learning graph
+    sw::graph::directed_graph<sw::dfa::TosaOperator, sw::dfa::DataFlow> gr; // Deep Learning graph
     for (auto func : module->getOps<mlir::func::FuncOp>()) {
         os << "Processing function: " << func.getName() << "\n";
         for (auto& op : func.getBody().getOps()) {

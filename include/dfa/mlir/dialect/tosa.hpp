@@ -26,47 +26,6 @@
 namespace sw {
     namespace dfa {
 
-        // DL Graph node type
-        struct TosaOperator {
-            std::string operatorName;
-            int depth;   // 0 is a source
-            std::vector<std::string> resultValue;   // string version of mlir::Value
-            std::vector<std::string> resultType;     // string version of mlir::Type
-
-            // Constructor to initialize the node with just a string of the operator
-            TosaOperator(std::string name) : operatorName{ name }, depth{ 0 } {}
-            void setDepth(int d) { depth = d; }
-            void setOperator(std::string name) { this->operatorName = name; }
-
-            void addResult(const std::string& valueStr, const std::string& typeStr) {
-                resultValue.push_back(valueStr);
-                resultType.push_back(typeStr);
-            }
-            std::string getName() const noexcept { return operatorName; }
-            int getDepth() const noexcept { return depth; }
-            std::string getResultValue(std::size_t idx) const noexcept { return resultValue[idx]; }
-            std::string getResultType(std::size_t idx) const noexcept { return resultType[idx]; }
-        };
-        std::ostream& operator<<(std::ostream& ostr, const TosaOperator& op) {
-            ostr << op.operatorName << " at depth " << op.depth;
-            for (std::size_t idx = 0; idx < op.resultValue.size(); ++idx) {
-                ostr << " -> " << op.resultValue[idx] << " of type " << op.resultType[idx];
-            }
-            return ostr;
-        }
-
-        // DL Graph edge type
-        struct DataFlow : public graph::weighted_edge<int> { // Weighted by the data flow on this link
-            int flow;
-            bool stationair;  // does the flow go through a memory or not
-
-            int weight() const noexcept override {
-                return flow;
-            }
-            DataFlow(int flow, bool stationair = true) : flow{ flow }, stationair{ stationair } {}
-            ~DataFlow() {}
-        };
-
         // Helper struct to store parsed operand information
         struct OperandInfo {
             std::string name;
@@ -160,7 +119,7 @@ namespace sw {
         static constexpr bool bTrace = false;
 
         // Function to extract Const specific attributes
-        void parseConst(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseConst(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             auto constOp = mlir::cast<mlir::tosa::ConstOp>(op);
             // Parse basic operation information
             if constexpr (bTrace) os << "TOSA Const Operation:\n";
@@ -209,7 +168,7 @@ namespace sw {
         }
 
         // A specialized function to parse TOSA Clamp operation
-        void parseTosaClamp(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaClamp(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             auto clampOp = mlir::cast<mlir::tosa::ClampOp>(op);
             // Parse Clamp specific attributes
@@ -265,7 +224,7 @@ namespace sw {
         }
 
         // A specialized function to parse TOSA Conv2D operations
-        void parseTosaConv2D(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaConv2D(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             auto convOp = mlir::cast<mlir::tosa::Conv2DOp>(op);
             // Parse Conv2D specific attributes
@@ -312,80 +271,80 @@ namespace sw {
         }
 
         // A specialized function to parse TOSA Reshape operations
-        void parseTosaReshape(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaReshape(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             // add Reshape operation to the graph
             //gr.add_node("Reshape");
         }
         // A specialized function to parse TOSA Transpose operations
-        void parseTosaTranspose(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaTranspose(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             // add Transpose operation to the graph
             //gr.add_node("Transpose");
         }
         // A specialized function to parse TOSA DepthwiseConv2D operations
-        void parseTosaDepthwiseConv2D(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaDepthwiseConv2D(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             // add DepthwiseConv2D operation to the graph
             //gr.add_node("DepthwiseConv2D");
         }
         // A specialized function to parse TOSA TransposeConv2D operations
-        void parseTosaTransposeConv2D(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaTransposeConv2D(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             // add TransposeConv2D operation to the graph
             //gr.add_node("TransposeConv2D");
         }
         // A specialized function to parse TOSA FullyConnected operations
-        void parseTosaFullyConnected(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaFullyConnected(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             // add FullyConnected operation to the graph
             //gr.add_node("FullyConnected");
         }
         // A specialized function to parse TOSA Matmul operations
-        void parseTosaMatmul(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaMatmul(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             // add matmul operation to the graph
             //gr.add_node("Matmul");
         }
         // A specialized function to parse TOSA Add operations
-        void parseTosaAdd(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaAdd(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             // add Add operation to the graph
             //gr.add_node("Add");
         }
         // A specialized function to parse TOSA Sub operations
-        void parseTosaSub(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaSub(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             // add Sub operation to the graph
             //gr.add_node("Sub");
         }
         // A specialized function to parse TOSA Mul operations
-        void parseTosaMul(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaMul(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             // add Mul operation to the graph
             //gr.add_node("Mul");
         }
         // A specialized function to parse TOSA Negate operations
-        void parseTosaNegate(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaNegate(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             // add Negate operation to the graph
             //gr.add_node("Negate");
         }
 
         // A specialized function to parse TOSA Pad operations
-        void parseTosaPad(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaPad(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             // add Pad operation to the graph
             //gr.add_node("Pad");
         }
         // A specialized function to parse TOSA Cast operations
-        void parseTosaCast(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaCast(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             // add Cast operation to the graph
             //gr.add_node("Cast");
         }
         // A specialized function to parse TOSA Gather operations
-        void parseTosaGather(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaGather(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             // add Gather operation to the graph
             //gr.add_node("Gather");
@@ -393,56 +352,56 @@ namespace sw {
 
         // function ops
         // A specialized function to parse TOSA Reciprocal operations
-        void parseTosaReciprocal(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaReciprocal(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             // add Reciprocal operation to the graph
             //gr.add_node("Reciprocal");
         }
         // A specialized function to parse TOSA ReduceAll operations
-        void parseTosaReduceAll(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaReduceAll(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             // add ReduceAll operation to the graph
             //gr.add_node("ReduceAll");
         }
         // A specialized function to parse TOSA ReduceMax operations
-        void parseTosaReduceMax(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaReduceMax(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             // add ReduceMax operation to the graph
             //gr.add_node("ReduceMax");
         }
         // A specialized function to parse TOSA ReduceMin operations
-        void parseTosaReduceMin(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaReduceMin(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             // add ReduceMin operation to the graph
             //gr.add_node("ReduceMin");
         }
         // A specialized function to parse TOSA ReduceSum operations
-        void parseTosaReduceSum(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaReduceSum(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             // add ReduceSum operation to the graph
             //gr.add_node("ReduceSum");
         }
         // A specialized function to parse TOSA ReduceProd operations
-        void parseTosaReduceProd(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaReduceProd(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             // add ReduceProd operation to the graph
             //gr.add_node("ReduceProd");
         }
 
         // A specialized function to parse TOSA Exp operations
-        void parseTosaExp(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaExp(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             // add Exp operation to the graph
             //gr.add_node("Exp");
         }
         // A specialized function to parse TOSA Abs operations
-        void parseTosaAbs(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaAbs(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             // add Abs operation to the graph
             //gr.add_node("Abs");
         }
         // A specialized function to parse TOSA Concat operations
-        void parseTosaConcat(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseTosaConcat(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             // add Concat operation to the graph
             //gr.add_node("Concat");
@@ -452,7 +411,7 @@ namespace sw {
 
 
         // Parse the TOSA Op and add to the graph
-        void parseOperation(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        void parseOperation(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             if (mlir::isa<mlir::tosa::ConstOp>(op)) {
                 if constexpr (bTrace) os << "\nDetected TOSA ConstOp:\n";
                 parseConst(gr, op, os);

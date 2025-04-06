@@ -20,12 +20,12 @@ namespace sw {
 
 
         // Assign depth values to nodes based on their maximum distance from inputs
-        void assignNodeDepths(graph::directed_graph<TosaOperator, DataFlow>& gr, llvm::raw_string_ostream& os) {
+        void assignNodeDepths(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, llvm::raw_string_ostream& os) {
             auto nodeDepths = calculateNodeDepths(gr);
             // Store depth values in the TosaOperator objects
             for (int i = 0; i < gr.nrNodes(); ++i) {
                 // Access node data and set depth
-                TosaOperator& op = gr.node(i);
+                DomainFlowOperator& op = gr.node(i);
                 op.setDepth(nodeDepths[i]);
                 os << "Node " << i << " final depth: " << nodeDepths[i] << "\n";
             }
@@ -33,7 +33,8 @@ namespace sw {
 
 
 		// Function to process the MLIR module and build the domain flow graph
-        void processModule(graph::directed_graph<TosaOperator, DataFlow>& gr, mlir::ModuleOp& module) {
+        void processModule(DomainFlowGraph& dfg, mlir::ModuleOp& module) {
+			graph::directed_graph<DomainFlowOperator, DomainFlow>& gr = dfg.graph;
             std::string output;
             llvm::raw_string_ostream os(output);
 
@@ -47,7 +48,7 @@ namespace sw {
                 // Handle function arguments as potential input nodes
                 for (unsigned i = 0; i < func.getNumArguments(); ++i) {
                     std::string argName = "arg" + std::to_string(i);
-                    int nodeId = gr.add_node(TosaOperator(argName));
+                    int nodeId = gr.add_node(DomainFlowOperator(argName));
                     opToNodeId[nullptr] = nodeId; // Special case for function arguments
                 }
 
@@ -56,7 +57,7 @@ namespace sw {
                     std::string opName = op.getName().getStringRef().str();
 					int nrResults = op.getNumResults();
                     // Enumerate all results (outputs) of the operation
-                    auto graphNode = TosaOperator(opName);
+                    auto graphNode = DomainFlowOperator(opName);
                     for (int idx = 0; idx < nrResults; ++idx) {
 
                         // mlir::Value::print() outputs a more verbose representation, 
@@ -122,7 +123,7 @@ namespace sw {
                             int destNodeId = srcNodeId;
                             int srcDefiningNodeId = opToNodeId[definingOp];
 
-                            DataFlow flow(1);
+                            DomainFlow flow(1);
 
                             // Add edge: from defining op to current op
                             gr.add_edge(srcDefiningNodeId, destNodeId, flow);
@@ -141,7 +142,7 @@ namespace sw {
                             int srcArgNodeId = opToNodeId[nullptr];  // This is simplified - in reality you might want to map each arg separately
                             int destNodeId = srcNodeId;
 
-                            DataFlow flow(1);
+                            DomainFlow flow(1);
 
                             // Add edge: from argument to current op
                             gr.add_edge(srcArgNodeId, destNodeId, flow);
@@ -164,7 +165,7 @@ namespace sw {
                     // Create result nodes
                     for (unsigned i = 0; i < returnOp.getNumOperands(); ++i) {
                         std::string resultName = "result" + std::to_string(i);
-                        int resultNodeId = gr.add_node(TosaOperator(resultName));
+                        int resultNodeId = gr.add_node(DomainFlowOperator(resultName));
                         os << "Created result node: " << resultName << " with ID: " << resultNodeId << "\n";
 
                         // Get the operand that is being returned
@@ -175,7 +176,7 @@ namespace sw {
                             int definingOpNodeId = opToNodeId[definingOp];
 
                             // Create an edge from the defining op to the result node
-                            DataFlow flow(1);
+                            DomainFlow flow(1);
                             gr.add_edge(definingOpNodeId, resultNodeId, flow);
 
                             std::string definingOpName = definingOp->getName().getStringRef().str();
@@ -199,7 +200,7 @@ namespace sw {
 
                             if (argNodeId != -1) {
                                 // Create an edge from the argument node to the result node
-                                DataFlow flow(1);
+                                DomainFlow flow(1);
                                 gr.add_edge(argNodeId, resultNodeId, flow);
 
                                 os << "  Added edge from function argument " << argIdx << " to result " << i

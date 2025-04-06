@@ -41,15 +41,15 @@ int main(int argc, char **argv) {
     }
 
     // Walk through the operations in the module and parse them
-    sw::dfa::graph::directed_graph<sw::dfa::TosaOperator, sw::dfa::DataFlow> gr; // Deep Learning graph
+    sw::dfa::DomainFlowGraph gr(argv[1]); // Deep Learning graph
     sw::dfa::processModule(gr, *module);
 
     // Print the graph
     //std::cout << gr << std::endl;
 
 	// Print the nodes and their properties
-	for (auto& node : gr.nodes()) {
-		std::cout << "Node ID: " << node.first << ": " << node.second << " In degree: " << gr.in_degree(node.first) << " Out degree: " << gr.out_degree(node.first) << '\n';
+	for (auto& node : gr.graph.nodes()) {
+		std::cout << "Node ID: " << node.first << ": " << node.second << " In degree: " << gr.graph.in_degree(node.first) << " Out degree: " << gr.graph.out_degree(node.first) << '\n';
 	}
 
     return 0;
