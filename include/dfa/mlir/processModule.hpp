@@ -21,13 +21,14 @@ namespace sw {
 
         // Assign depth values to nodes based on their maximum distance from inputs
         void assignNodeDepths(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, llvm::raw_string_ostream& os) {
+			constexpr bool bTrace = false; // Set to true for detailed tracing
             auto nodeDepths = calculateNodeDepths(gr);
             // Store depth values in the TosaOperator objects
             for (int i = 0; i < gr.nrNodes(); ++i) {
                 // Access node data and set depth
                 DomainFlowOperator& op = gr.node(i);
                 op.setDepth(nodeDepths[i]);
-                os << "Node " << i << " final depth: " << nodeDepths[i] << "\n";
+                if constexpr (bTrace) os << "Node " << i << " final depth: " << nodeDepths[i] << "\n";
             }
         }
 
@@ -35,6 +36,8 @@ namespace sw {
 		// Function to process the MLIR module and build the domain flow graph
         void processModule(DomainFlowGraph& dfg, mlir::ModuleOp& module) {
 			graph::directed_graph<DomainFlowOperator, DomainFlow>& gr = dfg.graph;
+			constexpr bool bTrace = false; // Set to true for detailed tracing
+
             std::string output;
             llvm::raw_string_ostream os(output);
 
@@ -55,9 +58,22 @@ namespace sw {
                 // First pass: Create nodes for all operations
                 for (auto& op : func.getBody().getOps()) {
                     std::string opName = op.getName().getStringRef().str();
-					int nrResults = op.getNumResults();
-                    // Enumerate all results (outputs) of the operation
                     auto graphNode = DomainFlowOperator(opName);
+
+					int nrOperands = op.getNumOperands();
+                    for (int idx = 0; idx < nrOperands; ++idx) {
+                        mlir::Value operand = op.getOperand(idx);
+                        mlir::Type operandType = operand.getType();
+                        // Convert operandType (Type) to string
+                        std::string typeStr;
+                        llvm::raw_string_ostream typeOs(typeStr);
+                        operandType.print(typeOs);  // Print the type (e.g., f32, i32, tensor<...>)
+                        typeOs.flush();  // Ensure the string is populated
+                        graphNode.addInput(typeStr);
+                    }
+
+                    // Enumerate all results (outputs) of the operation
+                    int nrResults = op.getNumResults();
                     for (int idx = 0; idx < nrResults; ++idx) {
 
                         // mlir::Value::print() outputs a more verbose representation, 
@@ -104,14 +120,14 @@ namespace sw {
                     }
                     int nodeId = gr.add_node(graphNode);
                     opToNodeId[&op] = nodeId;
-                    os << "Created node: " << opName << " with ID: " << nodeId << "\n";
+                    if constexpr (bTrace) os << "Created node: " << opName << " with ID: " << nodeId << "\n";
                 }
 
                 // Second pass: Create edges based on operand-result relationships
                 for (auto& op : func.getBody().getOps()) {
                     int srcNodeId = opToNodeId[&op];
                     std::string opName = op.getName().getStringRef().str();
-                    os << "Processing edges for operation: " << opName << "\n";
+                    if constexpr (bTrace) os << "Processing edges for operation: " << opName << "\n";
 
                     // For each operand, find its defining operation and add an edge
                     for (unsigned i = 0; i < op.getNumOperands(); ++i) {
@@ -129,7 +145,7 @@ namespace sw {
                             gr.add_edge(srcDefiningNodeId, destNodeId, flow);
 
                             std::string definingOpName = definingOp->getName().getStringRef().str();
-                            os << "  Added edge: " << definingOpName << " -> " << opName
+                            if constexpr (bTrace) os << "  Added edge: " << definingOpName << " -> " << opName
                                 << " (NodeIDs: " << srcDefiningNodeId << " -> " << destNodeId << ")\n";
                         }
                         else if (operand.isa<mlir::BlockArgument>()) {
@@ -147,11 +163,11 @@ namespace sw {
                             // Add edge: from argument to current op
                             gr.add_edge(srcArgNodeId, destNodeId, flow);
 
-                            os << "  Added edge from function argument " << argIdx << " to " << opName
+                            if constexpr (bTrace) os << "  Added edge from function argument " << argIdx << " to " << opName
                                 << " (NodeIDs: " << srcArgNodeId << " -> " << destNodeId << ")\n";
                         }
                         else {
-                            os << "  Operand " << i << " has no defining operation (might be a constant or external input)\n";
+                            if constexpr (bTrace) os << "  Operand " << i << " has no defining operation (might be a constant or external input)\n";
                         }
                     }
                 }
@@ -160,13 +176,13 @@ namespace sw {
                 for (auto& returnOp : llvm::make_early_inc_range(func.getOps<mlir::func::ReturnOp>())) {
                     // Return operations don't have names like other operations, so use the operation name directly
                     std::string returnName = "func.return";
-                    os << "Processing return operation: " << returnName << "\n";
+                    if constexpr (bTrace) os << "Processing return operation: " << returnName << "\n";
 
                     // Create result nodes
                     for (unsigned i = 0; i < returnOp.getNumOperands(); ++i) {
                         std::string resultName = "result" + std::to_string(i);
                         int resultNodeId = gr.add_node(DomainFlowOperator(resultName));
-                        os << "Created result node: " << resultName << " with ID: " << resultNodeId << "\n";
+                        if constexpr (bTrace) os << "Created result node: " << resultName << " with ID: " << resultNodeId << "\n";
 
                         // Get the operand that is being returned
                         mlir::Value resultValue = returnOp.getOperand(i);
@@ -180,7 +196,7 @@ namespace sw {
                             gr.add_edge(definingOpNodeId, resultNodeId, flow);
 
                             std::string definingOpName = definingOp->getName().getStringRef().str();
-                            os << "  Added edge: " << definingOpName << " -> " << resultName
+                            if constexpr (bTrace) os << "  Added edge: " << definingOpName << " -> " << resultName
                                 << " (NodeIDs: " << definingOpNodeId << " -> " << resultNodeId << ")\n";
                         }
                         else if (resultValue.isa<mlir::BlockArgument>()) {
@@ -203,7 +219,7 @@ namespace sw {
                                 DomainFlow flow(1);
                                 gr.add_edge(argNodeId, resultNodeId, flow);
 
-                                os << "  Added edge from function argument " << argIdx << " to result " << i
+                                if constexpr (bTrace) os << "  Added edge from function argument " << argIdx << " to result " << i
                                     << " (NodeIDs: " << argNodeId << " -> " << resultNodeId << ")\n";
                             }
                         }

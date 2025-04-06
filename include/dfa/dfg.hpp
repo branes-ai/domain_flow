@@ -33,9 +33,12 @@ namespace sw {
         };
 
         std::ostream& operator<<(std::ostream& ostr, const DomainFlowOperator& op) {
-            ostr << op.operatorName << " at depth " << op.depth;
+            ostr << op.operatorName << " at depth " << op.depth << '\n';
+			for (std::size_t idx = 0; idx < op.inputType.size(); ++idx) {
+                ostr << " <- operand(" << idx << ") : " << op.inputType[idx] << '\n';
+			}
             for (std::size_t idx = 0; idx < op.resultValue.size(); ++idx) {
-                ostr << " -> " << op.resultValue[idx] << " of type " << op.resultType[idx];
+                ostr << " ->  result(" << idx << ") : " << op.resultType[idx] << '\n';
             }
             return ostr;
         }
