@@ -16,7 +16,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include <string>
 #include <vector>
-#include <dfa/graph/graph.hpp>
+#include <graph/graph.hpp>
 
 namespace sw {
     namespace dfa {

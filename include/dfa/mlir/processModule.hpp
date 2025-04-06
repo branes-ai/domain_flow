@@ -12,7 +12,7 @@
 #include <vector>
 #include <queue>
 
-#include <dfa/graph/graph.hpp>
+#include <dfa/dfg.hpp>
 #include <dfa/mlir/dialect/tosa.hpp>
 
 namespace sw {

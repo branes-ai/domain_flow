@@ -18,7 +18,10 @@
 #include <string>
 #include <vector>
 #include <queue>
-#include <dfa/graph/graph.hpp>
+
+// this module should not be used alone
+// we are enforcing that by not including the dfg.hpp header
+// That dfg.hpp header brings all these dependencies together
 
 namespace sw {
     namespace dfa {

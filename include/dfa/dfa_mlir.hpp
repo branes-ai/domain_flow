@@ -1,6 +1,6 @@
 #pragma once
 
-#include <dfa/graph/graph.hpp>
+#include <dfa/dfg.hpp>
 
 // MLIR Shim to derive a Domain Flow Graph from an MLIR IR
 #include <dfa/mlir/dialect/tosa.hpp>

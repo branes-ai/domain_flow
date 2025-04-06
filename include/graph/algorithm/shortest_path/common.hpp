@@ -1,7 +1,7 @@
 #pragma once
 #include <list>
 #include <optional>
-#include <dfa/graph/graph.hpp>
+#include <graph/graph.hpp>
 
 namespace sw {
     namespace dfa {

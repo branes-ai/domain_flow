@@ -1,7 +1,7 @@
 #pragma once
 #include <optional>
-#include <dfa/graph/graph.hpp>
-#include <dfa/graph/algorithm/shortest_path/common.hpp>
+#include <graph/graph.hpp>
+#include <graph/algorithm/shortest_path/common.hpp>
 
 namespace sw {
     namespace dfa {
