@@ -4,6 +4,7 @@
 #include <functional>
 #include <concepts>
 #include <type_traits>
+#include <fstream>
 
 #include <format>
 #include <memory>
@@ -327,6 +328,182 @@ namespace sw {
                     m_adjacencyList.at(rhs).erase(lhs);
                     m_edges.erase(detail::make_sorted_pair(lhs, rhs));
                     return;
+                }
+            }
+
+            // Save the graph to a text file
+            void save(const std::string& filename) const {
+                std::ofstream ofs(filename);
+                if (!ofs) {
+                    throw std::runtime_error("Failed to open file for writing: " + filename);
+				}
+				// Save the graph to the file
+				save(ofs);
+				if (!ofs.good()) {
+					throw std::runtime_error("Error occurred while writing to file: " + filename);
+				}
+			}
+			// Save the graph to an output stream
+			void save(std::ostream& ostr) const {
+                if (!ostr) {
+                    throw std::runtime_error("invalid ostream");
+                }
+
+                // Write header
+                ostr << (graph_t ? "DIRECTED" : "UNDIRECTED") << "\n";
+                ostr << "RUNNING_NODE_ID " << m_runningNodeId << "\n";
+
+                // Write nodes
+                ostr << "NODES " << m_nodes.size() << "\n";
+                for (const auto& [id, node] : m_nodes) {
+                    ostr << "NODE " << id << " : " << node << "\n";
+                }
+
+                // Write edges
+                ostr << "EDGES " << m_edges.size() << "\n";
+                for (const auto& [edge_id, edge] : m_edges) {
+                    ostr << "EDGE " << edge_id.first << " -> " << edge_id.second << " : " << edge << "\n";
+                }
+
+                // Write adjacency list
+                ostr << "ADJACENCY " << m_adjacencyList.size() << "\n";
+                for (const auto& [node_id, neighbors] : m_adjacencyList) {
+                    ostr << "ADJ " << node_id << " : ";
+                    bool first = true;
+                    for (const auto& neighbor : neighbors) {
+                        if (!first) ostr << ", ";
+                        ostr << neighbor;
+                        first = false;
+                    }
+                    ostr << "\n";
+                }
+
+                ostr.flush();
+                if (!ostr.good()) {
+                    throw std::runtime_error("error occurred while writing ostream");
+                }
+            }
+
+            // Load the graph from a text file
+            void load(const std::string& filename) {
+                std::ifstream ifs(filename);
+                if (!ifs) {
+                    throw std::runtime_error("Failed to open file for reading: " + filename);
+                }
+                load(ifs);
+                if (!ifs.good()) {
+                    throw std::runtime_error("Error occurred while reading from file: " + filename);
+                }
+            }
+			// Load the graph from an input stream
+			void load(std::istream& ifs) {
+                // Clear existing graph
+                clear();
+
+                std::string line;
+                // Read graph type
+                std::getline(ifs, line);
+                bool is_directed = (line == "DIRECTED");
+                if (is_directed != graph_t) {
+                    throw std::runtime_error("graph type mismatch in istream");
+                }
+
+                // Read running node ID
+                std::getline(ifs, line);
+                std::string keyword = line.substr(0, 15);
+                if (keyword != "RUNNING_NODE_ID") {
+                    throw std::runtime_error("invalid file format: missing RUNNING_NODE_ID");
+                }
+                std::istringstream(line.substr(16)) >> m_runningNodeId;
+
+                // Read nodes
+                std::getline(ifs, line);
+                if (line.substr(0, 5) != "NODES") {
+                    throw std::runtime_error("invalid file format: missing NODES");
+                }
+                std::size_t num_nodes;
+                std::istringstream(line.substr(6)) >> num_nodes;
+
+                for (std::size_t i = 0; i < num_nodes; ++i) {
+                    std::getline(ifs, line);
+                    if (line.substr(0, 4) != "NODE") {
+                        throw std::runtime_error("invalid file format: missing NODE");
+                    }
+                    std::istringstream iss(line.substr(5));
+                    nodeId_t id;
+                    NodeType node;
+                    char colon;
+                    iss >> id >> colon;
+                    if (colon != ':') {
+                        throw std::runtime_error("invalid node format");
+                    }
+                    iss >> node;
+                    m_nodes.emplace(id, std::move(node));
+                }
+
+                // Read edges
+                std::getline(ifs, line);
+                if (line.substr(0, 5) != "EDGES") {
+                    throw std::runtime_error("invalid file format: missing EDGES");
+                }
+                std::size_t num_edges;
+                std::istringstream(line.substr(6)) >> num_edges;
+
+                for (std::size_t i = 0; i < num_edges; ++i) {
+                    std::getline(ifs, line);
+                    if (line.substr(0, 4) != "EDGE") {
+                        throw std::runtime_error("invalid file format: missing EDGE");
+                    }
+                    std::istringstream iss(line.substr(5));
+                    nodeId_t first, second;
+                    EdgeType edge;
+                    std::string arrow;
+                    char colon;
+                    iss >> first >> arrow >> second >> colon;
+                    if (arrow != "->" || colon != ':') {
+                        throw std::runtime_error("Invalid edge format");
+                    }
+                    iss >> edge;
+                    m_edges.emplace(std::make_pair(first, second), std::move(edge));
+                }
+
+                // Read adjacency list
+                std::getline(ifs, line);
+                if (line.substr(0, 9) != "ADJACENCY") {
+                    throw std::runtime_error("invalid file format: missing ADJACENCY");
+                }
+                std::size_t num_adj;
+                std::istringstream(line.substr(10)) >> num_adj;
+
+                for (std::size_t i = 0; i < num_adj; ++i) {
+                    std::getline(ifs, line);
+                    if (line.substr(0, 3) != "ADJ") {
+                        throw std::runtime_error("invalid file format: missing ADJ");
+                    }
+                    std::istringstream iss(line.substr(4));
+                    nodeId_t node_id;
+                    char colon;
+                    iss >> node_id >> colon;
+                    if (colon != ':') {
+                        throw std::runtime_error("invalid adjacency format");
+                    }
+
+                    nodeSet_t neighbors;
+                    std::string neighbors_str;
+                    std::getline(iss, neighbors_str);
+                    std::istringstream niss(neighbors_str);
+                    std::string neighbor_str;
+                    while (std::getline(niss, neighbor_str, ',')) {
+                        std::istringstream niss2(neighbor_str);
+                        nodeId_t neighbor;
+                        niss2 >> neighbor;
+                        neighbors.insert(neighbor);
+                    }
+                    m_adjacencyList.emplace(node_id, std::move(neighbors));
+                }
+
+                if (!ifs.good() && !ifs.eof()) {
+                    throw std::runtime_error("error occurred while reading istream");
                 }
             }
 

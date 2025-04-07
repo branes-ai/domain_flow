@@ -65,6 +65,23 @@ set_target_properties(${DFA_TOSA_PARSER} PROPERTIES FOLDER "dfa/tools/tosa")
 
 
 ######################################################################################
+# Create TOSA graph importer executable
+set(DFA_TOSA_IMPORTER dfa-import-tosa)
+set(DFA_TOSA_IMPORTER_SRC dfa_import.cpp)
+add_mlir_tool(${DFA_TOSA_IMPORTER} 
+    ${DFA_TOSA_IMPORTER_SRC}
+    PARTIAL_SOURCES_INTENDED
+    
+    DEPENDS
+    ${LIBS}
+)
+target_link_libraries(${DFA_TOSA_IMPORTER} ${LIBS})
+llvm_update_compile_flags(${DFA_TOSA_IMPORTER})
+mlir_check_all_link_libraries(${DFA_TOSA_IMPORTER})
+set_target_properties(${DFA_TOSA_IMPORTER} PROPERTIES FOLDER "dfa/tools/tosa")
+
+
+######################################################################################
 # Create TOSA graph executor executable
 set(DFA_TOSA_EXECUTOR tosa_executor)
 set(DFA_TOSA_EXECUTOR_SRC tosa_executor.cpp)

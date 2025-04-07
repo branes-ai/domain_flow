@@ -69,7 +69,7 @@ namespace sw {
                         llvm::raw_string_ostream typeOs(typeStr);
                         operandType.print(typeOs);  // Print the type (e.g., f32, i32, tensor<...>)
                         typeOs.flush();  // Ensure the string is populated
-                        graphNode.addInput(typeStr);
+                        graphNode.addOperand(typeStr);
                     }
 
                     // Enumerate all results (outputs) of the operation
