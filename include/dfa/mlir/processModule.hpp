@@ -20,13 +20,13 @@ namespace sw {
 
 
         // Assign depth values to nodes based on their maximum distance from inputs
-        void assignNodeDepths(graph::directed_graph<DomainFlowOperator, DomainFlow>& gr, llvm::raw_string_ostream& os) {
+        void assignNodeDepths(graph::directed_graph<DomainFlowNode, DomainFlow>& gr, llvm::raw_string_ostream& os) {
 			constexpr bool bTrace = false; // Set to true for detailed tracing
             auto nodeDepths = calculateNodeDepths(gr);
             // Store depth values in the TosaOperator objects
             for (int i = 0; i < gr.nrNodes(); ++i) {
                 // Access node data and set depth
-                DomainFlowOperator& op = gr.node(i);
+                DomainFlowNode& op = gr.node(i);
                 op.setDepth(nodeDepths[i]);
                 if constexpr (bTrace) os << "Node " << i << " final depth: " << nodeDepths[i] << "\n";
             }
@@ -35,7 +35,7 @@ namespace sw {
 
 		// Function to process the MLIR module and build the domain flow graph
         void processModule(DomainFlowGraph& dfg, mlir::ModuleOp& module) {
-			graph::directed_graph<DomainFlowOperator, DomainFlow>& gr = dfg.graph;
+			graph::directed_graph<DomainFlowNode, DomainFlow>& gr = dfg.graph;
 			constexpr bool bTrace = false; // Set to true for detailed tracing
 
             std::string output;
@@ -51,14 +51,14 @@ namespace sw {
                 // Handle function arguments as potential input nodes
                 for (unsigned i = 0; i < func.getNumArguments(); ++i) {
                     std::string argName = "arg" + std::to_string(i);
-                    int nodeId = gr.add_node(DomainFlowOperator(argName));
+                    int nodeId = gr.add_node(DomainFlowNode(argName));
                     opToNodeId[nullptr] = nodeId; // Special case for function arguments
                 }
 
                 // First pass: Create nodes for all operations
                 for (auto& op : func.getBody().getOps()) {
                     std::string opName = op.getName().getStringRef().str();
-                    auto graphNode = DomainFlowOperator(opName);
+                    auto graphNode = DomainFlowNode(opName);
 
 					int nrOperands = op.getNumOperands();
                     for (int idx = 0; idx < nrOperands; ++idx) {
@@ -181,7 +181,7 @@ namespace sw {
                     // Create result nodes
                     for (unsigned i = 0; i < returnOp.getNumOperands(); ++i) {
                         std::string resultName = "result" + std::to_string(i);
-                        int resultNodeId = gr.add_node(DomainFlowOperator(resultName));
+                        int resultNodeId = gr.add_node(DomainFlowNode(resultName));
                         if constexpr (bTrace) os << "Created result node: " << resultName << " with ID: " << resultNodeId << "\n";
 
                         // Get the operand that is being returned

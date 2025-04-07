@@ -12,6 +12,6 @@
 #include <dfa/hyperplane.hpp>
 #include <dfa/index_point.hpp>
 #include <dfa/index_space.hpp>
-#include <dfa/domain_flow.hpp>	        // definition of the arc
-#include <dfa/domain_flow_operator.hpp>	// definition of the operator
-#include <dfa/domain_flow_graph.hpp>    // definition of the graph
+#include <dfa/domain_flow_edge.hpp>	   // definition of the edge
+#include <dfa/domain_flow_node.hpp>	   // definition of the node
+#include <dfa/domain_flow_graph.hpp>   // definition of the graph

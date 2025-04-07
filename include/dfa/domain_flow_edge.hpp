@@ -6,7 +6,7 @@ namespace sw {
     namespace dfa {
 
         // the Domain Flow Graph edge type
-        struct DomainFlow : public sw::graph::weighted_edge<int> { // Weighted by the data flow on this link
+        struct DomainFlowEdge : public sw::graph::weighted_edge<int> { // Weighted by the data flow on this link
             int flow;
             bool stationair;  // does the flow go through a memory or not
             std::string shape;  // tensor<1x2x3x4x5> as example
@@ -19,14 +19,14 @@ namespace sw {
             void setShape(std::string shape) { this->shape = shape; }
             void setSchedule(std::vector<int> schedule) { this->schedule = schedule; }
 
-            DomainFlow() : flow{ 0 }, stationair{ true }, shape{ "1xi32" }, scalarSizeInBits{ 32 }, schedule{ {0,0,0} } {}
-            DomainFlow(int flow, bool inMemory = true) : flow{ flow }, stationair{ inMemory }, shape{ "1xi32" }, scalarSizeInBits{ 32 }, schedule{ {0,0,0} } {}
-			DomainFlow(int flow, bool inMemory, std::string shape, int scalarSizeInBits, std::vector<int> tau) : flow{ flow }, stationair{ inMemory }, shape{ shape }, scalarSizeInBits{ scalarSizeInBits }, schedule{ tau } {}
-            ~DomainFlow() {}
+            DomainFlowEdge() : flow{ 0 }, stationair{ true }, shape{ "1xi32" }, scalarSizeInBits{ 32 }, schedule{ {0,0,0} } {}
+            DomainFlowEdge(int flow, bool inMemory = true) : flow{ flow }, stationair{ inMemory }, shape{ "1xi32" }, scalarSizeInBits{ 32 }, schedule{ {0,0,0} } {}
+			DomainFlowEdge(int flow, bool inMemory, std::string shape, int scalarSizeInBits, std::vector<int> tau) : flow{ flow }, stationair{ inMemory }, shape{ shape }, scalarSizeInBits{ scalarSizeInBits }, schedule{ tau } {}
+            ~DomainFlowEdge() {}
         };
 
         // Output stream operator
-        std::ostream& operator<<(std::ostream& os, const DomainFlow& df) {
+        std::ostream& operator<<(std::ostream& os, const DomainFlowEdge& df) {
             // Format: flow|stationair|shape|tau1,tau2,...
             os << df.flow << "|" << (df.stationair ? "true" : "false") << "|" << df.shape << "|" << df.scalarSizeInBits << "|";
 
@@ -42,7 +42,7 @@ namespace sw {
         }
 
         // Input stream operator
-        std::istream& operator>>(std::istream& is, DomainFlow& df) {
+        std::istream& operator>>(std::istream& is, DomainFlowEdge& df) {
             std::string line;
             if (!std::getline(is, line)) {
                 is.setstate(std::ios::failbit);
