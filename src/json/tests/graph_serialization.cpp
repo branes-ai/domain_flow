@@ -1,8 +1,10 @@
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <format>
 #include <filesystem>
 #include <graph/graph.hpp>
+#include <nlohmann/json.hpp>
 
 namespace sw {
     namespace graph {
@@ -10,6 +12,10 @@ namespace sw {
         struct Operator {
             std::string name;
         };
+		std::ostream& operator<<(std::ostream& ostr, const Operator& op) {
+			ostr << op.name;
+			return ostr;
+		}
 
         struct Flow : public weighted_edge<int> { // Weighted by the data flow on this link
             int flow;
@@ -92,8 +98,10 @@ int main() {
     using namespace sw::graph;
     const auto [graph, source, sink] {create_dfa_graph()};
 
-    const std::filesystem::path& path{ "test_graph.json" }
+    const std::filesystem::path& path{ "test_graph.json" };
     std::ofstream json_file{ path };
+
+	std::cout << graph << std::endl;
 
     return EXIT_SUCCESS;
 }
