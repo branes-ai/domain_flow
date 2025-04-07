@@ -8,10 +8,10 @@ namespace sw {
 
         // Definition of the Domain Flow graph
 	struct DomainFlowGraph {
-            std::string name;
-	    sw::graph::directed_graph<DomainFlowOperator, DomainFlow> graph{};
-	    std::vector<sw::graph::nodeId_t> source;
-	    std::vector<sw::graph::nodeId_t> sink;
+        std::string name;
+		sw::graph::directed_graph<DomainFlowOperator, DomainFlow> graph{};
+		std::vector<sw::graph::nodeId_t> source;
+		std::vector<sw::graph::nodeId_t> sink;
 
 	    DomainFlowGraph(std::string name) : name{ name } {}
 	    DomainFlowGraph(std::string name, sw::graph::directed_graph<DomainFlowOperator, DomainFlow> graph,
