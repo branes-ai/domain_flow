@@ -58,5 +58,19 @@ int main(int argc, char **argv) {
 
     dfg.graph.save(dfgFilename);
 
+    // Generate operator statistics
+    std::cout << "Operator statistics:" << std::endl;
+    auto opCount = dfg.operatorStats();
+    const int OPERATOR_WIDTH = 25;
+    const int COL_WIDTH = 15;
+    // Print the header
+    std::cout << std::setw(OPERATOR_WIDTH) << "Operator" << std::setw(COL_WIDTH) << "count" << std::setw(COL_WIDTH) << "Percentage" << std::endl;
+    // Print the operator statistics
+    for (const auto& [op, cnt] : opCount) {
+        std::cout << std::setw(OPERATOR_WIDTH) << op << std::setw(COL_WIDTH) << cnt
+            << std::setprecision(2) << std::fixed
+            << std::setw(COL_WIDTH - 1) << (cnt * 100.0 / dfg.graph.nrNodes()) << "%" << std::endl;
+    }
+
     return EXIT_SUCCESS;
 }

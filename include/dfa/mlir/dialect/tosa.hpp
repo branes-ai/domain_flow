@@ -137,8 +137,8 @@ namespace sw {
             if constexpr (bTrace) os << "  " << constOp.getOutput().getType() << "\n";
         
             // TODO: bring the attribute processing up to this function
-
-            return DomainFlowNode(DomainFlowOperator::CONSTANT, "ConstOp");
+            std::string opName = op.getName().getStringRef().str();
+            return DomainFlowNode(DomainFlowOperator::CONSTANT, opName);
         }
 
         // Function to extract Clamp specific attributes
@@ -195,8 +195,8 @@ namespace sw {
                 os << "Result:\n";
                 os << "  " << clampOp.getOutput().getType() << "\n";
             }
-            
-            return DomainFlowNode(DomainFlowOperator::CLAMP, "Clamp");
+            std::string opName = op.getName().getStringRef().str();
+            return DomainFlowNode(DomainFlowOperator::CLAMP, opName);
         }
 
         // Function to extract Conv2D specific attributes
@@ -269,235 +269,220 @@ namespace sw {
             }
             
 			// TODO: bring the attribute processing up to this function
-
-			return DomainFlowNode(DomainFlowOperator::CONV2D, "Conv2D");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::CONV2D, opName);
         }
 
         // A specialized function to parse TOSA Conv2D operations
         DomainFlowNode parseTosaConv3D(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-            return DomainFlowNode(DomainFlowOperator::CONV3D, "Conv3D");
+            std::string opName = op.getName().getStringRef().str();
+            return DomainFlowNode(DomainFlowOperator::CONV3D, opName);
         }
 
         // A specialized function to parse TOSA Reshape operations
         DomainFlowNode parseTosaReshape(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-
-			return DomainFlowNode(DomainFlowOperator::RESHAPE, "Reshape");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::RESHAPE, opName);
         }
         // A specialized function to parse TOSA Transpose operations
         DomainFlowNode parseTosaTranspose(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-
-			return DomainFlowNode(DomainFlowOperator::TRANSPOSE, "Transpose");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::TRANSPOSE, opName);
         }
         // A specialized function to parse TOSA DepthwiseConv2D operations
         DomainFlowNode parseTosaDepthwiseConv2D(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-
-			return DomainFlowNode(DomainFlowOperator::DEPTHWISE_CONV2D, "DepthwiseConv2D");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::DEPTHWISE_CONV2D, opName);
         }
         // A specialized function to parse TOSA TransposeConv2D operations
         DomainFlowNode parseTosaTransposeConv2D(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-
-			return DomainFlowNode(DomainFlowOperator::TRANSPOSE_CONV2D, "TransposeConv2D");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::TRANSPOSE_CONV2D, opName);
         }
         // A specialized function to parse TOSA FullyConnected operations
         DomainFlowNode parseTosaFullyConnected(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-
-			return DomainFlowNode(DomainFlowOperator::FC, "FullyConnected");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::FC, opName);
         }
         // A specialized function to parse TOSA Matmul operations
         DomainFlowNode parseTosaMatmul(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-
-			return DomainFlowNode(DomainFlowOperator::MATMUL, "Matmul");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::MATMUL, opName);
         }
         // A specialized function to parse TOSA Add operations
         DomainFlowNode parseTosaAdd(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-
-			return DomainFlowNode(DomainFlowOperator::ADD, "Add");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::ADD, opName);
         }
         // A specialized function to parse TOSA Sub operations
         DomainFlowNode parseTosaSub(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-
-			return DomainFlowNode(DomainFlowOperator::SUB, "Sub");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::SUB, opName);
         }
         // A specialized function to parse TOSA Mul operations
         DomainFlowNode parseTosaMul(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-
-			return DomainFlowNode(DomainFlowOperator::MUL, "Mul");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::MUL, opName);
         }
         // A specialized function to parse TOSA Negate operations
         DomainFlowNode parseTosaNegate(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-
-			return DomainFlowNode(DomainFlowOperator::NEGATE, "Negate");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::NEGATE, opName);
         }
 
         // A specialized function to parse TOSA Pad operations
         DomainFlowNode parseTosaPad(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-
-			return DomainFlowNode(DomainFlowOperator::PAD, "Pad");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::PAD, opName);
         }
         // A specialized function to parse TOSA Cast operations
         DomainFlowNode parseTosaCast(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-
-			return DomainFlowNode(DomainFlowOperator::CAST, "Cast");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::CAST, opName);
         }
         // A specialized function to parse TOSA Gather operations
         DomainFlowNode parseTosaGather(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-
-			return DomainFlowNode(DomainFlowOperator::GATHER, "Gather");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::GATHER, opName);
         }
 
         // function ops
         // A specialized function to parse TOSA Reciprocal operations
         DomainFlowNode parseTosaReciprocal(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-
-			return DomainFlowNode(DomainFlowOperator::RECIPROCAL, "Reciprocal");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::RECIPROCAL, opName);
         }
         // A specialized function to parse TOSA ReduceAll operations
         DomainFlowNode parseTosaReduceAll(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-
-			return DomainFlowNode(DomainFlowOperator::REDUCE_ALL, "ReduceAll");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::REDUCE_ALL, opName);
         }
         // A specialized function to parse TOSA ReduceMax operations
         DomainFlowNode parseTosaReduceMax(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-
-			return DomainFlowNode(DomainFlowOperator::REDUCE_MAX, "ReduceMax");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::REDUCE_MAX, opName);
         }
         // A specialized function to parse TOSA ReduceMin operations
         DomainFlowNode parseTosaReduceMin(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-
-			return DomainFlowNode(DomainFlowOperator::REDUCE_MIN, "ReduceMin");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::REDUCE_MIN, opName);
         }
         // A specialized function to parse TOSA ReduceSum operations
         DomainFlowNode parseTosaReduceSum(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-
-			return DomainFlowNode(DomainFlowOperator::REDUCE_SUM, "ReduceSum");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::REDUCE_SUM, opName);
         }
         // A specialized function to parse TOSA ReduceProd operations
         DomainFlowNode parseTosaReduceProd(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-
-			return DomainFlowNode(DomainFlowOperator::REDUCE_PROD, "ReduceProd");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::REDUCE_PROD, opName);
         }
 
         // A specialized function to parse TOSA Exp operations
         DomainFlowNode parseTosaExp(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-
-			return DomainFlowNode(DomainFlowOperator::EXP, "Exp");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::EXP, opName);
         }
         // A specialized function to parse TOSA Abs operations
         DomainFlowNode parseTosaAbs(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-
-			return DomainFlowNode(DomainFlowOperator::ABS, "Abs");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::ABS, opName);
         }
         // A specialized function to parse TOSA Concat operations
         DomainFlowNode parseTosaConcat(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
-
-			return DomainFlowNode(DomainFlowOperator::CONCAT, "Concat");
+            std::string opName = op.getName().getStringRef().str();
+			return DomainFlowNode(DomainFlowOperator::CONCAT, opName);
         }
 
 
         // Parse the TOSA Op and add to the graph
         DomainFlowNode parseOperation(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+            DomainFlowNode node;
+
             if (mlir::isa<mlir::tosa::ConstOp>(op)) {
-                return parseConst(gr, op, os);
+                node = parseConst(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::Conv2DOp>(op)) {
-                return parseTosaConv2D(gr, op, os);
+                node = parseTosaConv2D(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::Conv3DOp>(op)) {
-                return parseTosaConv3D(gr, op, os);
+                node = parseTosaConv3D(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::ClampOp>(op)) {
-                return parseTosaClamp(gr, op, os);
+                node = parseTosaClamp(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::ReshapeOp>(op)) {
-                return parseTosaReshape(gr, op, os);
+                node = parseTosaReshape(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::TransposeOp>(op)) {
-                return parseTosaTranspose(gr, op, os);
+                node = parseTosaTranspose(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::DepthwiseConv2DOp>(op)) {
-                return parseTosaDepthwiseConv2D(gr, op, os);
+                node = parseTosaDepthwiseConv2D(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::TransposeConv2DOp>(op)) {
-                return parseTosaTransposeConv2D(gr, op, os);
+                node = parseTosaTransposeConv2D(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::PadOp>(op)) {
-                if constexpr (bTrace) os << "\nDetected TOSA PadOp:\n";
-                parseTosaPad(gr, op, os);
+                node = parseTosaPad(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::FullyConnectedOp>(op)) {
-                if constexpr (bTrace) os << "\nDetected TOSA FullyConnectedOp:\n";
-                parseTosaFullyConnected(gr, op, os);
+                node = parseTosaFullyConnected(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::MatMulOp>(op)) {
-                if constexpr (bTrace) os << "\nDetected TOSA MatMulOp:\n";
-                parseTosaMatmul(gr, op, os);
+                node = parseTosaMatmul(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::AddOp>(op)) {
-                if constexpr (bTrace) os << "\nDetected TOSA AddOp:\n";
-                parseTosaAdd(gr, op, os);
+                node = parseTosaAdd(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::SubOp>(op)) {
-                if constexpr (bTrace) os << "\nDetected TOSA SubOp:\n";
-                parseTosaSub(gr, op, os);
+                node = parseTosaSub(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::MulOp>(op)) {
-                if constexpr (bTrace) os << "\nDetected TOSA MulOp:\n";
-                parseTosaMul(gr, op, os);
+                node = parseTosaMul(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::NegateOp>(op)) {
-                if constexpr (bTrace) os << "\nDetected TOSA NegateOp:\n";
-                parseTosaNegate(gr, op, os);
+                node = parseTosaNegate(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::ExpOp>(op)) {
-                if constexpr (bTrace) os << "\nDetected TOSA ExpOp:\n";
-                parseTosaExp(gr, op, os);
+                node = parseTosaExp(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::AbsOp>(op)) {
-                if constexpr (bTrace) os << "\nDetected TOSA AbsOp:\n";
-                parseTosaAbs(gr, op, os);
+                node = parseTosaAbs(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::ConcatOp>(op)) {
-                if constexpr (bTrace) os << "\nDetected TOSA ConcatOp:\n";
-                parseTosaConcat(gr, op, os);
+                node = parseTosaConcat(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::CastOp>(op)) {
-                if constexpr (bTrace) os << "\nDetected TOSA CastOp:\n";
-                parseTosaCast(gr, op, os);
+                node = parseTosaCast(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::GatherOp>(op)) {
-                if constexpr (bTrace) os << "\nDetected TOSA GatherOp:\n";
-                parseTosaGather(gr, op, os);
+                node = parseTosaGather(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::ReciprocalOp>(op)) {
-                if constexpr (bTrace) os << "\nDetected TOSA ReciprocalOp:\n";
-                parseTosaReciprocal(gr, op, os);
+                node = parseTosaReciprocal(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::ReduceAllOp>(op)) {
-                if constexpr (bTrace) os << "\nDetected TOSA ReduceAllOp:\n";
-                parseTosaReduceAll(gr, op, os);
+                node = parseTosaReduceAll(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::ReduceMaxOp>(op)) {
-                if constexpr (bTrace) os << "\nDetected TOSA ReduceMaxOp:\n";
-                parseTosaReduceMax(gr, op, os);
+                node = parseTosaReduceMax(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::ReduceMinOp>(op)) {
-                if constexpr (bTrace) os << "\nDetected TOSA ReduceMinOp:\n";
-                parseTosaReduceMin(gr, op, os);
+                node = parseTosaReduceMin(gr, op, os);
             }
-            else if (mlir::isa<mlir::tosa::ReduceSumOp>(op)) {
-                if constexpr (bTrace) os << "\nDetected TOSA ReduceSumOp:\n";
-                parseTosaReduceSum(gr, op, os);
+            else if (mlir::isa<mlir::tosa::ReduceSumOp>(op)) {;
+                node = parseTosaReduceSum(gr, op, os);
             }
             else if (mlir::isa<mlir::tosa::ReduceProdOp>(op)) {
-                if constexpr (bTrace) os << "\nDetected TOSA ReduceProdOp:\n";
-                parseTosaReduceProd(gr, op, os);
+                node = parseTosaReduceProd(gr, op, os);
             }
 
             else {
-                os << "\nDetected generic TOSA operation:\n";
-                std::string operatorName = op.getName().getStringRef().str();
-                os << "Parsing operation: " << operatorName << "\n";
-                gr.add_node(operatorName);
+                os << "\nDetected untracked TOSA operation:\n";
+                std::string opName = op.getName().getStringRef().str();
+				os << "Operation: " << opName << "\n";
+                node = DomainFlowNode(opName);
 
                 // Parse operands
                 std::vector<OperandInfo> operands = parseOperands(op);
@@ -515,10 +500,13 @@ namespace sw {
                 }
             }
 
+            // VALIDATE that this nesting is correct
             if (op.getNumRegions() > 0) {
                 // Parse blocks
                 parseBlocks(op, os);
             }
+
+            return node;
         }
 
 

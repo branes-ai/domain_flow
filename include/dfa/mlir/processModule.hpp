@@ -56,8 +56,7 @@ namespace sw {
                 }
 
                 // First pass: Create nodes for all operations
-                for (auto& op : func.getBody().getOps()) {
-                    std::string opName = op.getName().getStringRef().str();
+                for (auto& op : func.getBody().getOps()) {                  
 					auto graphNode = parseOperation(gr, op, os); // Parse the operation
 
 					int nrOperands = op.getNumOperands();
@@ -121,7 +120,7 @@ namespace sw {
                     
                     int nodeId = gr.add_node(graphNode);
                     opToNodeId[&op] = nodeId;
-                    if constexpr (bTrace) os << "Created node: " << opName << " with ID: " << nodeId << "\n";
+                    if constexpr (bTrace) os << "Created node: " << graphNode.getName() << " with ID: " << nodeId << "\n";
                 }
 
                 // Second pass: Create edges based on operand-result relationships
