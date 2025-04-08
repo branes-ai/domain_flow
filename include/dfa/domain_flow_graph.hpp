@@ -6,10 +6,12 @@
 namespace sw {
     namespace dfa {
 
+		using domain_flow_graph = sw::graph::directed_graph<DomainFlowNode, DomainFlowEdge>;
+
         // Definition of the Domain Flow graph
 		struct DomainFlowGraph {
 			std::string name;
-			sw::graph::directed_graph<DomainFlowNode, DomainFlowEdge> graph{};
+			domain_flow_graph graph{};
 			std::vector<sw::graph::nodeId_t> source;
 			std::vector<sw::graph::nodeId_t> sink;
 

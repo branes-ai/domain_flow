@@ -18,11 +18,8 @@ int main() {
 
 	{
 		// Test the DomainFlowNode class
-		DomainFlowNode nodeOut(DomainFlowOperator::MATMUL, "test.matmul");
-		nodeOut.addOperand("tensor<2x2xf32>")
-			.addOperand("tensor<2x2xf32>")
-			.addResult("result_0", "tensor<2x2xf32>")
-			.setDepth(1);
+		auto nodeOut = DomainFlowNode(DomainFlowOperator::MATMUL, "test.matmul").addOperand("tensor<2x2xf32>").addOperand("tensor<2x2xf32>").addResult("result_0", "tensor<2x2xf32>");
+		nodeOut.setDepth(1);
 		std::cout << "NODE: " << nodeOut << '\n';
 		std::stringstream ss;
 		ss << nodeOut;
@@ -31,5 +28,15 @@ int main() {
 		std::cout << "NODE: " << nodeIn << '\n';
 	}
 
+	{
+		auto nodeOut = DomainFlowNode(DomainFlowOperator::MATMUL, "matmul").addOperand("tensor<2x2xf32>").addOperand("tensor<2x2xf32>").addResult("result_0", "tensor<2x2xf32>");
+		std::cout << "NODE: " << nodeOut << '\n';
+		std::stringstream ss;
+		ss << nodeOut;
+		DomainFlowOperator nodeIn;
+		ss >> nodeIn;
+		std::cout << "NODE: " << nodeIn << '\n';
+
+	}
     return EXIT_SUCCESS;
 }

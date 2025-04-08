@@ -20,7 +20,7 @@ namespace sw {
 
 
         // Assign depth values to nodes based on their maximum distance from inputs
-        void assignNodeDepths(graph::directed_graph<DomainFlowNode, DomainFlow>& gr, llvm::raw_string_ostream& os) {
+        void assignNodeDepths(domain_flow_graph& gr, llvm::raw_string_ostream& os) {
 			constexpr bool bTrace = false; // Set to true for detailed tracing
             auto nodeDepths = calculateNodeDepths(gr);
             // Store depth values in the TosaOperator objects
@@ -35,7 +35,7 @@ namespace sw {
 
 		// Function to process the MLIR module and build the domain flow graph
         void processModule(DomainFlowGraph& dfg, mlir::ModuleOp& module) {
-			graph::directed_graph<DomainFlowNode, DomainFlow>& gr = dfg.graph;
+            domain_flow_graph& gr = dfg.graph;
 			constexpr bool bTrace = false; // Set to true for detailed tracing
 
             std::string output;
@@ -51,14 +51,14 @@ namespace sw {
                 // Handle function arguments as potential input nodes
                 for (unsigned i = 0; i < func.getNumArguments(); ++i) {
                     std::string argName = "arg" + std::to_string(i);
-                    int nodeId = gr.add_node(DomainFlowNode(argName));
+                    int nodeId = gr.add_node(DomainFlowNode(DomainFlowOperator::FUNCTION_ARGUMENT, argName));
                     opToNodeId[nullptr] = nodeId; // Special case for function arguments
                 }
 
                 // First pass: Create nodes for all operations
                 for (auto& op : func.getBody().getOps()) {
                     std::string opName = op.getName().getStringRef().str();
-                    auto graphNode = DomainFlowNode(opName);
+					auto graphNode = parseOperation(gr, op, os); // Parse the operation
 
 					int nrOperands = op.getNumOperands();
                     for (int idx = 0; idx < nrOperands; ++idx) {
@@ -118,6 +118,7 @@ namespace sw {
                         //std::string resultName = opName + "_result" + std::to_string(idx);
 
                     }
+                    
                     int nodeId = gr.add_node(graphNode);
                     opToNodeId[&op] = nodeId;
                     if constexpr (bTrace) os << "Created node: " << opName << " with ID: " << nodeId << "\n";
@@ -139,7 +140,7 @@ namespace sw {
                             int destNodeId = srcNodeId;
                             int srcDefiningNodeId = opToNodeId[definingOp];
 
-                            DomainFlow flow(1);
+                            DomainFlowEdge flow(1);
 
                             // Add edge: from defining op to current op
                             gr.add_edge(srcDefiningNodeId, destNodeId, flow);
@@ -158,7 +159,7 @@ namespace sw {
                             int srcArgNodeId = opToNodeId[nullptr];  // This is simplified - in reality you might want to map each arg separately
                             int destNodeId = srcNodeId;
 
-                            DomainFlow flow(1);
+                            DomainFlowEdge flow(1);
 
                             // Add edge: from argument to current op
                             gr.add_edge(srcArgNodeId, destNodeId, flow);
@@ -192,7 +193,7 @@ namespace sw {
                             int definingOpNodeId = opToNodeId[definingOp];
 
                             // Create an edge from the defining op to the result node
-                            DomainFlow flow(1);
+                            DomainFlowEdge flow(1);
                             gr.add_edge(definingOpNodeId, resultNodeId, flow);
 
                             std::string definingOpName = definingOp->getName().getStringRef().str();
@@ -216,7 +217,7 @@ namespace sw {
 
                             if (argNodeId != -1) {
                                 // Create an edge from the argument node to the result node
-                                DomainFlow flow(1);
+                                DomainFlowEdge flow(1);
                                 gr.add_edge(argNodeId, resultNodeId, flow);
 
                                 if constexpr (bTrace) os << "  Added edge from function argument " << argIdx << " to result " << i
