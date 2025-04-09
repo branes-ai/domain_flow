@@ -43,25 +43,14 @@ int main(int argc, char **argv) {
     }
 
     // Walk through the operations in the module and parse them
-    DomainFlowGraph gr(argv[1]); // Deep Learning graph
-    processModule(gr, *module);
+    DomainFlowGraph g(argv[1]); // Deep Learning graph
+    processModule(g, *module);
 
     // Print the graph
-    std::cout << gr << std::endl;
+    //std::cout << g << std::endl;
 
-	// Generate operator statistics
-	std::cout << "Operator statistics:" << std::endl;
-	auto opCount = gr.operatorStats();
-	const int OPERATOR_WIDTH = 25;
-	const int COL_WIDTH = 15;
-	// Print the header
-	std::cout << std::setw(OPERATOR_WIDTH) << "Operator" << std::setw(COL_WIDTH) << "count" << std::setw(COL_WIDTH) << "Percentage" << std::endl;
-	// Print the operator statistics
-	for (const auto& [op, cnt] : opCount) {
-		std::cout << std::setw(OPERATOR_WIDTH) << op << std::setw(COL_WIDTH) << cnt
-			<< std::setprecision(2) << std::fixed
-			<< std::setw(COL_WIDTH-1) << (cnt * 100.0 / gr.graph.nrNodes()) << "%" << std::endl;
-	}
+	// Report operator statistics
+	reportOperatorStats(g);
 
     return EXIT_SUCCESS;
 }

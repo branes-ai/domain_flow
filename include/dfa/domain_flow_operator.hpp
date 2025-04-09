@@ -139,6 +139,16 @@ namespace sw {
             return is;
         }
 
+        // To make the enum set an iteratable we need
+        //  1. An iterator class that can increment through the enum values
+        //  2. A range class that defines the begin and end points(from 0 to COUNT)
+        //  3. A helper function for cleaner syntax when using the range
+        // 
+		// This provides the functionality to use this pattern to work with the enum:
+		//  for (auto op : AllDomainFlowOperators()) {
+        //      ... stuff with the op
+		//  }
+
 		// helper class to iterate over DomainFlowOperator enum values
         class DomainFlowOperatorIterator {
         private:
