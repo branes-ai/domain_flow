@@ -59,12 +59,30 @@ namespace sw {
 
             // Print summary report
             void printSummary() const {
+                const int OPERATOR_WIDTH = 25;
+                const int COL_WIDTH = 15;
+                std::cout << std::setw(OPERATOR_WIDTH) << "Operator" << std::setw(COL_WIDTH) << "count" << std::setw(COL_WIDTH) << "Percentage" << std::endl;
+                // gather the total
+				uint64_t total = 0;
+				for (const auto& opType : getOperationTypes()) {
+					for (const auto& [numType, count] : opMetrics.at(opType)) {
+						total += count;
+					}
+				}
                 // By operation type
                 std::cout << "=== By Operation Type ===" << std::endl;
                 for (const auto& opType : getOperationTypes()) {
-                    std::cout << opType << ": " << getOperationTotal(opType) << std::endl;
+					auto opTotal = getOperationTotal(opType);
+                    std::cout << std::setw(OPERATOR_WIDTH) << opType 
+                        << std::setw(COL_WIDTH) << opTotal 
+                        << std::setw(COL_WIDTH) << (opTotal * 100.0) / total 
+                        << std::endl;
                     for (const auto& [numType, count] : opMetrics.at(opType)) {
                         std::cout << "  " << numType << ": " << count << std::endl;
+						std::cout << std::setw(OPERATOR_WIDTH) << (std::string("   ") + numType)
+                            << std::setw(COL_WIDTH) << count
+                            << std::setw(COL_WIDTH) << (count * 100.0) / total
+                            << std::endl;
                     }
                 }
 

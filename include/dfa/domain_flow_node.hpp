@@ -61,7 +61,7 @@ namespace sw {
                         // Elementwise addition with broadcasting.
                         //    %out = tosa.add %in1, %in2 : tensor<12x6xsi32>, tensor<1x1xsi32>->tensor<12x6xsi32>
                         auto tensorInfo = parseTensorType(operandType[0]);
-                        std::uint16_t count{ 0 };
+                        std::uint64_t count{ 1 };
                         for (auto& dim : tensorInfo.shape) {
                             count *= dim;
                         }
@@ -77,7 +77,7 @@ namespace sw {
                         // Elementwise multiplication with broadcasting.
                         //    %out = tosa.mull %in1, %in2 : tensor<12x6xsi32>, tensor<1x1xsi32>->tensor<12x6xsi32>
                         auto tensorInfo = parseTensorType(operandType[0]);
-                        std::uint16_t count{ 0 };
+                        std::uint64_t count{ 1 };
                         for (auto& dim : tensorInfo.shape) {
                             count *= dim;
                         }
