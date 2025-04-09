@@ -52,5 +52,8 @@ int main(int argc, char **argv) {
 	// Report operator statistics
 	reportOperatorStats(g);
 
+    // Report arithmetic complexity
+    reportArithmeticComplexity(g);
+
     return EXIT_SUCCESS;
 }

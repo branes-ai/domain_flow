@@ -3,6 +3,8 @@
 // extendable graph data structure
 #include <graph/graph.hpp>
 #include <dfa/domain_flow_operator.hpp>
+#include <dfa/tensor_spec_parser.hpp>
+#include <dfa/arithmetic_complexity.hpp>
 
 namespace sw {
     namespace dfa {
@@ -43,6 +45,103 @@ namespace sw {
 			std::size_t getNrOutputs() const noexcept { return resultType.size(); }
             std::string getResultValue(std::size_t idx) const { if (idx < resultValue.size()) return resultValue[idx]; else return "out of bounds"; }
             std::string getResultType(std::size_t idx) const noexcept { if (idx < resultType.size()) return resultType[idx]; else return "out of bounds"; }
+        
+            // Functional operators
+            std::vector<std::tuple<std::string, std::string, std::uint64_t>> getArithmeticComplexity() const noexcept {
+                std::vector<std::tuple<std::string, std::string, std::uint64_t>> work;
+                std::tuple<std::string, std::string, std::uint64_t> stats{};
+                std::stringstream ss;
+				switch (opType) {
+				case DomainFlowOperator::ADD:
+                case DomainFlowOperator::SUB:
+                    {
+                        // element-wise operators, two operands
+                        // Elementwise addition.
+                        //    %out = tosa.add %in1, %in2 : tensor<12x6xf32>, tensor<12x6xf32>->tensor<12x6xf32>
+                        // Elementwise addition with broadcasting.
+                        //    %out = tosa.add %in1, %in2 : tensor<12x6xsi32>, tensor<1x1xsi32>->tensor<12x6xsi32>
+                        auto tensorInfo = parseTensorType(operandType[0]);
+                        std::uint16_t count{ 0 };
+                        for (auto& dim : tensorInfo.shape) {
+                            count *= dim;
+                        }
+                        stats = { "Add/Sub", tensorInfo.elementType, count };
+						work.push_back(stats);
+                    }
+                    break;
+                case DomainFlowOperator::MUL:
+                    {
+                        // element-wise operators, two operands
+                        // Elementwise multiplication.
+                        //    %out = tosa.mull %in1, %in2 : tensor<12x6xf32>, tensor<12x6xf32>->tensor<12x6xf32>
+                        // Elementwise multiplication with broadcasting.
+                        //    %out = tosa.mull %in1, %in2 : tensor<12x6xsi32>, tensor<1x1xsi32>->tensor<12x6xsi32>
+                        auto tensorInfo = parseTensorType(operandType[0]);
+                        std::uint16_t count{ 0 };
+                        for (auto& dim : tensorInfo.shape) {
+                            count *= dim;
+                        }
+                        stats = { "Multiply", tensorInfo.elementType, count };
+						work.push_back(stats);
+                    }
+					break;
+                case DomainFlowOperator::MATMUL:
+                    {
+                        auto tensor1 = parseTensorType(operandType[0]);
+                        auto tensor2 = parseTensorType(operandType[1]);
+                        std::uint16_t count{ 0 };
+                        int a = tensor1.shape[0];
+                        int b = tensor1.shape[1];
+                        int c = tensor1.shape[2];
+                        int d = tensor2.shape[0];
+                        int e = tensor2.shape[1];
+                        int f = tensor2.shape[2];
+                        if (tensor1.elementType != tensor2.elementType) {
+                            int sizeOf1 = a * b * c;
+							int sizeOf2 = d * e * f;
+                            // instpect types to see which tensor needs to be converted by inspecting the type conversion rules
+							int typeConversion = isArithmeticTypeContained(tensor1.elementType, tensor2.elementType); // 0 = same type, 1 = contained, 2 = not contained
+							switch (typeConversion) { 
+                            case 1:
+                                // type 2 is contained in type 1 so we need to convert type 2 to type 1
+                                ss.clear();
+                                ss << "Convert_" << tensor2.elementType << "_to_" << tensor1.elementType;
+                                stats = { ss.str(), tensor2.elementType, sizeOf2 };
+                                break;
+                            case 2:
+                                // type 2 is NOT contained in type 1 so we need to convert type 1 to type 2
+                                ss.clear();
+                                ss << "Convert_" << tensor1.elementType << "_to_" << tensor2.elementType;
+                                stats = { ss.str(), tensor1.elementType, sizeOf1 };
+                                break;
+                            default:
+								// same type, no conversion needed
+								break;
+							}
+							// add the conversion to the stats
+							work.push_back(stats);
+						}
+						// check if the tensors are compatible for matrix multiplication    
+                        if (c == e) {
+                            count = d * a * b * f;
+                            stats = { "Fused Multiply", tensor1.elementType, count };
+							work.push_back(stats);
+							stats = { "Add", tensor1.elementType, count };
+							work.push_back(stats);
+						}
+                        else {
+                            std::cerr << "Error: incompatible tensor dimensions for matrix multiplication" << std::endl;
+                        }
+                    }
+					break;
+				case DomainFlowOperator::CONV2D:
+					
+					break;
+				default:
+                    break;
+				}
+                return work;
+            }
         };
 
 		bool operator==(const DomainFlowNode& lhs, const DomainFlowNode& rhs) {

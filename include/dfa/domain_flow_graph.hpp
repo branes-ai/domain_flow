@@ -4,6 +4,7 @@
 
 // extendable graph data structure
 #include <graph/graph.hpp>
+#include <dfa/arithmetic_complexity.hpp>
 
 namespace sw {
     namespace dfa {
@@ -25,6 +26,7 @@ namespace sw {
 			~DomainFlowGraph() {}
 
 			// Modifiers
+			void clear() { graph.clear(); }
 			void setName(const std::string& name) { this->name = name; }
 			void addNode(const std::string& name) {
 				DomainFlowNode node(name);
@@ -32,6 +34,9 @@ namespace sw {
 			}
 			void addNode(DomainFlowOperator opType, const std::string& name) {
 				DomainFlowNode node(opType, name);
+				graph.add_node(node);
+			}
+			void addNode(const DomainFlowNode& node) {
 				graph.add_node(node);
 			}
 
@@ -52,6 +57,20 @@ namespace sw {
 					}
 				}
 				return opCount;
+			}
+
+			ArithmeticMetrics arithmeticComplexity() const {
+				ArithmeticMetrics metrics;
+				for (auto& node : graph.nodes()) {
+					auto work = node.second.getArithmeticComplexity();
+					for (auto& stats : work) {
+						std::string opType = std::get<0>(stats);
+						std::string numType = std::get<1>(stats);
+						std::uint64_t opsCount = std::get<2>(stats);
+						metrics.recordOperation(opType, numType, opsCount);
+					}
+				}
+				return metrics;
 			}
 
 			std::ostream& save(std::ostream& ostr) const {
@@ -96,6 +115,18 @@ namespace sw {
 					<< std::setw(COL_WIDTH - 1) << (cnt * 100.0 / g.graph.nrNodes()) << "%" << std::endl;
 			}
 		}
+
+		// Generate the arithmetic complexity table
+		inline void reportArithmeticComplexity(const DomainFlowGraph& g) {
+			// walk the graph and accumulate all arithmetic operations
+			auto arithOps = g.arithmeticComplexity();
+			const int OPERATOR_WIDTH = 25;
+			const int COL_WIDTH = 15;
+			// Print the header
+			std::cout << std::setw(OPERATOR_WIDTH) << "Arithmetic Op" << std::setw(COL_WIDTH) << "count" << std::setw(COL_WIDTH) << "Percentage" << std::endl;
+			arithOps.printSummary();
+		}
+
     }
 }
 
