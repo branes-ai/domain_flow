@@ -15,11 +15,16 @@ namespace sw {
         TensorTypeInfo parseTensorType(const std::string& tensorTypeStr) {
             TensorTypeInfo result;
 
+			std::string workingStr = tensorTypeStr;
+            // convert an undefined batch dimension to 1
+            if (workingStr.find_first_of('?') != std::string::npos) {
+                workingStr.replace(tensorTypeStr.find_first_of('?'), 1, "1");
+			}
             // Match the tensor type pattern: tensor<axbxcxf32>
             std::regex tensorPattern(R"(tensor<(.*?)x([^>]+)>)");
             std::smatch matches;
 
-            if (std::regex_search(tensorTypeStr, matches, tensorPattern) && matches.size() >= 3) {
+            if (std::regex_search(workingStr, matches, tensorPattern) && matches.size() >= 3) {
                 std::string dimensionsStr = matches[1].str() + "x" + matches[2].str();
 
                 // Split dimensions by 'x'

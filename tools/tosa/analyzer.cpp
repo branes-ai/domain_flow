@@ -55,5 +55,8 @@ int main(int argc, char **argv) {
     // Report arithmetic complexity
     reportArithmeticComplexity(g);
 
+    // Report numerical complexity
+    reportNumericalComplexity(g);
+
     return EXIT_SUCCESS;
 }

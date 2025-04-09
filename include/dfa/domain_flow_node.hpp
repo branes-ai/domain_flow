@@ -134,8 +134,68 @@ namespace sw {
                         }
                     }
 					break;
-				case DomainFlowOperator::CONV2D:
-					
+                case DomainFlowOperator::CONV2D:
+                    {
+    					TensorTypeInfo input, kernel, bias, result;
+						size_t nrOperands = operandType.size();
+                        switch (nrOperands) {
+                        case 2:
+							// Conv2D with no bias
+							input = parseTensorType(operandType[0]);
+							kernel = parseTensorType(operandType[1]);
+							break;
+                        case 3:
+							// Conv2D with bias
+							input = parseTensorType(operandType[0]);
+							kernel = parseTensorType(operandType[1]);
+							bias = parseTensorType(operandType[2]);
+							break;
+						default:
+							std::cerr << "Error: Conv2D operation requires 2 or 3 operands" << std::endl;
+							break;
+                        }
+                        if (resultType.size() != 1) {
+                            std::cerr << "Error: Conv2D operation requires 1 result" << std::endl;
+                            break;
+                        }
+                        result = parseTensorType(resultType[0]);
+                        // double check we have the proper 4D tensors
+                        if (input.shape.size() != 4 || kernel.shape.size() != 4 || result.shape.size() != 4) {
+                            std::cerr << "Error: Conv2D operation requires 4D tensors" << std::endl;
+                            break;
+                        }
+                        int batch = input.shape[0];
+                        int inHeight = input.shape[1];
+                        int inWidth = input.shape[2];
+                        int inputChannels = input.shape[3];
+
+                        int outputChannels = kernel.shape[0];
+                        int kernelHeight = kernel.shape[1];
+                        int kernelWidth = kernel.shape[2];
+                        int kernelChannels = kernel.shape[3];
+
+                        int batch2 = result.shape[0];
+                        int height = result.shape[1];
+                        int width = result.shape[2];
+                        int outputChannels2 = result.shape[3];
+
+                        int kernelSize = kernelHeight * kernelWidth * kernelChannels;
+                        uint64_t kernelMuls = kernelSize * outputChannels;
+                        uint64_t kernelAdds = (kernelSize - 1) * outputChannels;
+
+                        // check if the batch size between input and output are correct
+                        if (batch != batch2) {
+                            std::cerr << "Error: Conv2D operation requires the same batch size for input and output" << std::endl;
+                            break;
+                        }
+                        uint64_t conv2DMuls = batch * height * width * outputChannels * kernelSize;
+                        uint64_t conv2DAdds = batch * height * width * outputChannels * (kernelSize - 1);
+                        stats = { "Conv2D-Mul", result.elementType, conv2DMuls };
+                        work.push_back(stats);
+                        stats = { "Conv2D-Add", result.elementType, conv2DAdds };
+                        work.push_back(stats);
+						// ignoring the bias for now
+                    }
 					break;
 				default:
                     break;
@@ -259,8 +319,6 @@ namespace sw {
                     node.resultType.push_back(type);
                 }
             }
-
-
 
             return is;
         }

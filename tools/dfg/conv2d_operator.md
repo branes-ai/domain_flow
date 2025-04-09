@@ -29,8 +29,8 @@ Here's a breakdown of the parameters and the resulting arithmetic operations:
     * Since there are 32 output channels, we multiply this by 32.
     * The output spatial dimensions are 112x112.
     * Therefore, for one image in the batch, the number of MAC operations is: 112x112x32x3x3x3.
-    * The total number of multiplications per image is: $112 \times 112 \times 32 \times 3 \times 3 \times 3 = 32,269,056$.
-    * The total number of additions per image for the convolution is: $112 \times 112 \times 32 \times 26 = 10,276,096$.
+    * The total number of multiplications per image is: $112 \times 112 \times 32 \times 3 \times 3 \times 3 = 10,838,016$.
+    * The total number of additions per image for the convolution is: $112 \times 112 \times 32 \times 26 = 10,436,608$.
 2.  **Bias Addition:**
     * After the convolution, we add the bias to each output pixel.
     * There are 32 biases, and the output spatial dimensions are 112x112.
@@ -39,10 +39,10 @@ Here's a breakdown of the parameters and the resulting arithmetic operations:
 
 **Total Arithmetic Complexity (per image):**
 
-* **Multiplications:** $112 \times 112 \times 32 \times 3 \times 3 \times 3 = 32,269,056$
-* **Additions:** $(112 \times 112 \times 32 \times 26) + (112 \times 112 \times 32) = 10,276,096 + 401,408 = 10,677,504$
-* Total MACs: $32,269,056$
-* Total additions: $10,677,504$
+* **Multiplications:** $112 \times 112 \times 32 \times 3 \times 3 \times 3 = 10,838,016$
+* **Additions:** $(112 \times 112 \times 32 \times 26) + (112 \times 112 \times 32) = 10,436,608 + 401,408 = 10,838,016$
+* Total MACs: $10,838,016$
+* Total additions: $10,838,016$
 
 **Batch Size Consideration:**
 

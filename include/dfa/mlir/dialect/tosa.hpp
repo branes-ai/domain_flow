@@ -242,7 +242,6 @@ namespace sw {
                 if (convOp.getBias())
                     os << "  Bias: " << convOp.getBias().getType() << "\n";
 
-
                 os << "Attributes:\n";
                 os << "  Padding: [";
                 for (size_t i = 0; i < convAttrs.pad.size(); ++i) {
