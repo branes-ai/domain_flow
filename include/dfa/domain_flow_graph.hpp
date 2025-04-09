@@ -119,6 +119,7 @@ namespace sw {
 
 		// Generate the arithmetic complexity table
 		inline void reportArithmeticComplexity(const DomainFlowGraph& g) {
+			std::cout << "Arithmetic complexity:" << '\n';
 			// walk the graph and accumulate all arithmetic operations
 			auto arithOps = g.arithmeticComplexity();
 			// gather the total
@@ -151,7 +152,22 @@ namespace sw {
 						<< std::setw(COL_WIDTH) << (count * 100.0)/total << '\n';
 				}
 			}
+		}
 
+		// Generate the numerical complexity table
+		inline void reportNumericalComplexity(const DomainFlowGraph& g) {
+			std::cout << "Numerical complexity:" << '\n';
+			// walk the graph and accumulate all arithmetic operations
+			auto arithOps = g.arithmeticComplexity();
+			// gather the total
+			uint64_t total = 0;
+			for (const auto& opType : arithOps.getOperationTypes()) {
+				for (const auto& [numType, count] : arithOps.opMetrics.at(opType)) {
+					total += count;
+				}
+			}
+			const int OPERATOR_WIDTH = 25;
+			const int COL_WIDTH = 15;
 			// Normalized by numerical type
 			// Print the header
 			std::cout << std::setw(OPERATOR_WIDTH) << "Arithmetic Op" << std::setw(COL_WIDTH) << "count" << std::setw(COL_WIDTH) << "Percentage" << std::endl;
