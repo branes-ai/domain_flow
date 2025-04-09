@@ -1,4 +1,7 @@
 #pragma once
+#include <iostream>
+#include <iomanip>
+#include <unordered_map>
 
 namespace sw {
     namespace dfa {
