@@ -5,11 +5,12 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
-#if WIN32
-#pragma warning(disable : 4996)
-#endif
 #include <iostream>
 #include <filesystem>
+
+#if WIN32
+#pragma warning(disable : 4244 4267 4996)
+#endif
 
 #include "mlir/Config/mlir-config.h"
 #include "mlir/IR/BuiltinOps.h"

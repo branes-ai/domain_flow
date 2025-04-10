@@ -19,7 +19,7 @@ project(domain_flow
 	DESCRIPTION "A header only C++ library for domain flow architecture parallelizing compiler"
 	VERSION "${DFATOOLS_VERSION_MAJOR}.${DFATOOLS_VERSION_MINOR}.${DFATOOLS_VERSION_PATCH}" 
 	LANGUAGES C CXX ASM
-	HOMEPAGE_URL "https://github.com/branes-ai/dfa-dynamics")
+	HOMEPAGE_URL "https://github.com/branes-ai/domain_flow")
 
 # double check that the presets are coming through
 message(STATUS "CMakePresets")
@@ -55,6 +55,7 @@ option(DFATOOLS_VISUALIZATION "Enable/disable visualization tools." OFF)
 
 # Set the toolchain directory
 #set(CMAKE_TOOLCHAIN_FILE "C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Path to the vcpkg.cmake")
+#better set through the CMakePreset mechanism
 
 # Must be located in root dir, doesn't work in tests
 if (DFATOOLS_ENABLE_TESTS)
