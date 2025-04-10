@@ -1,3 +1,5 @@
 file (GLOB SOURCES "./*.cpp")
 
-compile_all("true"  "test"  "dfg/tests"  "${SOURCES}")
+compile_all("true"  "dfg"  "tools/dfg"  "${SOURCES}")
+
+add_subdirectory("tests")
