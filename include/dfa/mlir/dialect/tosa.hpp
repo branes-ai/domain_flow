@@ -369,7 +369,14 @@ namespace sw {
         // A specialized function to parse TOSA ReduceSum operations
         DomainFlowNode parseTosaReduceSum(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::REDUCE_SUM, opName);
+            auto node = DomainFlowNode(DomainFlowOperator::REDUCE_SUM, opName);
+            auto reduceSumOp = mlir::cast<mlir::tosa::ReduceSumOp>(op);
+            // Extract axis attribute
+            if (auto AxisAttr = reduceSumOp.getAxisAttr()) {
+                auto axis = AxisAttr.getValue().getSExtValue();
+				node.addAttribute("axis", axis);
+            }
+            return node;
         }
         // A specialized function to parse TOSA ReduceProd operations
         DomainFlowNode parseTosaReduceProd(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {

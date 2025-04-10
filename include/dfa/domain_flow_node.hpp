@@ -16,6 +16,7 @@ namespace sw {
             std::vector<std::string> operandType;    // string version of mlir::Type
             std::vector<std::string> resultValue;    // string version of mlir::Value: typically too verbose
             std::vector<std::string> resultType;     // string version of mlir::Type
+            std::map<std::string, int> attribute;
             int depth;                               // depth of 0 represents a data source
 
             // Constructor to initialize the node with just a string of the operator
@@ -31,6 +32,10 @@ namespace sw {
                 operandType.push_back(typeStr);
                 return *this;
             }
+			DomainFlowNode& addAttribute(const std::string& name, const int value) {
+				attribute[name] = value;
+				return *this;
+			}
             DomainFlowNode& addResult(const std::string& valueStr, const std::string& typeStr) {
                 resultValue.push_back(valueStr);
                 resultType.push_back(typeStr);
@@ -53,6 +58,21 @@ namespace sw {
                 std::stringstream ss;
 				switch (opType) {
 				case DomainFlowOperator::ADD:
+                    {
+                        // element-wise operators, two operands
+                        // Elementwise addition.
+                        //    %out = tosa.add %in1, %in2 : tensor<12x6xf32>, tensor<12x6xf32>->tensor<12x6xf32>
+                        // Elementwise addition with broadcasting.
+                        //    %out = tosa.add %in1, %in2 : tensor<12x6xsi32>, tensor<1x1xsi32>->tensor<12x6xsi32>
+                        auto tensorInfo = parseTensorType(operandType[0]);
+                        std::uint64_t count{ 1 };
+                        for (auto& dim : tensorInfo.shape) {
+                            count *= dim;
+                        }
+                        stats = { "Element-wise Add", tensorInfo.elementType, count };
+                        work.push_back(stats);
+                    }
+                    break;
                 case DomainFlowOperator::SUB:
                     {
                         // element-wise operators, two operands
@@ -65,7 +85,7 @@ namespace sw {
                         for (auto& dim : tensorInfo.shape) {
                             count *= dim;
                         }
-                        stats = { "Add/Sub", tensorInfo.elementType, count };
+                        stats = { "Element-wise Sub", tensorInfo.elementType, count };
 						work.push_back(stats);
                     }
                     break;
@@ -81,7 +101,7 @@ namespace sw {
                         for (auto& dim : tensorInfo.shape) {
                             count *= dim;
                         }
-                        stats = { "Multiply", tensorInfo.elementType, count };
+                        stats = { "Element-wise Mul", tensorInfo.elementType, count };
 						work.push_back(stats);
                     }
 					break;
@@ -197,6 +217,117 @@ namespace sw {
 						// ignoring the bias for now
                     }
 					break;
+                case DomainFlowOperator::DEPTHWISE_CONV2D:
+                    {
+                        TensorTypeInfo input, kernel, bias, result;
+                        size_t nrOperands = operandType.size();
+                        switch (nrOperands) {
+                        case 2:
+                            // Conv2D with no bias
+                            input = parseTensorType(operandType[0]);
+                            kernel = parseTensorType(operandType[1]);
+                            break;
+                        case 3:
+                            // Conv2D with bias
+                            input = parseTensorType(operandType[0]);
+                            kernel = parseTensorType(operandType[1]);
+                            bias = parseTensorType(operandType[2]);
+                            break;
+                        default:
+                            std::cerr << "Error: Depthwise Conv2D operation requires 2 or 3 operands" << std::endl;
+                            break;
+                        }
+                        if (resultType.size() != 1) {
+                            std::cerr << "Error: Depthwise Conv2D operation requires 1 result" << std::endl;
+                            break;
+                        }
+                        result = parseTensorType(resultType[0]);
+                        // double check we have the proper 4D tensors
+                        if (input.shape.size() != 4 || kernel.shape.size() != 4 || result.shape.size() != 4) {
+                            std::cerr << "Error: Depthwise Conv2D operation requires 4D tensors" << std::endl;
+                            break;
+                        }
+                        int batch = input.shape[0];
+                        int inHeight = input.shape[1];
+                        int inWidth = input.shape[2];
+                        int inputChannels = input.shape[3];
+
+                        
+                        int kernelHeight = kernel.shape[0];
+                        int kernelWidth = kernel.shape[1];
+                        int inputChannels2 = kernel.shape[2];
+                        int channelMultiplier = kernel.shape[3];
+
+                        int batch2 = result.shape[0];
+                        int height = result.shape[1];
+                        int width = result.shape[2];
+                        int outputChannels = result.shape[3];
+
+                        int kernelSize = kernelHeight * kernelWidth * channelMultiplier;
+
+                        // check if the batch size between input and output are correct
+                        if (batch != batch2) {
+                            std::cerr << "Error: Conv2D operation requires the same batch size for input and output" << std::endl;
+                            break;
+                        }
+                        uint64_t dwConv2DMuls = batch * height * width * outputChannels * kernelSize;
+                        uint64_t dwConv2DAdds = batch * height * width * outputChannels * (kernelSize - 1);
+                        stats = { "DW-Conv2D-Mul", result.elementType, dwConv2DMuls };
+                        work.push_back(stats);
+                        stats = { "DW-Conv2D-Add", result.elementType, dwConv2DAdds };
+                        work.push_back(stats);
+                        // ignoring the bias for now
+                    }
+                    break;
+                case DomainFlowOperator::CLAMP:
+                    {
+                        // Clamp operation
+                        //    %out = tosa.clamp %in : tensor<12x6xf32> -> tensor<12x6xf32>
+                        auto tensorInfo = parseTensorType(operandType[0]);
+                        std::uint64_t count{ 1 };
+                        for (auto& dim : tensorInfo.shape) {
+                            count *= dim;
+                        }
+                        stats = { "Clamp cmp", tensorInfo.elementType, 2*count };
+						work.push_back(stats);
+                    }
+                    break;
+                case DomainFlowOperator::REDUCE_SUM:
+                    {
+					    // Reduce Sum operation
+					    //    %out = tosa.reduce_sum %image {axis = 1 : i32} : (tensor<?x7x7x1280xf32>) -> tensor<?x1x7x1280xf32>
+                        // Input Tensor (%image): `?x7x7x1280xf32` (Unknown batch size, 7x7 spatial dimensions, 1280 channels, float32 data type)
+                        //  Axis: `1 : i32` (Reduce along the second axis, which is the height dimension)
+                        // The `reduce_sum` operator sums the elements of the input tensor along the specified axis.
+                        // In this case, we're summing along the height dimension (axis 1). This means that for each batch, width, and channel, we'll sum the 7 elements along the height.
+
+					    auto imageIn = parseTensorType(operandType[0]);
+
+						auto imageOut = parseTensorType(resultType[0]);
+                        // structure of vector
+                        // batchSize x height
+                        // batchSize x height x width
+                        // batchSize x height x width x channels
+                        std::vector<int> shape(4, 1);
+                        for (size_t i = 0; i < imageOut.shape.size(); ++i) {
+						    shape[i] = imageOut.shape[0];
+                        }
+
+                        // For each element in the output tensor, we need to sum (Axis) nr of elements from the input tensor.
+						// in our example case of summing over Axis 1, we would need to sum 7 elements from the input tensor.
+
+						// TBD: find the axis from the attributes
+                        auto axis = attribute.at(std::string("axis"));
+						int axisDim = imageIn.shape[axis];
+                        int count{ axisDim };
+                        for (auto& dim : shape) {
+                            count *= dim;
+                        }
+					    
+					    stats = { "Reduce Sum Add", imageOut.elementType, 2 * count };
+						work.push_back(stats);
+                    }
+                    break;
 				default:
                     break;
 				}
