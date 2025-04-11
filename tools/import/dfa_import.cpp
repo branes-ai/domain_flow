@@ -42,15 +42,18 @@ int main(int argc, char **argv) {
     context.appendDialectRegistry(registry);
 
     // Parse the provided MLIR file.
-    auto module = mlir::parseSourceFile<mlir::ModuleOp>(dataFileName, &context);
-    if (!module) {
+    auto moduleRef = mlir::parseSourceFile<mlir::ModuleOp>(dataFileName, &context);
+    if (!moduleRef) {
         std::cerr << "Failed to parse MLIR file: " << dataFileName << "\n";
         return 1;
     }
 
+    // Get a reference to the ModuleOp
+    mlir::ModuleOp module = *moduleRef;
+
     // Walk through the operations in the module and parse them
     DomainFlowGraph dfg(dataFileName); // Deep Learning graph
-    processModule(dfg, *module);
+    processModule(dfg, module);
 
     std::string dfgFilename = replaceExtension(dataFileName, ".mlir", ".dfg");
     std::cout << "Original filename: " << dataFileName << std::endl;
@@ -66,3 +69,37 @@ int main(int argc, char **argv) {
 
     return EXIT_SUCCESS;
 }
+
+
+/*
+The error occurs because mlir::parseSourceFile<mlir::ModuleOp> returns an mlir::OwningOpRef<mlir::ModuleOp>, 
+which is a smart pointer-like type that owns the module operation. However, the processModule 
+function expects a non-const reference to an mlir::ModuleOp (mlir::ModuleOp&), and you cannot 
+directly bind the dereferenced OwningOpRef to a non-const reference because dereferencing 
+it produces a temporary (rvalue).
+
+To fix this, you need to convert the OwningOpRef<mlir::ModuleOp> into an lvalue of 
+type mlir::ModuleOp that processModule can bind to. Here is how to do that:
+
+    // Get a reference to the ModuleOp
+    mlir::ModuleOp module = *moduleRef;
+
+Explanation of the Issue:
+
+mlir::parseSourceFile<mlir::ModuleOp>(dataFileName, &context) returns an mlir::OwningOpRef<mlir::ModuleOp>, 
+which manages the lifetime of the parsed module.
+When you write auto module = mlir::parseSourceFile<mlir::ModuleOp>(dataFileName, &context), 
+module is an OwningOpRef<mlir::ModuleOp>.
+Dereferencing module with *module gives you an mlir::ModuleOp, but it’s a temporary (rvalue) 
+because OwningOpRef’s dereference operator returns a reference to its managed object, 
+which cannot be bound to a non-const reference (mlir::ModuleOp&).
+The compiler error indicates that processModule expects an lvalue of type mlir::ModuleOp&, 
+but you’re passing an rvalue.
+
+Solution
+You need to extract the mlir::ModuleOp from the OwningOpRef and ensure it’s an lvalue. 
+Since OwningOpRef owns the operation, you can use its release() method to take ownership 
+of the raw mlir::ModuleOp and manage its lifetime manually, or you can keep the OwningOpRef 
+and pass a reference to the underlying ModuleOp correctly.
+
+*/

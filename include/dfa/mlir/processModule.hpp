@@ -173,7 +173,7 @@ namespace sw {
                 }
             
                 // Handle function results by finding return operations and their operands
-                for (auto& returnOp : llvm::make_early_inc_range(func.getOps<mlir::func::ReturnOp>())) {
+                for (auto returnOp : llvm::make_early_inc_range(func.getOps<mlir::func::ReturnOp>())) {
                     // Return operations don't have names like other operations, so use the operation name directly
                     std::string returnName = "func.return";
                     if constexpr (bTrace) os << "Processing return operation: " << returnName << "\n";

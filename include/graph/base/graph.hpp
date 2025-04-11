@@ -217,7 +217,7 @@ namespace sw {
 
             // edge selectors
             edge_t& edge(nodeId_t lhs, nodeId_t rhs) {
-                return const_cast<graph<node_t, edge_t, graph_t>::edge_t&>(
+                return const_cast<typename graph<node_t, edge_t, graph_t>::edge_t&>(
                     const_cast<const graph<node_t, edge_t, graph_t>*>(this)->edge(lhs, rhs));
             }
             const edge_t& edge(nodeId_t lhs, nodeId_t rhs) const {
