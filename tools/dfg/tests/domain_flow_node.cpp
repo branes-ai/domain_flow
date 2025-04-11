@@ -25,7 +25,7 @@ int main() {
 	for (auto op : AllDomainFlowOperators()) {
 		std::cout << "Processing operator: " << op << std::endl;
 
-		auto nodeOut = DomainFlowNode(op, "test").addOperand("tensor<2x2xf32>").addOperand("tensor<2x2xf32>").addResult("result_0", "tensor<2x2xf32>");
+		auto nodeOut = DomainFlowNode(op, "test").addOperand("tensor<2x2xf32>").addOperand("tensor<2x2xf32>").addAttribute("asix", "1").addResult("result_0", "tensor<2x2xf32>");
 		nodeOut.setDepth(1);
 		std::stringstream ss;
 		ss << nodeOut;

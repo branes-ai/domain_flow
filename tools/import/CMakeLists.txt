@@ -2,6 +2,9 @@
 # set up environment for the import tools that rely on MLIR
 message(STATUS "Setting up environment for import tools based on MLIR")
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # Find LLVM and MLIR packages
 find_package(MLIR REQUIRED CONFIG)
 

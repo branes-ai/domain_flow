@@ -11,13 +11,13 @@ namespace sw {
 
         // the Domain Flow Graph node type
         struct DomainFlowNode {
-            DomainFlowOperator opType;               // domain flow operator type
-            std::string name;                        // source dialect name
-            std::vector<std::string> operandType;    // string version of mlir::Type
-            std::vector<std::string> resultValue;    // string version of mlir::Value: typically too verbose
-            std::vector<std::string> resultType;     // string version of mlir::Type
-            std::map<std::string, int> attribute;
-            int depth;                               // depth of 0 represents a data source
+            DomainFlowOperator opType;                    // domain flow operator type
+            std::string name;                             // source dialect name
+            std::vector<std::string> operandType;         // string version of mlir::Type
+            std::vector<std::string> resultValue;         // string version of mlir::Value: typically too verbose
+            std::vector<std::string> resultType;          // string version of mlir::Type
+			std::map<std::string, std::string> attribute; // attributes of the operation, key/value pair where the value is encoded as a string
+            int depth;                                    // depth of 0 represents a data source
 
             // Constructor to initialize the node with just a string of the operator
             DomainFlowNode() : opType{ DomainFlowOperator::UNKNOWN }, name{ "undefined" }, operandType{}, resultValue{}, resultType{}, depth { 0 } {}
@@ -32,7 +32,7 @@ namespace sw {
                 operandType.push_back(typeStr);
                 return *this;
             }
-			DomainFlowNode& addAttribute(const std::string& name, const int value) {
+			DomainFlowNode& addAttribute(const std::string& name, const std::string& value) {
 				attribute[name] = value;
 				return *this;
 			}
@@ -317,7 +317,8 @@ namespace sw {
 						// in our example case of summing over Axis 1, we would need to sum 7 elements from the input tensor.
 
 						// TBD: find the axis from the attributes
-                        auto axis = attribute.at(std::string("axis"));
+                        std::string axisStr = attribute.at(std::string("axis"));
+						int axis = std::stoi(axisStr);
 						int axisDim = imageIn.shape[axis];
                         int count{ axisDim };
                         for (auto& dim : shape) {
@@ -358,6 +359,15 @@ namespace sw {
                 first = false;
             }
 			os << "|";
+
+            // attributes
+            first = true;
+            for (const auto& val : node.attribute) {
+                if (!first) os << ",";
+                os << val.first << ':' << val.second;
+                first = false;
+            }
+            os << "|";
 
             // resultValue
             first = true;
@@ -422,6 +432,26 @@ namespace sw {
                     node.operandType.push_back(input);
                 }
             }
+
+			// attributes
+			node.attribute.clear();
+			if (!std::getline(iss, segment, '|')) {
+				is.setstate(std::ios::failbit);
+				return is;
+			}
+			if (!segment.empty()) {
+				std::istringstream attr_ss(segment);
+				std::string attr;
+				while (std::getline(attr_ss, attr, ',')) {
+					std::string name, value;
+					std::size_t pos = attr.find(':');
+					if (pos != std::string::npos) {
+						name = attr.substr(0, pos);
+						value = attr.substr(pos + 1);
+						node.attribute[name] = value;
+					}
+				}
+			}
 
             // resultValue
             node.resultValue.clear();
