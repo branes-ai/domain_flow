@@ -6,3 +6,6 @@ if(DFATOOLS_VISUALIZATION)
 add_subdirectory(viz)
 endif()
 
+# importers
+add_subdirectory(opt)
+add_subdirectory(import)

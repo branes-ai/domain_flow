@@ -1,5 +1,8 @@
 ####
-# Set dfa tools specific include directories
+# set up environment for the opt tool that relies on MLIR
+message(STATUS "Setting up environment for opt tools based on MLIR")
+
+# Find LLVM and MLIR packages
 find_package(MLIR REQUIRED CONFIG)
 
 message(STATUS "Using MLIRConfig.cmake in: ${MLIR_DIR}")
