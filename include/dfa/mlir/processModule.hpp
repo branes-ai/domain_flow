@@ -148,9 +148,9 @@ namespace sw {
                             if constexpr (bTrace) os << "  Added edge: " << definingOpName << " -> " << opName
                                 << " (NodeIDs: " << srcDefiningNodeId << " -> " << destNodeId << ")\n";
                         }
-                        else if (operand.isa<mlir::BlockArgument>()) {
+						else if(mlir::isa<mlir::BlockArgument>(operand)) { // if (operand.isa<mlir::BlockArgument>()) {
                             // Handle block arguments (function inputs)
-                            auto blockArg = operand.cast<mlir::BlockArgument>();
+							auto blockArg = mlir::cast<mlir::BlockArgument>(operand);
                             int argIdx = blockArg.getArgNumber();
                             std::string argName = "arg" + std::to_string(argIdx);
 
@@ -199,9 +199,10 @@ namespace sw {
                             if constexpr (bTrace) os << "  Added edge: " << definingOpName << " -> " << resultName
                                 << " (NodeIDs: " << definingOpNodeId << " -> " << resultNodeId << ")\n";
                         }
-                        else if (resultValue.isa<mlir::BlockArgument>()) {
+                        else if (mlir::isa<mlir::BlockArgument>(resultValue)) {  // if (resultValue.isa<mlir::BlockArgument>()) {
                             // Handle block arguments that are directly returned
-                            auto blockArg = resultValue.cast<mlir::BlockArgument>();
+                            // auto blockArg = resultValue.cast<mlir::BlockArgument>();
+							auto blockArg = mlir::cast<mlir::BlockArgument>(resultValue);
                             int argIdx = blockArg.getArgNumber();
                             std::string argName = "arg" + std::to_string(argIdx);
 

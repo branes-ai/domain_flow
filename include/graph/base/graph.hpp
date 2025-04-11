@@ -2,14 +2,17 @@
 
 #include <stdexcept>
 #include <functional>
-#include <concepts>
 #include <type_traits>
 #include <fstream>
 
-#include <format>
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
+
+#if _HAS_CXX20
+#include <concepts>
+#include <format>
+#endif
 
 namespace sw {
     namespace graph {
@@ -61,7 +64,7 @@ namespace sw {
             virtual WeightType weight() const noexcept = 0;
         };
 
-#ifdef SUPPORTS_CONCEPTS
+#if HAS_CXX20
         template <typename derived>
         concept derived_from_weighted_edge = std::is_base_of_v<weighted_edge<typename derived::weight_t>, derived>;
 
