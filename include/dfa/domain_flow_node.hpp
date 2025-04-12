@@ -347,7 +347,7 @@ namespace sw {
         // Output stream operator
         std::ostream& operator<<(std::ostream& os, const DomainFlowNode& node) {
             // Format: name|operator|depth|operandType1,operandType2|resultValue1,resultValue2|resultType1,resultType2
-            os << node.name << "|";
+            os << "|" << node.name << "|";
             os << node.opType << "|";
             os << node.depth << "|";
 
@@ -400,6 +400,11 @@ namespace sw {
             std::istringstream iss(line);
             std::string segment;
 
+			// synchronize the segments by removing the first '|' and any white space
+			if (!std::getline(iss, segment, '|')) {
+				is.setstate(std::ios::failbit);
+				return is;
+			}
             // name
             if (!std::getline(iss, node.name, '|')) {
                 is.setstate(std::ios::failbit);

@@ -204,10 +204,8 @@ namespace sw {
                     return neighbors(node_id).size();
                 }
             }
-            // node selectors
-            node_t& node(nodeId_t node_id) {
-                return const_cast<node_t&>(const_cast<const graph<node_t, edge_t, graph_t>*>(this)->node(node_id));
-            }
+            
+                // node selector
             const node_t& node(nodeId_t node_id) const {
                 if (!has_node(node_id)) {
                     throw std::invalid_argument{ "Node with ID [" + std::to_string(node_id) + "] not found in graph." };
@@ -216,10 +214,6 @@ namespace sw {
             }
 
             // edge selectors
-            edge_t& edge(nodeId_t lhs, nodeId_t rhs) {
-                return const_cast<typename graph<node_t, edge_t, graph_t>::edge_t&>(
-                    const_cast<const graph<node_t, edge_t, graph_t>*>(this)->edge(lhs, rhs));
-            }
             const edge_t& edge(nodeId_t lhs, nodeId_t rhs) const {
                 if (!has_edge(lhs, rhs)) {
                     throw std::invalid_argument{ "No edge found between vertices [" +
@@ -233,10 +227,6 @@ namespace sw {
                 else {
                     return m_edges.at(detail::make_sorted_pair(lhs, rhs));
                 }
-            }
-            edge_t& edge(const edgeId_t& edge_id) {
-                const auto [lhs, rhs] = edge_id;
-                return edge(lhs, rhs);
             }
             const edge_t& edge(const edgeId_t& edge_id) const {
                 const auto [lhs, rhs] {edge_id};
@@ -333,6 +323,20 @@ namespace sw {
                     return;
                 }
             }
+			// modifying node access
+            node_t & node(nodeId_t node_id) {
+                return const_cast<node_t&>(const_cast<const graph<node_t, edge_t, graph_t>*>(this)->node(node_id));
+            }
+            // modifying access to edges
+            edge_t& edge(nodeId_t lhs, nodeId_t rhs) {
+                return const_cast<typename graph<node_t, edge_t, graph_t>::edge_t&>(
+                    const_cast<const graph<node_t, edge_t, graph_t>*>(this)->edge(lhs, rhs));
+            }
+            edge_t& edge(const edgeId_t& edge_id) {
+                const auto [lhs, rhs] = edge_id;
+                return edge(lhs, rhs);
+            }
+
 
             // Save the graph to a text file
             void save(const std::string& filename) const {

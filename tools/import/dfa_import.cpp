@@ -72,8 +72,8 @@ int main(int argc, char **argv) {
 
 
 /*
-The error occurs because mlir::parseSourceFile<mlir::ModuleOp> returns an mlir::OwningOpRef<mlir::ModuleOp>, 
-which is a smart pointer-like type that owns the module operation. However, the processModule 
+The mlir::parseSourceFile<mlir::ModuleOp> returns an mlir::OwningOpRef<mlir::ModuleOp>, 
+which is a smart pointer-like type that owns the module data structure. The processModule 
 function expects a non-const reference to an mlir::ModuleOp (mlir::ModuleOp&), and you cannot 
 directly bind the dereferenced OwningOpRef to a non-const reference because dereferencing 
 it produces a temporary (rvalue).
@@ -88,8 +88,11 @@ Explanation of the Issue:
 
 mlir::parseSourceFile<mlir::ModuleOp>(dataFileName, &context) returns an mlir::OwningOpRef<mlir::ModuleOp>, 
 which manages the lifetime of the parsed module.
-When you write auto module = mlir::parseSourceFile<mlir::ModuleOp>(dataFileName, &context), 
+
+When you write:
+    auto module = mlir::parseSourceFile<mlir::ModuleOp>(dataFileName, &context), 
 module is an OwningOpRef<mlir::ModuleOp>.
+
 Dereferencing module with *module gives you an mlir::ModuleOp, but it’s a temporary (rvalue) 
 because OwningOpRef’s dereference operator returns a reference to its managed object, 
 which cannot be bound to a non-const reference (mlir::ModuleOp&).

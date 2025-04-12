@@ -1,224 +1,224 @@
 DIRECTED
 RUNNING_NODE_ID 217
 NODES 218
-NODE 0 : arg0|FUNCTION_ARGUMENT|0|||
-NODE 1 : tosa.const|CONSTANT|0||result_0|tensor<3x3x960x1xf32>
-NODE 2 : tosa.const|CONSTANT|0||result_0|tensor<3x3x960x1xf32>
-NODE 3 : tosa.const|CONSTANT|0||result_0|tensor<3x3x960x1xf32>
-NODE 4 : tosa.const|CONSTANT|0||result_0|tensor<3x3x576x1xf32>
-NODE 5 : tosa.const|CONSTANT|0||result_0|tensor<3x3x576x1xf32>
-NODE 6 : tosa.const|CONSTANT|0||result_0|tensor<3x3x576x1xf32>
-NODE 7 : tosa.const|CONSTANT|0||result_0|tensor<3x3x384x1xf32>
-NODE 8 : tosa.const|CONSTANT|0||result_0|tensor<3x3x384x1xf32>
-NODE 9 : tosa.const|CONSTANT|0||result_0|tensor<3x3x384x1xf32>
-NODE 10 : tosa.const|CONSTANT|0||result_0|tensor<3x3x384x1xf32>
-NODE 11 : tosa.const|CONSTANT|0||result_0|tensor<3x3x192x1xf32>
-NODE 12 : tosa.const|CONSTANT|0||result_0|tensor<3x3x192x1xf32>
-NODE 13 : tosa.const|CONSTANT|0||result_0|tensor<3x3x192x1xf32>
-NODE 14 : tosa.const|CONSTANT|0||result_0|tensor<3x3x144x1xf32>
-NODE 15 : tosa.const|CONSTANT|0||result_0|tensor<3x3x144x1xf32>
-NODE 16 : tosa.const|CONSTANT|0||result_0|tensor<3x3x96x1xf32>
-NODE 17 : tosa.const|CONSTANT|0||result_0|tensor<3x3x32x1xf32>
-NODE 18 : tosa.const|CONSTANT|0||result_0|tensor<1x1xf32>
-NODE 19 : tosa.const|CONSTANT|0||result_0|tensor<1000xf32>
-NODE 20 : tosa.const|CONSTANT|0||result_0|tensor<1000x1280xf32>
-NODE 21 : tosa.const|CONSTANT|0||result_0|tensor<1280xf32>
-NODE 22 : tosa.const|CONSTANT|0||result_0|tensor<1280x1x1x320xf32>
-NODE 23 : tosa.const|CONSTANT|0||result_0|tensor<320xf32>
-NODE 24 : tosa.const|CONSTANT|0||result_0|tensor<320x1x1x960xf32>
-NODE 25 : tosa.const|CONSTANT|0||result_0|tensor<960xf32>
-NODE 26 : tosa.const|CONSTANT|0||result_0|tensor<960xf32>
-NODE 27 : tosa.const|CONSTANT|0||result_0|tensor<960x1x1x160xf32>
-NODE 28 : tosa.const|CONSTANT|0||result_0|tensor<160xf32>
-NODE 29 : tosa.const|CONSTANT|0||result_0|tensor<160x1x1x960xf32>
-NODE 30 : tosa.const|CONSTANT|0||result_0|tensor<960xf32>
-NODE 31 : tosa.const|CONSTANT|0||result_0|tensor<960xf32>
-NODE 32 : tosa.const|CONSTANT|0||result_0|tensor<960x1x1x160xf32>
-NODE 33 : tosa.const|CONSTANT|0||result_0|tensor<160xf32>
-NODE 34 : tosa.const|CONSTANT|0||result_0|tensor<160x1x1x960xf32>
-NODE 35 : tosa.const|CONSTANT|0||result_0|tensor<960xf32>
-NODE 36 : tosa.const|CONSTANT|0||result_0|tensor<960xf32>
-NODE 37 : tosa.const|CONSTANT|0||result_0|tensor<960x1x1x160xf32>
-NODE 38 : tosa.const|CONSTANT|0||result_0|tensor<160xf32>
-NODE 39 : tosa.const|CONSTANT|0||result_0|tensor<160x1x1x576xf32>
-NODE 40 : tosa.const|CONSTANT|0||result_0|tensor<576xf32>
-NODE 41 : tosa.const|CONSTANT|0||result_0|tensor<576xf32>
-NODE 42 : tosa.const|CONSTANT|0||result_0|tensor<576x1x1x96xf32>
-NODE 43 : tosa.const|CONSTANT|0||result_0|tensor<96xf32>
-NODE 44 : tosa.const|CONSTANT|0||result_0|tensor<96x1x1x576xf32>
-NODE 45 : tosa.const|CONSTANT|0||result_0|tensor<576xf32>
-NODE 46 : tosa.const|CONSTANT|0||result_0|tensor<576xf32>
-NODE 47 : tosa.const|CONSTANT|0||result_0|tensor<576x1x1x96xf32>
-NODE 48 : tosa.const|CONSTANT|0||result_0|tensor<96xf32>
-NODE 49 : tosa.const|CONSTANT|0||result_0|tensor<96x1x1x576xf32>
-NODE 50 : tosa.const|CONSTANT|0||result_0|tensor<576xf32>
-NODE 51 : tosa.const|CONSTANT|0||result_0|tensor<576xf32>
-NODE 52 : tosa.const|CONSTANT|0||result_0|tensor<576x1x1x96xf32>
-NODE 53 : tosa.const|CONSTANT|0||result_0|tensor<96xf32>
-NODE 54 : tosa.const|CONSTANT|0||result_0|tensor<96x1x1x384xf32>
-NODE 55 : tosa.const|CONSTANT|0||result_0|tensor<384xf32>
-NODE 56 : tosa.const|CONSTANT|0||result_0|tensor<384xf32>
-NODE 57 : tosa.const|CONSTANT|0||result_0|tensor<384x1x1x64xf32>
-NODE 58 : tosa.const|CONSTANT|0||result_0|tensor<64xf32>
-NODE 59 : tosa.const|CONSTANT|0||result_0|tensor<64x1x1x384xf32>
-NODE 60 : tosa.const|CONSTANT|0||result_0|tensor<384xf32>
-NODE 61 : tosa.const|CONSTANT|0||result_0|tensor<384xf32>
-NODE 62 : tosa.const|CONSTANT|0||result_0|tensor<384x1x1x64xf32>
-NODE 63 : tosa.const|CONSTANT|0||result_0|tensor<64xf32>
-NODE 64 : tosa.const|CONSTANT|0||result_0|tensor<64x1x1x384xf32>
-NODE 65 : tosa.const|CONSTANT|0||result_0|tensor<384xf32>
-NODE 66 : tosa.const|CONSTANT|0||result_0|tensor<384xf32>
-NODE 67 : tosa.const|CONSTANT|0||result_0|tensor<384x1x1x64xf32>
-NODE 68 : tosa.const|CONSTANT|0||result_0|tensor<64xf32>
-NODE 69 : tosa.const|CONSTANT|0||result_0|tensor<64x1x1x384xf32>
-NODE 70 : tosa.const|CONSTANT|0||result_0|tensor<384xf32>
-NODE 71 : tosa.const|CONSTANT|0||result_0|tensor<384xf32>
-NODE 72 : tosa.const|CONSTANT|0||result_0|tensor<384x1x1x64xf32>
-NODE 73 : tosa.const|CONSTANT|0||result_0|tensor<64xf32>
-NODE 74 : tosa.const|CONSTANT|0||result_0|tensor<64x1x1x192xf32>
-NODE 75 : tosa.const|CONSTANT|0||result_0|tensor<192xf32>
-NODE 76 : tosa.const|CONSTANT|0||result_0|tensor<192xf32>
-NODE 77 : tosa.const|CONSTANT|0||result_0|tensor<192x1x1x32xf32>
-NODE 78 : tosa.const|CONSTANT|0||result_0|tensor<32xf32>
-NODE 79 : tosa.const|CONSTANT|0||result_0|tensor<32x1x1x192xf32>
-NODE 80 : tosa.const|CONSTANT|0||result_0|tensor<192xf32>
-NODE 81 : tosa.const|CONSTANT|0||result_0|tensor<192xf32>
-NODE 82 : tosa.const|CONSTANT|0||result_0|tensor<192x1x1x32xf32>
-NODE 83 : tosa.const|CONSTANT|0||result_0|tensor<32xf32>
-NODE 84 : tosa.const|CONSTANT|0||result_0|tensor<32x1x1x192xf32>
-NODE 85 : tosa.const|CONSTANT|0||result_0|tensor<192xf32>
-NODE 86 : tosa.const|CONSTANT|0||result_0|tensor<192xf32>
-NODE 87 : tosa.const|CONSTANT|0||result_0|tensor<192x1x1x32xf32>
-NODE 88 : tosa.const|CONSTANT|0||result_0|tensor<32xf32>
-NODE 89 : tosa.const|CONSTANT|0||result_0|tensor<32x1x1x144xf32>
-NODE 90 : tosa.const|CONSTANT|0||result_0|tensor<144xf32>
-NODE 91 : tosa.const|CONSTANT|0||result_0|tensor<144xf32>
-NODE 92 : tosa.const|CONSTANT|0||result_0|tensor<144x1x1x24xf32>
-NODE 93 : tosa.const|CONSTANT|0||result_0|tensor<24xf32>
-NODE 94 : tosa.const|CONSTANT|0||result_0|tensor<24x1x1x144xf32>
-NODE 95 : tosa.const|CONSTANT|0||result_0|tensor<144xf32>
-NODE 96 : tosa.const|CONSTANT|0||result_0|tensor<144xf32>
-NODE 97 : tosa.const|CONSTANT|0||result_0|tensor<144x1x1x24xf32>
-NODE 98 : tosa.const|CONSTANT|0||result_0|tensor<24xf32>
-NODE 99 : tosa.const|CONSTANT|0||result_0|tensor<24x1x1x96xf32>
-NODE 100 : tosa.const|CONSTANT|0||result_0|tensor<96xf32>
-NODE 101 : tosa.const|CONSTANT|0||result_0|tensor<96xf32>
-NODE 102 : tosa.const|CONSTANT|0||result_0|tensor<96x1x1x16xf32>
-NODE 103 : tosa.const|CONSTANT|0||result_0|tensor<16xf32>
-NODE 104 : tosa.const|CONSTANT|0||result_0|tensor<16x1x1x32xf32>
-NODE 105 : tosa.const|CONSTANT|0||result_0|tensor<32xf32>
-NODE 106 : tosa.const|CONSTANT|0||result_0|tensor<32x3x3x3xf32>
-NODE 107 : tosa.const|CONSTANT|0||result_0|tensor<32xf32>
-NODE 108 : tosa.conv2d|CONV2D|1|tensor<?x224x224x3xf32>,tensor<32x3x3x3xf32>,tensor<32xf32>|result_0|tensor<?x112x112x32xf32>
-NODE 109 : tosa.clamp|CLAMP|2|tensor<?x112x112x32xf32>|result_0|tensor<?x112x112x32xf32>
-NODE 110 : tosa.depthwise_conv2d|DEPTHWISE_CONV2D|3|tensor<?x112x112x32xf32>,tensor<3x3x32x1xf32>,tensor<32xf32>|result_0|tensor<?x112x112x32xf32>
-NODE 111 : tosa.clamp|CLAMP|4|tensor<?x112x112x32xf32>|result_0|tensor<?x112x112x32xf32>
-NODE 112 : tosa.conv2d|CONV2D|5|tensor<?x112x112x32xf32>,tensor<16x1x1x32xf32>,tensor<16xf32>|result_0|tensor<?x112x112x16xf32>
-NODE 113 : tosa.conv2d|CONV2D|6|tensor<?x112x112x16xf32>,tensor<96x1x1x16xf32>,tensor<96xf32>|result_0|tensor<?x112x112x96xf32>
-NODE 114 : tosa.clamp|CLAMP|7|tensor<?x112x112x96xf32>|result_0|tensor<?x112x112x96xf32>
-NODE 115 : tosa.depthwise_conv2d|DEPTHWISE_CONV2D|8|tensor<?x112x112x96xf32>,tensor<3x3x96x1xf32>,tensor<96xf32>|result_0|tensor<?x56x56x96xf32>
-NODE 116 : tosa.clamp|CLAMP|9|tensor<?x56x56x96xf32>|result_0|tensor<?x56x56x96xf32>
-NODE 117 : tosa.conv2d|CONV2D|10|tensor<?x56x56x96xf32>,tensor<24x1x1x96xf32>,tensor<24xf32>|result_0|tensor<?x56x56x24xf32>
-NODE 118 : tosa.conv2d|CONV2D|11|tensor<?x56x56x24xf32>,tensor<144x1x1x24xf32>,tensor<144xf32>|result_0|tensor<?x56x56x144xf32>
-NODE 119 : tosa.clamp|CLAMP|12|tensor<?x56x56x144xf32>|result_0|tensor<?x56x56x144xf32>
-NODE 120 : tosa.depthwise_conv2d|DEPTHWISE_CONV2D|13|tensor<?x56x56x144xf32>,tensor<3x3x144x1xf32>,tensor<144xf32>|result_0|tensor<?x56x56x144xf32>
-NODE 121 : tosa.clamp|CLAMP|14|tensor<?x56x56x144xf32>|result_0|tensor<?x56x56x144xf32>
-NODE 122 : tosa.conv2d|CONV2D|15|tensor<?x56x56x144xf32>,tensor<24x1x1x144xf32>,tensor<24xf32>|result_0|tensor<?x56x56x24xf32>
-NODE 123 : tosa.add|ADD|16|tensor<?x56x56x24xf32>,tensor<?x56x56x24xf32>|result_0|tensor<?x56x56x24xf32>
-NODE 124 : tosa.conv2d|CONV2D|17|tensor<?x56x56x24xf32>,tensor<144x1x1x24xf32>,tensor<144xf32>|result_0|tensor<?x56x56x144xf32>
-NODE 125 : tosa.clamp|CLAMP|18|tensor<?x56x56x144xf32>|result_0|tensor<?x56x56x144xf32>
-NODE 126 : tosa.depthwise_conv2d|DEPTHWISE_CONV2D|19|tensor<?x56x56x144xf32>,tensor<3x3x144x1xf32>,tensor<144xf32>|result_0|tensor<?x28x28x144xf32>
-NODE 127 : tosa.clamp|CLAMP|20|tensor<?x28x28x144xf32>|result_0|tensor<?x28x28x144xf32>
-NODE 128 : tosa.conv2d|CONV2D|21|tensor<?x28x28x144xf32>,tensor<32x1x1x144xf32>,tensor<32xf32>|result_0|tensor<?x28x28x32xf32>
-NODE 129 : tosa.conv2d|CONV2D|22|tensor<?x28x28x32xf32>,tensor<192x1x1x32xf32>,tensor<192xf32>|result_0|tensor<?x28x28x192xf32>
-NODE 130 : tosa.clamp|CLAMP|23|tensor<?x28x28x192xf32>|result_0|tensor<?x28x28x192xf32>
-NODE 131 : tosa.depthwise_conv2d|DEPTHWISE_CONV2D|24|tensor<?x28x28x192xf32>,tensor<3x3x192x1xf32>,tensor<192xf32>|result_0|tensor<?x28x28x192xf32>
-NODE 132 : tosa.clamp|CLAMP|25|tensor<?x28x28x192xf32>|result_0|tensor<?x28x28x192xf32>
-NODE 133 : tosa.conv2d|CONV2D|26|tensor<?x28x28x192xf32>,tensor<32x1x1x192xf32>,tensor<32xf32>|result_0|tensor<?x28x28x32xf32>
-NODE 134 : tosa.add|ADD|27|tensor<?x28x28x32xf32>,tensor<?x28x28x32xf32>|result_0|tensor<?x28x28x32xf32>
-NODE 135 : tosa.conv2d|CONV2D|28|tensor<?x28x28x32xf32>,tensor<192x1x1x32xf32>,tensor<192xf32>|result_0|tensor<?x28x28x192xf32>
-NODE 136 : tosa.clamp|CLAMP|29|tensor<?x28x28x192xf32>|result_0|tensor<?x28x28x192xf32>
-NODE 137 : tosa.depthwise_conv2d|DEPTHWISE_CONV2D|30|tensor<?x28x28x192xf32>,tensor<3x3x192x1xf32>,tensor<192xf32>|result_0|tensor<?x28x28x192xf32>
-NODE 138 : tosa.clamp|CLAMP|31|tensor<?x28x28x192xf32>|result_0|tensor<?x28x28x192xf32>
-NODE 139 : tosa.conv2d|CONV2D|32|tensor<?x28x28x192xf32>,tensor<32x1x1x192xf32>,tensor<32xf32>|result_0|tensor<?x28x28x32xf32>
-NODE 140 : tosa.add|ADD|33|tensor<?x28x28x32xf32>,tensor<?x28x28x32xf32>|result_0|tensor<?x28x28x32xf32>
-NODE 141 : tosa.conv2d|CONV2D|34|tensor<?x28x28x32xf32>,tensor<192x1x1x32xf32>,tensor<192xf32>|result_0|tensor<?x28x28x192xf32>
-NODE 142 : tosa.clamp|CLAMP|35|tensor<?x28x28x192xf32>|result_0|tensor<?x28x28x192xf32>
-NODE 143 : tosa.depthwise_conv2d|DEPTHWISE_CONV2D|36|tensor<?x28x28x192xf32>,tensor<3x3x192x1xf32>,tensor<192xf32>|result_0|tensor<?x14x14x192xf32>
-NODE 144 : tosa.clamp|CLAMP|37|tensor<?x14x14x192xf32>|result_0|tensor<?x14x14x192xf32>
-NODE 145 : tosa.conv2d|CONV2D|38|tensor<?x14x14x192xf32>,tensor<64x1x1x192xf32>,tensor<64xf32>|result_0|tensor<?x14x14x64xf32>
-NODE 146 : tosa.conv2d|CONV2D|39|tensor<?x14x14x64xf32>,tensor<384x1x1x64xf32>,tensor<384xf32>|result_0|tensor<?x14x14x384xf32>
-NODE 147 : tosa.clamp|CLAMP|40|tensor<?x14x14x384xf32>|result_0|tensor<?x14x14x384xf32>
-NODE 148 : tosa.depthwise_conv2d|DEPTHWISE_CONV2D|41|tensor<?x14x14x384xf32>,tensor<3x3x384x1xf32>,tensor<384xf32>|result_0|tensor<?x14x14x384xf32>
-NODE 149 : tosa.clamp|CLAMP|42|tensor<?x14x14x384xf32>|result_0|tensor<?x14x14x384xf32>
-NODE 150 : tosa.conv2d|CONV2D|43|tensor<?x14x14x384xf32>,tensor<64x1x1x384xf32>,tensor<64xf32>|result_0|tensor<?x14x14x64xf32>
-NODE 151 : tosa.add|ADD|44|tensor<?x14x14x64xf32>,tensor<?x14x14x64xf32>|result_0|tensor<?x14x14x64xf32>
-NODE 152 : tosa.conv2d|CONV2D|45|tensor<?x14x14x64xf32>,tensor<384x1x1x64xf32>,tensor<384xf32>|result_0|tensor<?x14x14x384xf32>
-NODE 153 : tosa.clamp|CLAMP|46|tensor<?x14x14x384xf32>|result_0|tensor<?x14x14x384xf32>
-NODE 154 : tosa.depthwise_conv2d|DEPTHWISE_CONV2D|47|tensor<?x14x14x384xf32>,tensor<3x3x384x1xf32>,tensor<384xf32>|result_0|tensor<?x14x14x384xf32>
-NODE 155 : tosa.clamp|CLAMP|48|tensor<?x14x14x384xf32>|result_0|tensor<?x14x14x384xf32>
-NODE 156 : tosa.conv2d|CONV2D|49|tensor<?x14x14x384xf32>,tensor<64x1x1x384xf32>,tensor<64xf32>|result_0|tensor<?x14x14x64xf32>
-NODE 157 : tosa.add|ADD|50|tensor<?x14x14x64xf32>,tensor<?x14x14x64xf32>|result_0|tensor<?x14x14x64xf32>
-NODE 158 : tosa.conv2d|CONV2D|51|tensor<?x14x14x64xf32>,tensor<384x1x1x64xf32>,tensor<384xf32>|result_0|tensor<?x14x14x384xf32>
-NODE 159 : tosa.clamp|CLAMP|52|tensor<?x14x14x384xf32>|result_0|tensor<?x14x14x384xf32>
-NODE 160 : tosa.depthwise_conv2d|DEPTHWISE_CONV2D|53|tensor<?x14x14x384xf32>,tensor<3x3x384x1xf32>,tensor<384xf32>|result_0|tensor<?x14x14x384xf32>
-NODE 161 : tosa.clamp|CLAMP|54|tensor<?x14x14x384xf32>|result_0|tensor<?x14x14x384xf32>
-NODE 162 : tosa.conv2d|CONV2D|55|tensor<?x14x14x384xf32>,tensor<64x1x1x384xf32>,tensor<64xf32>|result_0|tensor<?x14x14x64xf32>
-NODE 163 : tosa.add|ADD|56|tensor<?x14x14x64xf32>,tensor<?x14x14x64xf32>|result_0|tensor<?x14x14x64xf32>
-NODE 164 : tosa.conv2d|CONV2D|57|tensor<?x14x14x64xf32>,tensor<384x1x1x64xf32>,tensor<384xf32>|result_0|tensor<?x14x14x384xf32>
-NODE 165 : tosa.clamp|CLAMP|58|tensor<?x14x14x384xf32>|result_0|tensor<?x14x14x384xf32>
-NODE 166 : tosa.depthwise_conv2d|DEPTHWISE_CONV2D|59|tensor<?x14x14x384xf32>,tensor<3x3x384x1xf32>,tensor<384xf32>|result_0|tensor<?x14x14x384xf32>
-NODE 167 : tosa.clamp|CLAMP|60|tensor<?x14x14x384xf32>|result_0|tensor<?x14x14x384xf32>
-NODE 168 : tosa.conv2d|CONV2D|61|tensor<?x14x14x384xf32>,tensor<96x1x1x384xf32>,tensor<96xf32>|result_0|tensor<?x14x14x96xf32>
-NODE 169 : tosa.conv2d|CONV2D|62|tensor<?x14x14x96xf32>,tensor<576x1x1x96xf32>,tensor<576xf32>|result_0|tensor<?x14x14x576xf32>
-NODE 170 : tosa.clamp|CLAMP|63|tensor<?x14x14x576xf32>|result_0|tensor<?x14x14x576xf32>
-NODE 171 : tosa.depthwise_conv2d|DEPTHWISE_CONV2D|64|tensor<?x14x14x576xf32>,tensor<3x3x576x1xf32>,tensor<576xf32>|result_0|tensor<?x14x14x576xf32>
-NODE 172 : tosa.clamp|CLAMP|65|tensor<?x14x14x576xf32>|result_0|tensor<?x14x14x576xf32>
-NODE 173 : tosa.conv2d|CONV2D|66|tensor<?x14x14x576xf32>,tensor<96x1x1x576xf32>,tensor<96xf32>|result_0|tensor<?x14x14x96xf32>
-NODE 174 : tosa.add|ADD|67|tensor<?x14x14x96xf32>,tensor<?x14x14x96xf32>|result_0|tensor<?x14x14x96xf32>
-NODE 175 : tosa.conv2d|CONV2D|68|tensor<?x14x14x96xf32>,tensor<576x1x1x96xf32>,tensor<576xf32>|result_0|tensor<?x14x14x576xf32>
-NODE 176 : tosa.clamp|CLAMP|69|tensor<?x14x14x576xf32>|result_0|tensor<?x14x14x576xf32>
-NODE 177 : tosa.depthwise_conv2d|DEPTHWISE_CONV2D|70|tensor<?x14x14x576xf32>,tensor<3x3x576x1xf32>,tensor<576xf32>|result_0|tensor<?x14x14x576xf32>
-NODE 178 : tosa.clamp|CLAMP|71|tensor<?x14x14x576xf32>|result_0|tensor<?x14x14x576xf32>
-NODE 179 : tosa.conv2d|CONV2D|72|tensor<?x14x14x576xf32>,tensor<96x1x1x576xf32>,tensor<96xf32>|result_0|tensor<?x14x14x96xf32>
-NODE 180 : tosa.add|ADD|73|tensor<?x14x14x96xf32>,tensor<?x14x14x96xf32>|result_0|tensor<?x14x14x96xf32>
-NODE 181 : tosa.conv2d|CONV2D|74|tensor<?x14x14x96xf32>,tensor<576x1x1x96xf32>,tensor<576xf32>|result_0|tensor<?x14x14x576xf32>
-NODE 182 : tosa.clamp|CLAMP|75|tensor<?x14x14x576xf32>|result_0|tensor<?x14x14x576xf32>
-NODE 183 : tosa.depthwise_conv2d|DEPTHWISE_CONV2D|76|tensor<?x14x14x576xf32>,tensor<3x3x576x1xf32>,tensor<576xf32>|result_0|tensor<?x7x7x576xf32>
-NODE 184 : tosa.clamp|CLAMP|77|tensor<?x7x7x576xf32>|result_0|tensor<?x7x7x576xf32>
-NODE 185 : tosa.conv2d|CONV2D|78|tensor<?x7x7x576xf32>,tensor<160x1x1x576xf32>,tensor<160xf32>|result_0|tensor<?x7x7x160xf32>
-NODE 186 : tosa.conv2d|CONV2D|79|tensor<?x7x7x160xf32>,tensor<960x1x1x160xf32>,tensor<960xf32>|result_0|tensor<?x7x7x960xf32>
-NODE 187 : tosa.clamp|CLAMP|80|tensor<?x7x7x960xf32>|result_0|tensor<?x7x7x960xf32>
-NODE 188 : tosa.depthwise_conv2d|DEPTHWISE_CONV2D|81|tensor<?x7x7x960xf32>,tensor<3x3x960x1xf32>,tensor<960xf32>|result_0|tensor<?x7x7x960xf32>
-NODE 189 : tosa.clamp|CLAMP|82|tensor<?x7x7x960xf32>|result_0|tensor<?x7x7x960xf32>
-NODE 190 : tosa.conv2d|CONV2D|83|tensor<?x7x7x960xf32>,tensor<160x1x1x960xf32>,tensor<160xf32>|result_0|tensor<?x7x7x160xf32>
-NODE 191 : tosa.add|ADD|84|tensor<?x7x7x160xf32>,tensor<?x7x7x160xf32>|result_0|tensor<?x7x7x160xf32>
-NODE 192 : tosa.conv2d|CONV2D|85|tensor<?x7x7x160xf32>,tensor<960x1x1x160xf32>,tensor<960xf32>|result_0|tensor<?x7x7x960xf32>
-NODE 193 : tosa.clamp|CLAMP|86|tensor<?x7x7x960xf32>|result_0|tensor<?x7x7x960xf32>
-NODE 194 : tosa.depthwise_conv2d|DEPTHWISE_CONV2D|87|tensor<?x7x7x960xf32>,tensor<3x3x960x1xf32>,tensor<960xf32>|result_0|tensor<?x7x7x960xf32>
-NODE 195 : tosa.clamp|CLAMP|88|tensor<?x7x7x960xf32>|result_0|tensor<?x7x7x960xf32>
-NODE 196 : tosa.conv2d|CONV2D|89|tensor<?x7x7x960xf32>,tensor<160x1x1x960xf32>,tensor<160xf32>|result_0|tensor<?x7x7x160xf32>
-NODE 197 : tosa.add|ADD|90|tensor<?x7x7x160xf32>,tensor<?x7x7x160xf32>|result_0|tensor<?x7x7x160xf32>
-NODE 198 : tosa.conv2d|CONV2D|91|tensor<?x7x7x160xf32>,tensor<960x1x1x160xf32>,tensor<960xf32>|result_0|tensor<?x7x7x960xf32>
-NODE 199 : tosa.clamp|CLAMP|92|tensor<?x7x7x960xf32>|result_0|tensor<?x7x7x960xf32>
-NODE 200 : tosa.depthwise_conv2d|DEPTHWISE_CONV2D|93|tensor<?x7x7x960xf32>,tensor<3x3x960x1xf32>,tensor<960xf32>|result_0|tensor<?x7x7x960xf32>
-NODE 201 : tosa.clamp|CLAMP|94|tensor<?x7x7x960xf32>|result_0|tensor<?x7x7x960xf32>
-NODE 202 : tosa.conv2d|CONV2D|95|tensor<?x7x7x960xf32>,tensor<320x1x1x960xf32>,tensor<320xf32>|result_0|tensor<?x7x7x320xf32>
-NODE 203 : tosa.conv2d|CONV2D|96|tensor<?x7x7x320xf32>,tensor<1280x1x1x320xf32>,tensor<1280xf32>|result_0|tensor<?x7x7x1280xf32>
-NODE 204 : tosa.clamp|CLAMP|97|tensor<?x7x7x1280xf32>|result_0|tensor<?x7x7x1280xf32>
-NODE 205 : tosa.reduce_sum|REDUCE_SUM|98|tensor<?x7x7x1280xf32>|result_0|tensor<?x1x7x1280xf32>
-NODE 206 : tosa.reduce_sum|REDUCE_SUM|99|tensor<?x1x7x1280xf32>|result_0|tensor<?x1x1x1280xf32>
-NODE 207 : tosa.reshape|RESHAPE|100|tensor<?x1x1x1280xf32>|result_0|tensor<?x1280xf32>
-NODE 208 : tosa.mul|MUL|101|tensor<?x1280xf32>,tensor<1x1xf32>|result_0|tensor<?x1280xf32>
-NODE 209 : tosa.fully_connected|FC|102|tensor<?x1280xf32>,tensor<1000x1280xf32>,tensor<1000xf32>|result_0|tensor<?x1000xf32>
-NODE 210 : tosa.reduce_max|REDUCE_MAX|103|tensor<?x1000xf32>|result_0|tensor<?x1xf32>
-NODE 211 : tosa.sub|SUB|104|tensor<?x1000xf32>,tensor<?x1xf32>|result_0|tensor<?x1000xf32>
-NODE 212 : tosa.exp|EXP|105|tensor<?x1000xf32>|result_0|tensor<?x1000xf32>
-NODE 213 : tosa.reduce_sum|REDUCE_SUM|106|tensor<?x1000xf32>|result_0|tensor<?x1xf32>
-NODE 214 : tosa.reciprocal|RECIPROCAL|107|tensor<?x1xf32>|result_0|tensor<?x1xf32>
-NODE 215 : tosa.mul|MUL|108|tensor<?x1000xf32>,tensor<?x1xf32>|result_0|tensor<?x1000xf32>
-NODE 216 : func.return|UNKNOWN|109|tensor<?x1000xf32>||
-NODE 217 : result0|UNKNOWN|109|||
+NODE 0 : |arg0|FUNCTION_ARGUMENT|0||||
+NODE 1 : |tosa.const|CONSTANT|0|||result_0|tensor<3x3x960x1xf32>
+NODE 2 : |tosa.const|CONSTANT|0|||result_0|tensor<3x3x960x1xf32>
+NODE 3 : |tosa.const|CONSTANT|0|||result_0|tensor<3x3x960x1xf32>
+NODE 4 : |tosa.const|CONSTANT|0|||result_0|tensor<3x3x576x1xf32>
+NODE 5 : |tosa.const|CONSTANT|0|||result_0|tensor<3x3x576x1xf32>
+NODE 6 : |tosa.const|CONSTANT|0|||result_0|tensor<3x3x576x1xf32>
+NODE 7 : |tosa.const|CONSTANT|0|||result_0|tensor<3x3x384x1xf32>
+NODE 8 : |tosa.const|CONSTANT|0|||result_0|tensor<3x3x384x1xf32>
+NODE 9 : |tosa.const|CONSTANT|0|||result_0|tensor<3x3x384x1xf32>
+NODE 10 : |tosa.const|CONSTANT|0|||result_0|tensor<3x3x384x1xf32>
+NODE 11 : |tosa.const|CONSTANT|0|||result_0|tensor<3x3x192x1xf32>
+NODE 12 : |tosa.const|CONSTANT|0|||result_0|tensor<3x3x192x1xf32>
+NODE 13 : |tosa.const|CONSTANT|0|||result_0|tensor<3x3x192x1xf32>
+NODE 14 : |tosa.const|CONSTANT|0|||result_0|tensor<3x3x144x1xf32>
+NODE 15 : |tosa.const|CONSTANT|0|||result_0|tensor<3x3x144x1xf32>
+NODE 16 : |tosa.const|CONSTANT|0|||result_0|tensor<3x3x96x1xf32>
+NODE 17 : |tosa.const|CONSTANT|0|||result_0|tensor<3x3x32x1xf32>
+NODE 18 : |tosa.const|CONSTANT|0|||result_0|tensor<1x1xf32>
+NODE 19 : |tosa.const|CONSTANT|0|||result_0|tensor<1000xf32>
+NODE 20 : |tosa.const|CONSTANT|0|||result_0|tensor<1000x1280xf32>
+NODE 21 : |tosa.const|CONSTANT|0|||result_0|tensor<1280xf32>
+NODE 22 : |tosa.const|CONSTANT|0|||result_0|tensor<1280x1x1x320xf32>
+NODE 23 : |tosa.const|CONSTANT|0|||result_0|tensor<320xf32>
+NODE 24 : |tosa.const|CONSTANT|0|||result_0|tensor<320x1x1x960xf32>
+NODE 25 : |tosa.const|CONSTANT|0|||result_0|tensor<960xf32>
+NODE 26 : |tosa.const|CONSTANT|0|||result_0|tensor<960xf32>
+NODE 27 : |tosa.const|CONSTANT|0|||result_0|tensor<960x1x1x160xf32>
+NODE 28 : |tosa.const|CONSTANT|0|||result_0|tensor<160xf32>
+NODE 29 : |tosa.const|CONSTANT|0|||result_0|tensor<160x1x1x960xf32>
+NODE 30 : |tosa.const|CONSTANT|0|||result_0|tensor<960xf32>
+NODE 31 : |tosa.const|CONSTANT|0|||result_0|tensor<960xf32>
+NODE 32 : |tosa.const|CONSTANT|0|||result_0|tensor<960x1x1x160xf32>
+NODE 33 : |tosa.const|CONSTANT|0|||result_0|tensor<160xf32>
+NODE 34 : |tosa.const|CONSTANT|0|||result_0|tensor<160x1x1x960xf32>
+NODE 35 : |tosa.const|CONSTANT|0|||result_0|tensor<960xf32>
+NODE 36 : |tosa.const|CONSTANT|0|||result_0|tensor<960xf32>
+NODE 37 : |tosa.const|CONSTANT|0|||result_0|tensor<960x1x1x160xf32>
+NODE 38 : |tosa.const|CONSTANT|0|||result_0|tensor<160xf32>
+NODE 39 : |tosa.const|CONSTANT|0|||result_0|tensor<160x1x1x576xf32>
+NODE 40 : |tosa.const|CONSTANT|0|||result_0|tensor<576xf32>
+NODE 41 : |tosa.const|CONSTANT|0|||result_0|tensor<576xf32>
+NODE 42 : |tosa.const|CONSTANT|0|||result_0|tensor<576x1x1x96xf32>
+NODE 43 : |tosa.const|CONSTANT|0|||result_0|tensor<96xf32>
+NODE 44 : |tosa.const|CONSTANT|0|||result_0|tensor<96x1x1x576xf32>
+NODE 45 : |tosa.const|CONSTANT|0|||result_0|tensor<576xf32>
+NODE 46 : |tosa.const|CONSTANT|0|||result_0|tensor<576xf32>
+NODE 47 : |tosa.const|CONSTANT|0|||result_0|tensor<576x1x1x96xf32>
+NODE 48 : |tosa.const|CONSTANT|0|||result_0|tensor<96xf32>
+NODE 49 : |tosa.const|CONSTANT|0|||result_0|tensor<96x1x1x576xf32>
+NODE 50 : |tosa.const|CONSTANT|0|||result_0|tensor<576xf32>
+NODE 51 : |tosa.const|CONSTANT|0|||result_0|tensor<576xf32>
+NODE 52 : |tosa.const|CONSTANT|0|||result_0|tensor<576x1x1x96xf32>
+NODE 53 : |tosa.const|CONSTANT|0|||result_0|tensor<96xf32>
+NODE 54 : |tosa.const|CONSTANT|0|||result_0|tensor<96x1x1x384xf32>
+NODE 55 : |tosa.const|CONSTANT|0|||result_0|tensor<384xf32>
+NODE 56 : |tosa.const|CONSTANT|0|||result_0|tensor<384xf32>
+NODE 57 : |tosa.const|CONSTANT|0|||result_0|tensor<384x1x1x64xf32>
+NODE 58 : |tosa.const|CONSTANT|0|||result_0|tensor<64xf32>
+NODE 59 : |tosa.const|CONSTANT|0|||result_0|tensor<64x1x1x384xf32>
+NODE 60 : |tosa.const|CONSTANT|0|||result_0|tensor<384xf32>
+NODE 61 : |tosa.const|CONSTANT|0|||result_0|tensor<384xf32>
+NODE 62 : |tosa.const|CONSTANT|0|||result_0|tensor<384x1x1x64xf32>
+NODE 63 : |tosa.const|CONSTANT|0|||result_0|tensor<64xf32>
+NODE 64 : |tosa.const|CONSTANT|0|||result_0|tensor<64x1x1x384xf32>
+NODE 65 : |tosa.const|CONSTANT|0|||result_0|tensor<384xf32>
+NODE 66 : |tosa.const|CONSTANT|0|||result_0|tensor<384xf32>
+NODE 67 : |tosa.const|CONSTANT|0|||result_0|tensor<384x1x1x64xf32>
+NODE 68 : |tosa.const|CONSTANT|0|||result_0|tensor<64xf32>
+NODE 69 : |tosa.const|CONSTANT|0|||result_0|tensor<64x1x1x384xf32>
+NODE 70 : |tosa.const|CONSTANT|0|||result_0|tensor<384xf32>
+NODE 71 : |tosa.const|CONSTANT|0|||result_0|tensor<384xf32>
+NODE 72 : |tosa.const|CONSTANT|0|||result_0|tensor<384x1x1x64xf32>
+NODE 73 : |tosa.const|CONSTANT|0|||result_0|tensor<64xf32>
+NODE 74 : |tosa.const|CONSTANT|0|||result_0|tensor<64x1x1x192xf32>
+NODE 75 : |tosa.const|CONSTANT|0|||result_0|tensor<192xf32>
+NODE 76 : |tosa.const|CONSTANT|0|||result_0|tensor<192xf32>
+NODE 77 : |tosa.const|CONSTANT|0|||result_0|tensor<192x1x1x32xf32>
+NODE 78 : |tosa.const|CONSTANT|0|||result_0|tensor<32xf32>
+NODE 79 : |tosa.const|CONSTANT|0|||result_0|tensor<32x1x1x192xf32>
+NODE 80 : |tosa.const|CONSTANT|0|||result_0|tensor<192xf32>
+NODE 81 : |tosa.const|CONSTANT|0|||result_0|tensor<192xf32>
+NODE 82 : |tosa.const|CONSTANT|0|||result_0|tensor<192x1x1x32xf32>
+NODE 83 : |tosa.const|CONSTANT|0|||result_0|tensor<32xf32>
+NODE 84 : |tosa.const|CONSTANT|0|||result_0|tensor<32x1x1x192xf32>
+NODE 85 : |tosa.const|CONSTANT|0|||result_0|tensor<192xf32>
+NODE 86 : |tosa.const|CONSTANT|0|||result_0|tensor<192xf32>
+NODE 87 : |tosa.const|CONSTANT|0|||result_0|tensor<192x1x1x32xf32>
+NODE 88 : |tosa.const|CONSTANT|0|||result_0|tensor<32xf32>
+NODE 89 : |tosa.const|CONSTANT|0|||result_0|tensor<32x1x1x144xf32>
+NODE 90 : |tosa.const|CONSTANT|0|||result_0|tensor<144xf32>
+NODE 91 : |tosa.const|CONSTANT|0|||result_0|tensor<144xf32>
+NODE 92 : |tosa.const|CONSTANT|0|||result_0|tensor<144x1x1x24xf32>
+NODE 93 : |tosa.const|CONSTANT|0|||result_0|tensor<24xf32>
+NODE 94 : |tosa.const|CONSTANT|0|||result_0|tensor<24x1x1x144xf32>
+NODE 95 : |tosa.const|CONSTANT|0|||result_0|tensor<144xf32>
+NODE 96 : |tosa.const|CONSTANT|0|||result_0|tensor<144xf32>
+NODE 97 : |tosa.const|CONSTANT|0|||result_0|tensor<144x1x1x24xf32>
+NODE 98 : |tosa.const|CONSTANT|0|||result_0|tensor<24xf32>
+NODE 99 : |tosa.const|CONSTANT|0|||result_0|tensor<24x1x1x96xf32>
+NODE 100 : |tosa.const|CONSTANT|0|||result_0|tensor<96xf32>
+NODE 101 : |tosa.const|CONSTANT|0|||result_0|tensor<96xf32>
+NODE 102 : |tosa.const|CONSTANT|0|||result_0|tensor<96x1x1x16xf32>
+NODE 103 : |tosa.const|CONSTANT|0|||result_0|tensor<16xf32>
+NODE 104 : |tosa.const|CONSTANT|0|||result_0|tensor<16x1x1x32xf32>
+NODE 105 : |tosa.const|CONSTANT|0|||result_0|tensor<32xf32>
+NODE 106 : |tosa.const|CONSTANT|0|||result_0|tensor<32x3x3x3xf32>
+NODE 107 : |tosa.const|CONSTANT|0|||result_0|tensor<32xf32>
+NODE 108 : |tosa.conv2d|CONV2D|1|tensor<?x224x224x3xf32>,tensor<32x3x3x3xf32>,tensor<32xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 1, 0, 1>,stride:array<i64: 2, 2>|result_0|tensor<?x112x112x32xf32>
+NODE 109 : |tosa.clamp|CLAMP|2|tensor<?x112x112x32xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x112x112x32xf32>
+NODE 110 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|3|tensor<?x112x112x32xf32>,tensor<3x3x32x1xf32>,tensor<32xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|result_0|tensor<?x112x112x32xf32>
+NODE 111 : |tosa.clamp|CLAMP|4|tensor<?x112x112x32xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x112x112x32xf32>
+NODE 112 : |tosa.conv2d|CONV2D|5|tensor<?x112x112x32xf32>,tensor<16x1x1x32xf32>,tensor<16xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x112x112x16xf32>
+NODE 113 : |tosa.conv2d|CONV2D|6|tensor<?x112x112x16xf32>,tensor<96x1x1x16xf32>,tensor<96xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x112x112x96xf32>
+NODE 114 : |tosa.clamp|CLAMP|7|tensor<?x112x112x96xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x112x112x96xf32>
+NODE 115 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|8|tensor<?x112x112x96xf32>,tensor<3x3x96x1xf32>,tensor<96xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 1, 0, 1>,stride:array<i64: 2, 2>|result_0|tensor<?x56x56x96xf32>
+NODE 116 : |tosa.clamp|CLAMP|9|tensor<?x56x56x96xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x56x56x96xf32>
+NODE 117 : |tosa.conv2d|CONV2D|10|tensor<?x56x56x96xf32>,tensor<24x1x1x96xf32>,tensor<24xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x56x56x24xf32>
+NODE 118 : |tosa.conv2d|CONV2D|11|tensor<?x56x56x24xf32>,tensor<144x1x1x24xf32>,tensor<144xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x56x56x144xf32>
+NODE 119 : |tosa.clamp|CLAMP|12|tensor<?x56x56x144xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x56x56x144xf32>
+NODE 120 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|13|tensor<?x56x56x144xf32>,tensor<3x3x144x1xf32>,tensor<144xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|result_0|tensor<?x56x56x144xf32>
+NODE 121 : |tosa.clamp|CLAMP|14|tensor<?x56x56x144xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x56x56x144xf32>
+NODE 122 : |tosa.conv2d|CONV2D|15|tensor<?x56x56x144xf32>,tensor<24x1x1x144xf32>,tensor<24xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x56x56x24xf32>
+NODE 123 : |tosa.add|ADD|16|tensor<?x56x56x24xf32>,tensor<?x56x56x24xf32>||result_0|tensor<?x56x56x24xf32>
+NODE 124 : |tosa.conv2d|CONV2D|17|tensor<?x56x56x24xf32>,tensor<144x1x1x24xf32>,tensor<144xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x56x56x144xf32>
+NODE 125 : |tosa.clamp|CLAMP|18|tensor<?x56x56x144xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x56x56x144xf32>
+NODE 126 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|19|tensor<?x56x56x144xf32>,tensor<3x3x144x1xf32>,tensor<144xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 1, 0, 1>,stride:array<i64: 2, 2>|result_0|tensor<?x28x28x144xf32>
+NODE 127 : |tosa.clamp|CLAMP|20|tensor<?x28x28x144xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x28x28x144xf32>
+NODE 128 : |tosa.conv2d|CONV2D|21|tensor<?x28x28x144xf32>,tensor<32x1x1x144xf32>,tensor<32xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x28x28x32xf32>
+NODE 129 : |tosa.conv2d|CONV2D|22|tensor<?x28x28x32xf32>,tensor<192x1x1x32xf32>,tensor<192xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x28x28x192xf32>
+NODE 130 : |tosa.clamp|CLAMP|23|tensor<?x28x28x192xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x28x28x192xf32>
+NODE 131 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|24|tensor<?x28x28x192xf32>,tensor<3x3x192x1xf32>,tensor<192xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|result_0|tensor<?x28x28x192xf32>
+NODE 132 : |tosa.clamp|CLAMP|25|tensor<?x28x28x192xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x28x28x192xf32>
+NODE 133 : |tosa.conv2d|CONV2D|26|tensor<?x28x28x192xf32>,tensor<32x1x1x192xf32>,tensor<32xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x28x28x32xf32>
+NODE 134 : |tosa.add|ADD|27|tensor<?x28x28x32xf32>,tensor<?x28x28x32xf32>||result_0|tensor<?x28x28x32xf32>
+NODE 135 : |tosa.conv2d|CONV2D|28|tensor<?x28x28x32xf32>,tensor<192x1x1x32xf32>,tensor<192xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x28x28x192xf32>
+NODE 136 : |tosa.clamp|CLAMP|29|tensor<?x28x28x192xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x28x28x192xf32>
+NODE 137 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|30|tensor<?x28x28x192xf32>,tensor<3x3x192x1xf32>,tensor<192xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|result_0|tensor<?x28x28x192xf32>
+NODE 138 : |tosa.clamp|CLAMP|31|tensor<?x28x28x192xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x28x28x192xf32>
+NODE 139 : |tosa.conv2d|CONV2D|32|tensor<?x28x28x192xf32>,tensor<32x1x1x192xf32>,tensor<32xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x28x28x32xf32>
+NODE 140 : |tosa.add|ADD|33|tensor<?x28x28x32xf32>,tensor<?x28x28x32xf32>||result_0|tensor<?x28x28x32xf32>
+NODE 141 : |tosa.conv2d|CONV2D|34|tensor<?x28x28x32xf32>,tensor<192x1x1x32xf32>,tensor<192xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x28x28x192xf32>
+NODE 142 : |tosa.clamp|CLAMP|35|tensor<?x28x28x192xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x28x28x192xf32>
+NODE 143 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|36|tensor<?x28x28x192xf32>,tensor<3x3x192x1xf32>,tensor<192xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 1, 0, 1>,stride:array<i64: 2, 2>|result_0|tensor<?x14x14x192xf32>
+NODE 144 : |tosa.clamp|CLAMP|37|tensor<?x14x14x192xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x14x14x192xf32>
+NODE 145 : |tosa.conv2d|CONV2D|38|tensor<?x14x14x192xf32>,tensor<64x1x1x192xf32>,tensor<64xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x14x14x64xf32>
+NODE 146 : |tosa.conv2d|CONV2D|39|tensor<?x14x14x64xf32>,tensor<384x1x1x64xf32>,tensor<384xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x14x14x384xf32>
+NODE 147 : |tosa.clamp|CLAMP|40|tensor<?x14x14x384xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x14x14x384xf32>
+NODE 148 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|41|tensor<?x14x14x384xf32>,tensor<3x3x384x1xf32>,tensor<384xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|result_0|tensor<?x14x14x384xf32>
+NODE 149 : |tosa.clamp|CLAMP|42|tensor<?x14x14x384xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x14x14x384xf32>
+NODE 150 : |tosa.conv2d|CONV2D|43|tensor<?x14x14x384xf32>,tensor<64x1x1x384xf32>,tensor<64xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x14x14x64xf32>
+NODE 151 : |tosa.add|ADD|44|tensor<?x14x14x64xf32>,tensor<?x14x14x64xf32>||result_0|tensor<?x14x14x64xf32>
+NODE 152 : |tosa.conv2d|CONV2D|45|tensor<?x14x14x64xf32>,tensor<384x1x1x64xf32>,tensor<384xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x14x14x384xf32>
+NODE 153 : |tosa.clamp|CLAMP|46|tensor<?x14x14x384xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x14x14x384xf32>
+NODE 154 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|47|tensor<?x14x14x384xf32>,tensor<3x3x384x1xf32>,tensor<384xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|result_0|tensor<?x14x14x384xf32>
+NODE 155 : |tosa.clamp|CLAMP|48|tensor<?x14x14x384xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x14x14x384xf32>
+NODE 156 : |tosa.conv2d|CONV2D|49|tensor<?x14x14x384xf32>,tensor<64x1x1x384xf32>,tensor<64xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x14x14x64xf32>
+NODE 157 : |tosa.add|ADD|50|tensor<?x14x14x64xf32>,tensor<?x14x14x64xf32>||result_0|tensor<?x14x14x64xf32>
+NODE 158 : |tosa.conv2d|CONV2D|51|tensor<?x14x14x64xf32>,tensor<384x1x1x64xf32>,tensor<384xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x14x14x384xf32>
+NODE 159 : |tosa.clamp|CLAMP|52|tensor<?x14x14x384xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x14x14x384xf32>
+NODE 160 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|53|tensor<?x14x14x384xf32>,tensor<3x3x384x1xf32>,tensor<384xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|result_0|tensor<?x14x14x384xf32>
+NODE 161 : |tosa.clamp|CLAMP|54|tensor<?x14x14x384xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x14x14x384xf32>
+NODE 162 : |tosa.conv2d|CONV2D|55|tensor<?x14x14x384xf32>,tensor<64x1x1x384xf32>,tensor<64xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x14x14x64xf32>
+NODE 163 : |tosa.add|ADD|56|tensor<?x14x14x64xf32>,tensor<?x14x14x64xf32>||result_0|tensor<?x14x14x64xf32>
+NODE 164 : |tosa.conv2d|CONV2D|57|tensor<?x14x14x64xf32>,tensor<384x1x1x64xf32>,tensor<384xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x14x14x384xf32>
+NODE 165 : |tosa.clamp|CLAMP|58|tensor<?x14x14x384xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x14x14x384xf32>
+NODE 166 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|59|tensor<?x14x14x384xf32>,tensor<3x3x384x1xf32>,tensor<384xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|result_0|tensor<?x14x14x384xf32>
+NODE 167 : |tosa.clamp|CLAMP|60|tensor<?x14x14x384xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x14x14x384xf32>
+NODE 168 : |tosa.conv2d|CONV2D|61|tensor<?x14x14x384xf32>,tensor<96x1x1x384xf32>,tensor<96xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x14x14x96xf32>
+NODE 169 : |tosa.conv2d|CONV2D|62|tensor<?x14x14x96xf32>,tensor<576x1x1x96xf32>,tensor<576xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x14x14x576xf32>
+NODE 170 : |tosa.clamp|CLAMP|63|tensor<?x14x14x576xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x14x14x576xf32>
+NODE 171 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|64|tensor<?x14x14x576xf32>,tensor<3x3x576x1xf32>,tensor<576xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|result_0|tensor<?x14x14x576xf32>
+NODE 172 : |tosa.clamp|CLAMP|65|tensor<?x14x14x576xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x14x14x576xf32>
+NODE 173 : |tosa.conv2d|CONV2D|66|tensor<?x14x14x576xf32>,tensor<96x1x1x576xf32>,tensor<96xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x14x14x96xf32>
+NODE 174 : |tosa.add|ADD|67|tensor<?x14x14x96xf32>,tensor<?x14x14x96xf32>||result_0|tensor<?x14x14x96xf32>
+NODE 175 : |tosa.conv2d|CONV2D|68|tensor<?x14x14x96xf32>,tensor<576x1x1x96xf32>,tensor<576xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x14x14x576xf32>
+NODE 176 : |tosa.clamp|CLAMP|69|tensor<?x14x14x576xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x14x14x576xf32>
+NODE 177 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|70|tensor<?x14x14x576xf32>,tensor<3x3x576x1xf32>,tensor<576xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|result_0|tensor<?x14x14x576xf32>
+NODE 178 : |tosa.clamp|CLAMP|71|tensor<?x14x14x576xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x14x14x576xf32>
+NODE 179 : |tosa.conv2d|CONV2D|72|tensor<?x14x14x576xf32>,tensor<96x1x1x576xf32>,tensor<96xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x14x14x96xf32>
+NODE 180 : |tosa.add|ADD|73|tensor<?x14x14x96xf32>,tensor<?x14x14x96xf32>||result_0|tensor<?x14x14x96xf32>
+NODE 181 : |tosa.conv2d|CONV2D|74|tensor<?x14x14x96xf32>,tensor<576x1x1x96xf32>,tensor<576xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x14x14x576xf32>
+NODE 182 : |tosa.clamp|CLAMP|75|tensor<?x14x14x576xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x14x14x576xf32>
+NODE 183 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|76|tensor<?x14x14x576xf32>,tensor<3x3x576x1xf32>,tensor<576xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 1, 0, 1>,stride:array<i64: 2, 2>|result_0|tensor<?x7x7x576xf32>
+NODE 184 : |tosa.clamp|CLAMP|77|tensor<?x7x7x576xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x7x7x576xf32>
+NODE 185 : |tosa.conv2d|CONV2D|78|tensor<?x7x7x576xf32>,tensor<160x1x1x576xf32>,tensor<160xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x7x7x160xf32>
+NODE 186 : |tosa.conv2d|CONV2D|79|tensor<?x7x7x160xf32>,tensor<960x1x1x160xf32>,tensor<960xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x7x7x960xf32>
+NODE 187 : |tosa.clamp|CLAMP|80|tensor<?x7x7x960xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x7x7x960xf32>
+NODE 188 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|81|tensor<?x7x7x960xf32>,tensor<3x3x960x1xf32>,tensor<960xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|result_0|tensor<?x7x7x960xf32>
+NODE 189 : |tosa.clamp|CLAMP|82|tensor<?x7x7x960xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x7x7x960xf32>
+NODE 190 : |tosa.conv2d|CONV2D|83|tensor<?x7x7x960xf32>,tensor<160x1x1x960xf32>,tensor<160xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x7x7x160xf32>
+NODE 191 : |tosa.add|ADD|84|tensor<?x7x7x160xf32>,tensor<?x7x7x160xf32>||result_0|tensor<?x7x7x160xf32>
+NODE 192 : |tosa.conv2d|CONV2D|85|tensor<?x7x7x160xf32>,tensor<960x1x1x160xf32>,tensor<960xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x7x7x960xf32>
+NODE 193 : |tosa.clamp|CLAMP|86|tensor<?x7x7x960xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x7x7x960xf32>
+NODE 194 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|87|tensor<?x7x7x960xf32>,tensor<3x3x960x1xf32>,tensor<960xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|result_0|tensor<?x7x7x960xf32>
+NODE 195 : |tosa.clamp|CLAMP|88|tensor<?x7x7x960xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x7x7x960xf32>
+NODE 196 : |tosa.conv2d|CONV2D|89|tensor<?x7x7x960xf32>,tensor<160x1x1x960xf32>,tensor<160xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x7x7x160xf32>
+NODE 197 : |tosa.add|ADD|90|tensor<?x7x7x160xf32>,tensor<?x7x7x160xf32>||result_0|tensor<?x7x7x160xf32>
+NODE 198 : |tosa.conv2d|CONV2D|91|tensor<?x7x7x160xf32>,tensor<960x1x1x160xf32>,tensor<960xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x7x7x960xf32>
+NODE 199 : |tosa.clamp|CLAMP|92|tensor<?x7x7x960xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x7x7x960xf32>
+NODE 200 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|93|tensor<?x7x7x960xf32>,tensor<3x3x960x1xf32>,tensor<960xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|result_0|tensor<?x7x7x960xf32>
+NODE 201 : |tosa.clamp|CLAMP|94|tensor<?x7x7x960xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x7x7x960xf32>
+NODE 202 : |tosa.conv2d|CONV2D|95|tensor<?x7x7x960xf32>,tensor<320x1x1x960xf32>,tensor<320xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x7x7x320xf32>
+NODE 203 : |tosa.conv2d|CONV2D|96|tensor<?x7x7x320xf32>,tensor<1280x1x1x320xf32>,tensor<1280xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|result_0|tensor<?x7x7x1280xf32>
+NODE 204 : |tosa.clamp|CLAMP|97|tensor<?x7x7x1280xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|result_0|tensor<?x7x7x1280xf32>
+NODE 205 : |tosa.reduce_sum|REDUCE_SUM|98|tensor<?x7x7x1280xf32>|axis:1 : i32|result_0|tensor<?x1x7x1280xf32>
+NODE 206 : |tosa.reduce_sum|REDUCE_SUM|99|tensor<?x1x7x1280xf32>|axis:2 : i32|result_0|tensor<?x1x1x1280xf32>
+NODE 207 : |tosa.reshape|RESHAPE|100|tensor<?x1x1x1280xf32>|new_shape:array<i64: -1, 1280>|result_0|tensor<?x1280xf32>
+NODE 208 : |tosa.mul|MUL|101|tensor<?x1280xf32>,tensor<1x1xf32>|shift:0 : i8|result_0|tensor<?x1280xf32>
+NODE 209 : |tosa.fully_connected|FC|102|tensor<?x1280xf32>,tensor<1000x1280xf32>,tensor<1000xf32>||result_0|tensor<?x1000xf32>
+NODE 210 : |tosa.reduce_max|REDUCE_MAX|103|tensor<?x1000xf32>|axis:1 : i32|result_0|tensor<?x1xf32>
+NODE 211 : |tosa.sub|SUB|104|tensor<?x1000xf32>,tensor<?x1xf32>||result_0|tensor<?x1000xf32>
+NODE 212 : |tosa.exp|EXP|105|tensor<?x1000xf32>||result_0|tensor<?x1000xf32>
+NODE 213 : |tosa.reduce_sum|REDUCE_SUM|106|tensor<?x1000xf32>|axis:1 : i32|result_0|tensor<?x1xf32>
+NODE 214 : |tosa.reciprocal|RECIPROCAL|107|tensor<?x1xf32>||result_0|tensor<?x1xf32>
+NODE 215 : |tosa.mul|MUL|108|tensor<?x1000xf32>,tensor<?x1xf32>|shift:0 : i8|result_0|tensor<?x1000xf32>
+NODE 216 : |func.return|UNKNOWN|109|tensor<?x1000xf32>|||
+NODE 217 : |result0|UNKNOWN|109||||
 EDGES 229
 EDGE 0 -> 108 : 1|true|1xi32|32|0,0,0
 EDGE 92 -> 124 : 1|true|1xi32|32|0,0,0

@@ -77,7 +77,7 @@ namespace sw {
             return operands;
         }
 
-        // Function to extract attribute information from an operation (using reference)
+        // Function to extract attribute information from an operation
         std::vector<AttributeInfo> parseAttributes(mlir::Operation& op) {
             std::vector<AttributeInfo> attributes;
 
@@ -138,6 +138,9 @@ namespace sw {
         
             // TODO: bring the attribute processing up to this function
             std::string opName = op.getName().getStringRef().str();
+			// we do not need to store the attribute in the node as that
+			// is the actual value of the constant and we are not using
+			// it in the graph
             return DomainFlowNode(DomainFlowOperator::CONSTANT, opName);
         }
 
@@ -196,7 +199,12 @@ namespace sw {
                 os << "  " << clampOp.getOutput().getType() << "\n";
             }
             std::string opName = op.getName().getStringRef().str();
-            return DomainFlowNode(DomainFlowOperator::CLAMP, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::CLAMP, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
 
         // Function to extract Conv2D specific attributes
@@ -228,11 +236,12 @@ namespace sw {
         DomainFlowNode parseTosaConv2D(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
 
             auto convOp = mlir::cast<mlir::tosa::Conv2DOp>(op);
-            // Parse Conv2D specific attributes
-            Conv2DAttributes convAttrs = parseConv2DAttributes(convOp);
 
             // Parse basic operation information
             if constexpr (bTrace) {
+                // Parse Conv2D specific attributes
+                Conv2DAttributes convAttrs = parseConv2DAttributes(convOp);
+
                 os << "TOSA Conv2D Operation:\n";
 
                 // Parse operands
@@ -243,7 +252,7 @@ namespace sw {
                     os << "  Bias: " << convOp.getBias().getType() << "\n";
 
                 os << "Attributes:\n";
-                os << "  Padding: [";
+                os << "  Pad: [";
                 for (size_t i = 0; i < convAttrs.pad.size(); ++i) {
                     if (i > 0) os << ", ";
                     os << convAttrs.pad[i];
@@ -267,139 +276,249 @@ namespace sw {
                 os << "  " << convOp.getOutput().getType() << "\n";
             }
             
-			// TODO: bring the attribute processing up to this function
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::CONV2D, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+			auto node = DomainFlowNode(DomainFlowOperator::CONV2D, opName);
+			for (const auto& attr : attributes) {
+				node.addAttribute(attr.name, attr.valueStr);
+			}
+            return node;
         }
 
         // A specialized function to parse TOSA Conv2D operations
         DomainFlowNode parseTosaConv3D(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-            return DomainFlowNode(DomainFlowOperator::CONV3D, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::CONV3D, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
 
         // A specialized function to parse TOSA Reshape operations
         DomainFlowNode parseTosaReshape(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::RESHAPE, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::RESHAPE, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
         // A specialized function to parse TOSA Transpose operations
         DomainFlowNode parseTosaTranspose(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::TRANSPOSE, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::TRANSPOSE, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
         // A specialized function to parse TOSA DepthwiseConv2D operations
         DomainFlowNode parseTosaDepthwiseConv2D(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::DEPTHWISE_CONV2D, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::DEPTHWISE_CONV2D, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
         // A specialized function to parse TOSA TransposeConv2D operations
         DomainFlowNode parseTosaTransposeConv2D(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::TRANSPOSE_CONV2D, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::TRANSPOSE_CONV2D, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
         // A specialized function to parse TOSA FullyConnected operations
         DomainFlowNode parseTosaFullyConnected(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::FC, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::FC, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
         // A specialized function to parse TOSA Matmul operations
         DomainFlowNode parseTosaMatmul(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::MATMUL, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::MATMUL, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
         // A specialized function to parse TOSA Add operations
         DomainFlowNode parseTosaAdd(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::ADD, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::ADD, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
         // A specialized function to parse TOSA Sub operations
         DomainFlowNode parseTosaSub(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::SUB, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::SUB, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
         // A specialized function to parse TOSA Mul operations
         DomainFlowNode parseTosaMul(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::MUL, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::MUL, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
         // A specialized function to parse TOSA Negate operations
         DomainFlowNode parseTosaNegate(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::NEGATE, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::NEGATE, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
 
         // A specialized function to parse TOSA Pad operations
         DomainFlowNode parseTosaPad(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::PAD, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::PAD, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
         // A specialized function to parse TOSA Cast operations
         DomainFlowNode parseTosaCast(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::CAST, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::CAST, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
         // A specialized function to parse TOSA Gather operations
         DomainFlowNode parseTosaGather(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::GATHER, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::GATHER, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
 
         // function ops
         // A specialized function to parse TOSA Reciprocal operations
         DomainFlowNode parseTosaReciprocal(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::RECIPROCAL, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::RECIPROCAL, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
         // A specialized function to parse TOSA ReduceAll operations
         DomainFlowNode parseTosaReduceAll(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::REDUCE_ALL, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::REDUCE_ALL, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
         // A specialized function to parse TOSA ReduceMax operations
         DomainFlowNode parseTosaReduceMax(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::REDUCE_MAX, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::REDUCE_MAX, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
         // A specialized function to parse TOSA ReduceMin operations
         DomainFlowNode parseTosaReduceMin(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::REDUCE_MIN, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::REDUCE_MIN, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
         // A specialized function to parse TOSA ReduceSum operations
         DomainFlowNode parseTosaReduceSum(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
             auto node = DomainFlowNode(DomainFlowOperator::REDUCE_SUM, opName);
-            auto reduceSumOp = mlir::cast<mlir::tosa::ReduceSumOp>(op);
-            // Extract axis attribute
-            if (auto AxisAttr = reduceSumOp.getAxisAttr()) {
-                auto axis = AxisAttr.getValue().getSExtValue();
-				// Convert axis to string and add it as an attribute
-				std::string axisStr = std::to_string(axis);
-				node.addAttribute("axis", axisStr);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
             }
             return node;
         }
         // A specialized function to parse TOSA ReduceProd operations
         DomainFlowNode parseTosaReduceProd(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::REDUCE_PROD, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::REDUCE_PROD, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
 
         // A specialized function to parse TOSA Exp operations
         DomainFlowNode parseTosaExp(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::EXP, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::EXP, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
         // A specialized function to parse TOSA Abs operations
         DomainFlowNode parseTosaAbs(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::ABS, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::ABS, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
         // A specialized function to parse TOSA Concat operations
         DomainFlowNode parseTosaConcat(domain_flow_graph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
-			return DomainFlowNode(DomainFlowOperator::CONCAT, opName);
+            std::vector<AttributeInfo> attributes = parseAttributes(op);
+            auto node = DomainFlowNode(DomainFlowOperator::CONCAT, opName);
+            for (const auto& attr : attributes) {
+                node.addAttribute(attr.name, attr.valueStr);
+            }
+            return node;
         }
 
 
