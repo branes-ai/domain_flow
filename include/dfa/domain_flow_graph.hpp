@@ -32,12 +32,29 @@ namespace sw {
 				DomainFlowNode node(name);
 				graph.add_node(node);
 			}
-			void addNode(DomainFlowOperator opType, const std::string& name) {
+			sw::graph::nodeId_t addNode(DomainFlowOperator opType, const std::string& name) {
 				DomainFlowNode node(opType, name);
-				graph.add_node(node);
+				return graph.add_node(node);
 			}
-			void addNode(const DomainFlowNode& node) {
-				graph.add_node(node);
+			sw::graph::nodeId_t addNode(const DomainFlowNode& node) {
+				return graph.add_node(node);
+			}
+
+			void addEdge(sw::graph::nodeId_t src, sw::graph::nodeId_t dest, const DomainFlowEdge& edge) {
+				graph.add_edge(src, dest, edge);
+			}
+
+			// sort the nodes in the graph
+			// Assign depth values to nodes based on their maximum distance from inputs
+			void assignNodeDepths() {
+				constexpr bool bTrace = false; // Set to true for detailed tracing
+				auto nodeDepths = calculateNodeDepths(graph);
+				// Store depth values in the operator nodes
+				for (size_t i = 0; i < graph.nrNodes(); ++i) {
+					// Access node data and set depth
+					DomainFlowNode& op = graph.node(i);
+					op.setDepth(static_cast<int>(nodeDepths[i]));
+				}
 			}
 
 			// Selectors

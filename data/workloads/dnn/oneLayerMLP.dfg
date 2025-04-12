@@ -1,0 +1,15 @@
+DIRECTED
+RUNNING_NODE_ID 3
+NODES 4
+NODE 0 : |inputImage|FUNCTION_ARGUMENT|0|tensor<4x256x256x1xi8|||
+NODE 1 : |linear|LINEAR|1|tensor<4x256x256x1xi8,tensor<4x65536x1xf16>,tensor<16xf16>||out|tensor<tensor<16xf16>
+NODE 2 : |relu|RELU|2|tensor<16xf16>||out|tensor<16xf16>
+NODE 3 : |output|FUNCTION_RETURN|3|tensor<16xf16>|||
+EDGES 3
+EDGE 1 -> 2 : 0|false|tensor<4x65536x1>|16|1,1,1
+EDGE 0 -> 1 : 0|true|tensor<4x256x256x1>|8|1,1,1
+EDGE 2 -> 3 : 0|false|tensor<16>|16|1,1,1
+ADJACENCY 3
+ADJ 0 : 1
+ADJ 1 : 2
+ADJ 2 : 3

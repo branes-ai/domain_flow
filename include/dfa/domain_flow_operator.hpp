@@ -9,6 +9,7 @@ namespace sw {
 
         enum class DomainFlowOperator {
             FUNCTION_ARGUMENT,
+			FUNCTION_RETURN,
             ABS,
             ADD,
             CAST,
@@ -25,6 +26,7 @@ namespace sw {
             SUB,
             MUL,
             DIV,
+            LINEAR,
             MATMUL,
             NEGATE,
             PAD,
@@ -38,6 +40,10 @@ namespace sw {
             REDUCE_SUM,
             REDUCE_PROD,
 
+            RELU,
+            ATAN,
+			SIGMOID,
+
             RESHAPE,
             TRANSPOSE,
             TRANSPOSE_CONV2D,
@@ -49,6 +55,7 @@ namespace sw {
         std::ostream& operator<<(std::ostream& os, DomainFlowOperator dfo) {
             switch (dfo) {
             case DomainFlowOperator::FUNCTION_ARGUMENT:   os << "FUNCTION_ARGUMENT";   break;
+			case DomainFlowOperator::FUNCTION_RETURN:    os << "FUNCTION_RETURN";    break;
             case DomainFlowOperator::ABS:        os << "ABS";        break;
             case DomainFlowOperator::ADD:        os << "ADD";        break;
             case DomainFlowOperator::CAST:       os << "CAST";       break;
@@ -65,6 +72,7 @@ namespace sw {
             case DomainFlowOperator::SUB:        os << "SUB";        break;
             case DomainFlowOperator::MUL:        os << "MUL";        break;
             case DomainFlowOperator::DIV:        os << "DIV";        break;
+			case DomainFlowOperator::LINEAR:     os << "LINEAR";     break;
             case DomainFlowOperator::MATMUL:     os << "MATMUL";     break;
             case DomainFlowOperator::NEGATE:     os << "NEGATE";     break;
             case DomainFlowOperator::PAD:        os << "PAD";        break;
@@ -78,6 +86,10 @@ namespace sw {
             case DomainFlowOperator::REDUCE_MIN: os << "REDUCE_MIN"; break;
             case DomainFlowOperator::REDUCE_SUM: os << "REDUCE_SUM"; break;
             case DomainFlowOperator::REDUCE_PROD: os << "REDUCE_PROD"; break;
+
+			case DomainFlowOperator::RELU:       os << "RELU";       break;
+			case DomainFlowOperator::ATAN:       os << "ATAN";       break;
+			case DomainFlowOperator::SIGMOID:    os << "SIGMOID";    break;
 
             case DomainFlowOperator::RESHAPE:    os << "RESHAPE";    break;
             case DomainFlowOperator::TRANSPOSE:  os << "TRANSPOSE";  break;
@@ -97,6 +109,7 @@ namespace sw {
             }
 
             if (token == "FUNCTION_ARGUMENT")    dfo = DomainFlowOperator::FUNCTION_ARGUMENT;
+			else if (token == "FUNCTION_RETURN") dfo = DomainFlowOperator::FUNCTION_RETURN;
             else if (token == "ABS")    dfo = DomainFlowOperator::ABS;
             else if (token == "ADD")    dfo = DomainFlowOperator::ADD;
             else if (token == "CAST")    dfo = DomainFlowOperator::CAST;
@@ -112,7 +125,8 @@ namespace sw {
 
             else if (token == "SUB")    dfo = DomainFlowOperator::SUB;
             else if (token == "MUL")    dfo = DomainFlowOperator::MUL;
-            else if (token == "DIV")    dfo = DomainFlowOperator::DIV;
+			else if (token == "DIV")    dfo = DomainFlowOperator::DIV;
+			else if (token == "LINEAR") dfo = DomainFlowOperator::LINEAR;
             else if (token == "MATMUL") dfo = DomainFlowOperator::MATMUL;
             else if (token == "NEGATE") dfo = DomainFlowOperator::NEGATE;
             else if (token == "PAD")    dfo = DomainFlowOperator::PAD;
@@ -126,6 +140,10 @@ namespace sw {
             else if (token == "REDUCE_MIN") dfo = DomainFlowOperator::REDUCE_MIN;
             else if (token == "REDUCE_SUM") dfo = DomainFlowOperator::REDUCE_SUM;
             else if (token == "REDUCE_PROD") dfo = DomainFlowOperator::REDUCE_PROD;
+
+			else if (token == "RELU")   dfo = DomainFlowOperator::RELU;
+			else if (token == "ATAN")   dfo = DomainFlowOperator::ATAN;
+			else if (token == "SIGMOID") dfo = DomainFlowOperator::SIGMOID;
 
             else if (token == "RESHAPE") dfo = DomainFlowOperator::RESHAPE;
             else if (token == "TRANSPOSE") dfo = DomainFlowOperator::TRANSPOSE;

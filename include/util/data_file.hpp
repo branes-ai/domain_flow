@@ -14,6 +14,23 @@ std::string replaceExtension(const std::string& filename, const std::string& old
     return result;
 }
 
+std::string generateDataOutputFile(const std::string& fileName) {
+    std::filesystem::path currentPath = std::filesystem::current_path();
+    std::filesystem::path rootPath = currentPath;
+
+    // Navigate up until you find the repository root (containing .git).
+    while (!std::filesystem::exists(rootPath / ".git") && rootPath.has_parent_path()) {
+        rootPath = rootPath.parent_path();
+    }
+
+    if (!std::filesystem::exists(rootPath / ".git")) {
+        throw std::runtime_error("Could not find repository root.");
+    }
+
+    std::filesystem::path dataFilePath = rootPath / "data" / fileName;
+    return dataFilePath.string();
+}
+
 std::string generateDataFile(const std::string& fileName) {
     std::filesystem::path currentPath = std::filesystem::current_path();
     std::filesystem::path rootPath = currentPath;

@@ -105,6 +105,8 @@ add_subdirectory(src/graph/tests)
 # the domain flow library tests
 add_subdirectory(src/dfa/tests)
 
+# the workload generators
+add_subdirectory(workloads)
 # the tools
 add_subdirectory(tools)
 # the plotters
