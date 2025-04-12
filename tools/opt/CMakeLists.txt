@@ -76,5 +76,5 @@ add_mlir_tool(${DFA_OPT}
 target_link_libraries(${DFA_OPT} PRIVATE ${LIBS})
 llvm_update_compile_flags(${DFA_OPT})
 mlir_check_all_link_libraries(${DFA_OPT})
-set_target_properties(${DFA_OPT} PROPERTIES FOLDER "dfa/tools/opt")
+set_target_properties(${DFA_OPT} PROPERTIES FOLDER "tools/opt")
 

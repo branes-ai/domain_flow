@@ -16,7 +16,7 @@
 #include <util/data_file.hpp>
 
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
     using namespace sw::dfa;
     // Ensure an MLIR file is provided as input.
     if (argc < 2) {
@@ -24,15 +24,18 @@ int main(int argc, char **argv) {
         return EXIT_SUCCESS;  // return success to support CI
     }
 
-    std::string dataFileName{};
-    try {
-        dataFileName = generateDataFile(argv[1]);
-		std::cout << "Data file : " << dataFileName << std::endl;
+    std::string dataFileName{ argv[1] };
+    if (!std::filesystem::exists(dataFileName)) {
+		// search for the file in the data directory
+        try {
+            dataFileName = generateDataFile(argv[1]);
+            std::cout << "Data file : " << dataFileName << std::endl;
+        }
+        catch (const std::runtime_error& e) {
+            std::cerr << "Error: " << e.what() << std::endl;
+            return EXIT_SUCCESS;  // return success to support CI
+        }
     }
-	catch (const std::runtime_error& e) {
-		std::cerr << "Error: " << e.what() << std::endl;
-		return EXIT_SUCCESS;  // return success to support CI
-	}
 
     // Create an MLIR context and register the TOSA dialect.
     mlir::MLIRContext context;

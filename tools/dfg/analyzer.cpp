@@ -12,13 +12,17 @@ int main(int argc, char** argv) {
         return EXIT_SUCCESS; // exit with success for CI purposes
     }
 
-    std::string dataFileName;
-    try {
-        dataFileName = generateDataFile(argv[1]);
-        std::cout << "Data: " << dataFileName << std::endl;
-    } catch (const std::runtime_error& e) {
-	    std::cerr << "Error: " << e.what() << std::endl;
-		return EXIT_SUCCESS; // exit with success for CI purposes
+    std::string dataFileName{ argv[1] };
+    if (!std::filesystem::exists(dataFileName)) {
+        // search for the file in the data directory
+        try {
+            dataFileName = generateDataFile(argv[1]);
+            std::cout << "Data: " << dataFileName << std::endl;
+        }
+        catch (const std::runtime_error& e) {
+            std::cerr << "Error: " << e.what() << std::endl;
+            return EXIT_SUCCESS; // exit with success for CI purposes
+        }
     }
 
     DomainFlowGraph dfg(dataFileName); // Deep Learning graph

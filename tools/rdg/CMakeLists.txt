@@ -1,3 +1,3 @@
 file(GLOB SRCS *.cpp)
 
-compile_all("true" "rdg" "dfa/rdg" ${SRCS})
+compile_all("true" "rdg" "tools/rdg" ${SRCS})

@@ -61,5 +61,5 @@ add_mlir_tool(${DFA_TOSA_IMPORTER}
 target_link_libraries(${DFA_TOSA_IMPORTER} ${LIBS})
 llvm_update_compile_flags(${DFA_TOSA_IMPORTER})
 mlir_check_all_link_libraries(${DFA_TOSA_IMPORTER})
-set_target_properties(${DFA_TOSA_IMPORTER} PROPERTIES FOLDER "dfa/tools/importers")
+set_target_properties(${DFA_TOSA_IMPORTER} PROPERTIES FOLDER "tools/importers")
 
