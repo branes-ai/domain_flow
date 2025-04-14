@@ -1,16 +1,15 @@
 # C++ header-only library cmake best practice
 
-
 I have a C++ header-only library, what is the best cmake way to release this library so that another cmake project in an unrelated github repo can easily integrate it?
 
 CMake for Header-Only Libraries
 For a header-only C++ library, packaging it for CMake integration is relatively straightforward. Here's how to set it up so other CMake projects can easily use it:
 
 Best Approach
-Create a CMake configuration that allows your library to be found by find_package()
-Set up proper installation targets that place headers in the expected locations
-Generate and export CMake config files to help consumers find and use your library
-Here's how to implement this:
+ 1. Create a CMake configuration that allows your library to be found by find_package()
+ 2. Set up proper installation targets that place headers in the expected locations
+ 3. Generate and export CMake config files to help consumers find and use your library
+
 
 1. Project Structure
 First, organize your library with a structure like:
@@ -108,17 +107,18 @@ if(NOT ${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
 endif()
 ```
 
-How Other Projects Can Use Your Library
+## How Other Projects Can Use Your Library
+
 Once published, other projects can use your library in several ways:
 
-Method 1: Using find_package
+### Method 1: Using find_package
 
 ```cmake
 find_package(your-library REQUIRED)
 target_link_libraries(your-target PRIVATE your-library::your-library)
 ```
 
-Method 2: Using FetchContent
+### Method 2: Using FetchContent
 
 ```cmake
 include(FetchContent)
@@ -132,7 +132,7 @@ FetchContent_MakeAvailable(your-library)
 target_link_libraries(your-target PRIVATE your-library::your-library)
 ```
 
-Method 3: Adding as a Git Submodule
+### Method 3: Adding as a Git Submodule
 
 ```cmake
 # In the main project
