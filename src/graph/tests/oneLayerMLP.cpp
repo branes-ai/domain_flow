@@ -2,7 +2,7 @@
 #include <iomanip>
 #include <format>
 #include <filesystem>
-#include <graph/graph.hpp>
+#include <graph/graphlib.hpp>
 
 namespace sw {
     namespace graph {
