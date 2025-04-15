@@ -66,6 +66,10 @@ endif()
 option(DOMAINFLOW_CMAKE_TRACE "Tracing CMake results, i.e. printing variable settings." OFF)
 option(DOMAINFLOW_ENABLE_TESTS "Enable the build and run of tests." ON)
 option(DOMAINFLOW_VERBOSE_TESTS "Always print test output, otherwise only errors. Only relevant when tests enabled." OFF)
+option(DOMAINFLOW_LOCAL_DEVELOPMENT "Enable/disable local development." OFF)
+option(DOMAINFLOW_MLIR_TOOLS "Enable/disable MLIR tools." OFF)
+option(DOMAINFLOW_MATPLOT_TOOLS "Enable/disable MATPLOT tools." OFF)
+option(DOMAINFLOW_DATABASE_TOOLS "Enable/disable Database tools." OFF)
 option(DOMAINFLOW_VISUALIZATION "Enable/disable visualization tools." OFF)
 
 # Set the toolchain directory
@@ -122,12 +126,18 @@ add_subdirectory(src/dfa/tests)
 
 # the workload generators
 add_subdirectory(workloads)
-# the tools
-add_subdirectory(tools)
+if(DOMAINFLOW_MATPLOT_TOOLS)
 # the plotters
 add_subdirectory(plots)
+endif()
+if(DOMAINFLOW_DATABASE_TOOLS)
 # the databases
 add_subdirectory(databases)
+endif()
+if(DOMAINFLOW_MLIR_TOOLS)
+# the tools
+add_subdirectory(tools)
+endif()
 
 # Install rules (for packaging)
 
