@@ -4,6 +4,7 @@
 #include <functional>
 #include <type_traits>
 #include <fstream>
+#include <string>
 
 #include <memory>
 #include <unordered_map>
