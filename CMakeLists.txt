@@ -55,11 +55,10 @@ set(project_library_target_name ${PROJECT_NAME})
 set(PACKAGE_NAME ${PROJECT_NAME})
 message(STATUS "PROJECT_NAME = ${PROJECT_NAME}")
 
-if(NOT ${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
-    # we're being included as a subproject 
-    add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
-endif()
-
+#if(NOT ${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
+#    # we're being included as a subproject 
+#    add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+#endif()
 
 ####
 # Set environmental options for tracing, testing, and verbosity
@@ -142,45 +141,45 @@ endif()
 # Install rules (for packaging)
 
 # Install the headers
-install(DIRECTORY include/ DESTINATION include
-    FILES_MATCHING PATTERN "*.hpp"
-    PATTERN ".svn" EXCLUDE
-    PATTERN ".git" EXCLUDE
-    PATTERN ".DS_Store" EXCLUDE
-)
+#install(DIRECTORY include/ DESTINATION include
+#    FILES_MATCHING PATTERN "*.hpp"
+#    PATTERN ".svn" EXCLUDE
+#    PATTERN ".git" EXCLUDE
+#    PATTERN ".DS_Store" EXCLUDE
+#)
 # Install the library target 
 install(TARGETS ${DFA_TOOL_CLI} DESTINATION bin)
-export(TARGETS ${PROJECT_NAME} FILE "${PROJECT_NAME}Config.cmake")
-install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-)
+#export(TARGETS ${PROJECT_NAME} FILE "${PROJECT_NAME}Config.cmake")
+#install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets
+#    RUNTIME DESTINATION bin
+#    LIBRARY DESTINATION lib
+#    ARCHIVE DESTINATION lib
+#)
 
 # Export targets
-install(EXPORT ${PROJECT_NAME}Targets
-    FILE ${PROJECT_NAME}Targets.cmake
-    NAMESPACE "sw::dfa::"
-    DESTINATION lib/cmake/${PROJECT_NAME}
-)
+#install(EXPORT ${PROJECT_NAME}Targets
+#    FILE ${PROJECT_NAME}Targets.cmake
+#    NAMESPACE "sw::dfa::"
+#    DESTINATION lib/cmake/${PROJECT_NAME}
+#)
 
 # Create and install config file
-include(CMakePackageConfigHelpers)
-configure_package_config_file(
-    cmake/${PROJECT_NAME}-config.cmake.in 
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake
-    INSTALL_DESTINATION lib/cmake/${PROJECT_NAME}
-)
+#include(CMakePackageConfigHelpers)
+#configure_package_config_file(
+#    cmake/${PROJECT_NAME}-config.cmake.in 
+#    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake
+#    INSTALL_DESTINATION lib/cmake/${PROJECT_NAME}
+#)
 # Create and install version file
-write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY  SameMajorVersion
-)
+#write_basic_package_version_file(
+#    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
+#    VERSION ${PROJECT_VERSION}
+#    COMPATIBILITY  SameMajorVersion
+#)
 # Install the config and version files
-install(FILES 
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
-    DESTINATION lib/cmake/${PROJECT_NAME}
-)
+#install(FILES 
+#    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake
+#    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
+#    DESTINATION lib/cmake/${PROJECT_NAME}
+#)
 
