@@ -65,6 +65,7 @@ message(STATUS "PROJECT_NAME = ${PROJECT_NAME}")
 option(DOMAINFLOW_CMAKE_TRACE "Tracing CMake results, i.e. printing variable settings." OFF)
 option(DOMAINFLOW_ENABLE_TESTS "Enable the build and run of tests." ON)
 option(DOMAINFLOW_VERBOSE_TESTS "Always print test output, otherwise only errors. Only relevant when tests enabled." OFF)
+option(DOMAINFLOW_BUILD_TESTS OFF)
 option(DOMAINFLOW_LOCAL_DEVELOPMENT "Enable/disable local development." OFF)
 option(DOMAINFLOW_MLIR_TOOLS "Enable/disable MLIR tools." OFF)
 option(DOMAINFLOW_MATPLOT_TOOLS "Enable/disable MATPLOT tools." OFF)
@@ -116,12 +117,14 @@ macro (compile_all testing prefix folder)
     endforeach (source)
 endmacro (compile_all)
 
+if(DOMAINFLOW_BUILD_TESTS)
 # the json library tests
 add_subdirectory(src/json/tests)
 # the base graph library tests
 add_subdirectory(src/graph/tests)
 # the domain flow library tests
 add_subdirectory(src/dfa/tests)
+endif()
 
 # the workload generators
 add_subdirectory(workloads)
