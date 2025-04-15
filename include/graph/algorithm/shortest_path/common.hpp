@@ -1,7 +1,7 @@
 #pragma once
 #include <list>
 #include <optional>
-#include <graph/graph.hpp>
+#include <graph/graphlib.hpp>
 
 namespace sw {
     namespace graph {

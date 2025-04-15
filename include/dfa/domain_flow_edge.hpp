@@ -1,6 +1,6 @@
 #pragma once
 
-#include <graph/graph.hpp>
+#include <graph/graphlib.hpp>
 
 namespace sw {
     namespace dfa {

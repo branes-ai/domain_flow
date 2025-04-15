@@ -5,6 +5,7 @@
 #include <type_traits>
 #include <fstream>
 #include <string>
+#include <sstream>
 
 #include <memory>
 #include <unordered_map>

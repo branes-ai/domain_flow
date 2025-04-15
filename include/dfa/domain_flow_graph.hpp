@@ -3,7 +3,7 @@
 #include <iomanip>
 
 // extendable graph data structure
-#include <graph/graph.hpp>
+#include <graph/graphlib.hpp>
 #include <dfa/arithmetic_complexity.hpp>
 
 namespace sw {

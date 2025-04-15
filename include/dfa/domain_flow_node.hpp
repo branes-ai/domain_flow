@@ -1,7 +1,7 @@
 #pragma once
 
 // extendable graph data structure
-#include <graph/graph.hpp>
+#include <graph/graphlib.hpp>
 #include <dfa/domain_flow_operator.hpp>
 #include <dfa/tensor_spec_parser.hpp>
 #include <dfa/arithmetic_complexity.hpp>
