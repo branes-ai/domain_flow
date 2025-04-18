@@ -15,6 +15,7 @@ namespace sw {
 		struct DomainFlowGraph {
 			std::string name;
 			domain_flow_graph graph{};
+			// sources and sinks: domains flow from sources to sinks
 			std::vector<sw::graph::nodeId_t> source;
 			std::vector<sw::graph::nodeId_t> sink;
 
@@ -26,7 +27,7 @@ namespace sw {
 			~DomainFlowGraph() {}
 
 			// Modifiers
-			void clear() { graph.clear(); }
+			void clear() { graph.clear(); source.clear(); sink.clear(); name.clear(); }
 			void setName(const std::string& name) { this->name = name; }
 			void addNode(const std::string& name) {
 				DomainFlowNode node(name);
@@ -40,8 +41,18 @@ namespace sw {
 				return graph.add_node(node);
 			}
 
-			void addEdge(sw::graph::nodeId_t src, sw::graph::nodeId_t dest, const DomainFlowEdge& edge) {
-				graph.add_edge(src, dest, edge);
+			void addEdge(sw::graph::nodeId_t src, std::size_t outputSlot, sw::graph::nodeId_t dest, std::size_t inputSlot, const DomainFlowEdge& edge) {
+				DomainFlowEdge edgeCopy = edge;
+				edgeCopy.srcSlot = outputSlot;
+				edgeCopy.dstSlot = inputSlot;
+				graph.add_edge(src, dest, edgeCopy);
+			}
+
+			void addSource(sw::graph::nodeId_t src) {
+				source.push_back(src);
+			}
+			void addSink(sw::graph::nodeId_t sink) {
+				this->sink.push_back(sink);
 			}
 
 			// sort the nodes in the graph
@@ -91,30 +102,251 @@ namespace sw {
 				return metrics;
 			}
 
+			// Save the graph to a text file
+			void save(const std::string& filename) const {
+				std::ofstream ofs(filename);
+				if (!ofs) {
+					throw std::runtime_error("Failed to open file for writing: " + filename);
+				}
+				// Save the graph to the file
+				save(ofs);
+
+				if (!ofs.good()) {
+					throw std::runtime_error("Error occurred while writing to file: " + filename);
+				}
+
+				ofs.close();
+			}
+			// Save the graph to an output stream
 			std::ostream& save(std::ostream& ostr) const {
 				ostr << "Domain Flow Graph: " << name << "\n";
 				graph.save(ostr);
+				ostr << "SOURCE: ";
+				bool first = true;
+				for (const auto& src : source) {
+					if (!first) {
+						ostr << ", ";
+					}
+					ostr << src;
+					first = false;
+				}
+				ostr << "\nSINK: ";
+				first = true;
+				for (const auto& snk : sink) {
+					if (!first) {
+						ostr << ", ";
+					}
+					ostr << snk;
+				}
 				return ostr;
 			}
+			// Load the graph from a text file
+			void load(const std::string& filename) {
+				std::ifstream ifs(filename);
+				if (!ifs) {
+					throw std::runtime_error("Failed to open file for reading: " + filename);
+				}
 
+				load(ifs);
+				
+				if (ifs.fail()) {
+					throw std::runtime_error("Error occurred while reading from file: " + filename);
+				}
+
+				ifs.close();
+			}
+			// Load the graph from an input stream
+			std::istream& load(std::istream& istr) {
+				clear();
+				std::string line;
+				if (!std::getline(istr, line)) {
+					istr.setstate(std::ios::failbit);
+					return istr;
+				}
+				// search for :
+				size_t colonPos = line.find(':');
+				if (colonPos == std::string::npos) {
+					istr.setstate(std::ios::failbit);
+					return istr;
+				}
+				// Extract substring after colon and trim whitespace
+				std::string dfgName = line.substr(colonPos + 1);
+				while (!dfgName.empty() && std::isspace(dfgName.front())) {
+					dfgName.erase(0, 1);
+				}
+				this->name = dfgName;
+				std::cout << "Stream state after graph name: " << istr.good() << " " << istr.fail() << " " << istr.eof() << std::endl;
+
+				///////////////////////////////////////////////////////
+				// Read the graph from the input stream
+				graph.load(istr);
+				std::cout << "Stream state after graph.load: " << istr.good() << " " << istr.fail() << " " << istr.eof() << std::endl;
+				///////////////////////////////////////////////////////
+				if (!std::getline(istr, line)) {
+					istr.setstate(std::ios::failbit);
+					return istr;
+				}
+				colonPos = line.find(':');
+				if (colonPos == std::string::npos) {
+					istr.setstate(std::ios::failbit);
+					return istr;
+				}
+				std::string sources = line.substr(colonPos + 1);
+				// Trim whitespace from sources
+				while (!sources.empty() && std::isspace(sources.front())) {
+					sources.erase(0, 1);
+				}
+				while (!sources.empty() && std::isspace(sources.back())) {
+					sources.pop_back();
+				}
+
+				// Parse sources
+				if (!sources.empty()) {
+					std::stringstream ss(sources);
+					std::string temp;
+					while (std::getline(ss, temp, ',')) {
+						while (!temp.empty() && std::isspace(temp.front())) {
+							temp.erase(0, 1);
+						}
+						while (!temp.empty() && std::isspace(temp.back())) {
+							temp.pop_back();
+						}
+						if (!temp.empty()) {
+							try {
+								source.push_back(std::stoi(temp));
+							}
+							catch (const std::exception&) {
+								istr.setstate(std::ios::failbit);
+								return istr;
+							}
+						}
+					}
+					// Handle single number case (no commas)
+					if (source.empty()) {
+						try {
+							source.push_back(std::stoi(sources));
+						}
+						catch (const std::exception&) {
+							istr.setstate(std::ios::failbit);
+							return istr;
+						}
+					}
+				}
+				std::cout << "Stream state after SOURCES: " << istr.good() << " " << istr.fail() << " " << istr.eof() << std::endl;
+
+				// Read sinks
+				if (!std::getline(istr, line)) {
+					istr.setstate(std::ios::failbit);
+					return istr;
+				}
+				colonPos = line.find(':');
+				if (colonPos == std::string::npos) {
+					istr.setstate(std::ios::failbit);
+					return istr;
+				}
+				std::string sinks = line.substr(colonPos + 1);
+				// Trim whitespace from sinks
+				while (!sinks.empty() && std::isspace(sinks.front())) {
+					sinks.erase(0, 1);
+				}
+				while (!sinks.empty() && std::isspace(sinks.back())) {
+					sinks.pop_back();
+				}
+
+				// Parse sinks
+				if (!sinks.empty()) {
+					std::stringstream ss(sinks);
+					std::string temp;
+					while (std::getline(ss, temp, ',')) {
+						while (!temp.empty() && std::isspace(temp.front())) {
+							temp.erase(0, 1);
+						}
+						while (!temp.empty() && std::isspace(temp.back())) {
+							temp.pop_back();
+						}
+						if (!temp.empty()) {
+							try {
+								sink.push_back(std::stoi(temp));
+							}
+							catch (const std::exception&) {
+								istr.setstate(std::ios::failbit);
+								return istr;
+							}
+						}
+					}
+					// Handle single number case (no commas)
+					if (sink.empty()) {
+						try {
+							sink.push_back(std::stoi(sinks));
+						}
+						catch (const std::exception&) {
+							istr.setstate(std::ios::failbit);
+							return istr;
+						}
+					}
+				}
+				std::cout << "Stream state after SINKS: " << istr.good() << " " << istr.fail() << " " << istr.eof() << std::endl;
+
+
+				return istr;
+			}
 		};
 
+		bool operator==(const DomainFlowGraph& lhs, const DomainFlowGraph& rhs) {
+			bool bEqual = true;
+
+			// compare the nodes
+			if (lhs.graph.nrNodes() != rhs.graph.nrNodes()) {
+				bEqual = false;
+			}
+			else {
+				for (const auto& [nodeId, node] : lhs.graph.nodes()) {
+					if (rhs.graph.has_node(nodeId)) {
+						const auto& rhsNode = rhs.graph.node(nodeId);
+						if (node != rhsNode) {
+							bEqual = false;
+							break;
+						}
+					}
+					else {
+						bEqual = false;
+						break;
+					}
+				}
+			}
+
+			// compare the edges
+			if (lhs.graph.nrEdges() != rhs.graph.nrEdges()) {
+				bEqual = false;
+			}
+			else {
+				for (const auto& [edgeId, edge] : lhs.graph.edges()) {
+					if (rhs.graph.has_edge(edgeId.first, edgeId.second)) {
+						const auto& rhsEdge = rhs.graph.edge(edgeId);
+						if (edge != rhsEdge) {
+							bEqual = false;
+							break;
+						}
+					}
+					else {
+						bEqual = false;
+						break;
+					}
+				}
+			}
+
+			return bEqual;
+		}
+		bool operator!=(const DomainFlowGraph& lhs, const DomainFlowGraph& rhs) {
+			return !(lhs == rhs);
+		}
+
 		std::ostream& operator<<(std::ostream& ostr, const DomainFlowGraph& g) {
-			ostr << "Domain Flow Graph: " << g.name << "\n";
-				g.graph.save(ostr);
-			return ostr;
+			return g.save(ostr);
 		}
 
 		std::istream& operator>>(std::istream& istr, DomainFlowGraph& g) {
-			std::string line;
-			if (!std::getline(istr, line)) {
-				istr.setstate(std::ios::failbit);
-				return istr;
-			}
-			g.name = line;
-			// Read the graph from the input stream
-			g.graph.load(istr);
-			return istr;
+			return g.load(istr);
 		}
 
 		// Generate the operator statistics table

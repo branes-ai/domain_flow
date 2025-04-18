@@ -7,7 +7,7 @@
 void testNodeSerialization(sw::dfa::DomainFlowOperator op) {
 	using namespace sw::dfa;
 
-	auto nodeOut = DomainFlowNode(op, "test").addOperand("tensor<2x2xf32>").addOperand("tensor<2x2xf32>").addResult("result_0", "tensor<2x2xf32>");
+	auto nodeOut = DomainFlowNode(op, "test").addOperand(0, "tensor<2x2xf32>").addOperand(1, "tensor<2x2xf32>").addResult(0, "result_0", "tensor<2x2xf32>");
 	nodeOut.setDepth(1);
 	std::cout << "NODE: " << nodeOut << '\n';
 	std::stringstream ss;
@@ -25,7 +25,7 @@ int main() {
 	for (auto op : AllDomainFlowOperators()) {
 		std::cout << "Processing operator: " << op << std::endl;
 
-		auto nodeOut = DomainFlowNode(op, "test").addOperand("tensor<2x2xf32>").addOperand("tensor<2x2xf32>").addAttribute("asix", "1").addResult("result_0", "tensor<2x2xf32>");
+		auto nodeOut = DomainFlowNode(op, "test").addOperand(0, "tensor<2x2xf32>").addOperand(7, "tensor<2x2xf32>").addAttribute("asix", "1").addResult(0, "result_0", "tensor<2x2xf32>");
 		nodeOut.setDepth(1);
 		std::stringstream ss;
 		ss << nodeOut;
@@ -37,8 +37,8 @@ int main() {
 			std::cerr << "  Original     : " << nodeOut << '\n';
 			std::cerr << "  Deserialized : " << nodeIn << '\n';
 			bSuccess = false;
-		}
-		
+			break;
+		}		
 	}
 
 	if (bSuccess) {

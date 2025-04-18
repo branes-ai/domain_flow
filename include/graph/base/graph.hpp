@@ -207,7 +207,7 @@ namespace sw {
                 }
             }
             
-                // node selector
+            // node selector
             const node_t& node(nodeId_t node_id) const {
                 if (!has_node(node_id)) {
                     throw std::invalid_argument{ "Node with ID [" + std::to_string(node_id) + "] not found in graph." };

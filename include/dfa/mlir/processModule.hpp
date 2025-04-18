@@ -20,14 +20,18 @@ namespace sw {
 
 
         // Assign depth values to nodes based on their maximum distance from inputs
-        void assignNodeDepths(domain_flow_graph& gr, llvm::raw_string_ostream& os) {
+        void assignNodeDepths(DomainFlowGraph& dfg, llvm::raw_string_ostream& os) {
 			constexpr bool bTrace = false; // Set to true for detailed tracing
+
+            domain_flow_graph& gr = dfg.graph;
             auto nodeDepths = calculateNodeDepths(gr);
             // Store depth values in the TosaOperator objects
             for (int i = 0; i < gr.nrNodes(); ++i) {
                 // Access node data and set depth
                 DomainFlowNode& op = gr.node(i);
-                op.setDepth(nodeDepths[i]);
+                size_t depth = nodeDepths[i];
+                op.setDepth(depth);
+                if (depth == 0) dfg.addSource(i);
                 if constexpr (bTrace) os << "Node " << i << " final depth: " << nodeDepths[i] << "\n";
             }
         }
@@ -59,8 +63,8 @@ namespace sw {
                 for (auto& op : func.getBody().getOps()) {                  
 					auto graphNode = parseOperation(gr, op, os); // Parse the operation
 
-					int nrOperands = op.getNumOperands();
-                    for (int idx = 0; idx < nrOperands; ++idx) {
+					unsigned nrOperands = op.getNumOperands();
+                    for (unsigned idx = 0; idx < nrOperands; ++idx) {
                         mlir::Value operand = op.getOperand(idx);
                         mlir::Type operandType = operand.getType();
                         // Convert operandType (Type) to string
@@ -68,12 +72,12 @@ namespace sw {
                         llvm::raw_string_ostream typeOs(typeStr);
                         operandType.print(typeOs);  // Print the type (e.g., f32, i32, tensor<...>)
                         typeOs.flush();  // Ensure the string is populated
-                        graphNode.addOperand(typeStr);
+                        graphNode.addOperand(idx, typeStr);
                     }
 
                     // Enumerate all results (outputs) of the operation
-                    int nrResults = op.getNumResults();
-                    for (int idx = 0; idx < nrResults; ++idx) {
+                    unsigned int nrResults = op.getNumResults();
+                    for (unsigned int idx = 0; idx < nrResults; ++idx) {
 
                         // mlir::Value::print() outputs a more verbose representation, 
                         // often including the operation that defines the value, rather 
@@ -112,7 +116,7 @@ namespace sw {
                         typeOs.flush();  // Ensure the string is populated
 
                         // Add the string representations to the graph node
-                        graphNode.addResult(valueStr, typeStr);
+                        graphNode.addResult(idx, valueStr, typeStr);
                         // Create a name for this result
                         //std::string resultName = opName + "_result" + std::to_string(idx);
 
@@ -182,6 +186,7 @@ namespace sw {
                     for (unsigned i = 0; i < returnOp.getNumOperands(); ++i) {
                         std::string resultName = "result" + std::to_string(i);
                         int resultNodeId = gr.add_node(DomainFlowNode(resultName));
+                        dfg.addSink(resultNodeId);
                         if constexpr (bTrace) os << "Created result node: " << resultName << " with ID: " << resultNodeId << "\n";
 
                         // Get the operand that is being returned
@@ -229,7 +234,7 @@ namespace sw {
 
 				// at this point, the graph structure is built, 
                 // and we can order the nodes according to the distance from the inputs
-				assignNodeDepths(gr, os);
+				assignNodeDepths(dfg, os);
             }
 
             // Print the graph construction trace

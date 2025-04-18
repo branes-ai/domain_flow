@@ -11,13 +11,13 @@ namespace sw {
 
         // the Domain Flow Graph node type
         struct DomainFlowNode {
-            DomainFlowOperator opType;                    // domain flow operator type
-            std::string name;                             // source dialect name
-            std::vector<std::string> operandType;         // string version of mlir::Type
-            std::vector<std::string> resultValue;         // string version of mlir::Value: typically too verbose
-            std::vector<std::string> resultType;          // string version of mlir::Type
-			std::map<std::string, std::string> attribute; // attributes of the operation, key/value pair where the value is encoded as a string
-            int depth;                                    // depth of 0 represents a data source
+            DomainFlowOperator opType;                      // domain flow operator type
+            std::string name;                               // source dialect name
+            std::map<std::size_t, std::string> operandType; // slotted string version of mlir::Type
+            std::map<std::size_t, std::string> resultValue; // slotted string version of mlir::Value: typically too verbose
+            std::map<std::size_t, std::string> resultType; // slotted string version of mlir::Type
+			std::map<std::string, std::string> attribute;   // attributes of the operation, key/value pair where the value is encoded as a string
+            int depth;                                      // depth of 0 represents a data source
 
             // Constructor to initialize the node with just a string of the operator
             DomainFlowNode() : opType{ DomainFlowOperator::UNKNOWN }, name{ "undefined" }, operandType{}, resultValue{}, resultType{}, depth { 0 } {}
@@ -28,17 +28,17 @@ namespace sw {
             void setOperator(DomainFlowOperator opType, std::string name) { this->opType = opType;  this->name = name; }
             void setDepth(int d) { depth = d; }
 
-            DomainFlowNode& addOperand(const std::string& typeStr) {
-                operandType.push_back(typeStr);
+            DomainFlowNode& addOperand(const std::size_t slot, const std::string& typeStr) {
+                operandType[slot] =(typeStr);
                 return *this;
             }
 			DomainFlowNode& addAttribute(const std::string& name, const std::string& value) {
 				attribute[name] = value;
 				return *this;
 			}
-            DomainFlowNode& addResult(const std::string& valueStr, const std::string& typeStr) {
-                resultValue.push_back(valueStr);
-                resultType.push_back(typeStr);
+            DomainFlowNode& addResult(const std::size_t slot, const std::string& valueStr, const std::string& typeStr) {
+                resultValue[slot] = (valueStr);
+                resultType[slot] = (typeStr);
                 return *this;
             }
 
@@ -48,16 +48,16 @@ namespace sw {
             int getDepth() const noexcept { return depth; }
             // input operand API
 			std::size_t getNrInputs() const noexcept { return operandType.size(); }
-			std::string getOperandType(std::size_t idx) const { if (idx < operandType.size()) return operandType[idx]; else return "out of bounds"; }
+            std::string getOperandType(std::size_t slot) const { auto it = operandType.find(slot); if (it != operandType.end()) return it->second; else return "n/a"; }
 			// attribute API
             std::size_t getNrAttributes() const noexcept { return attribute.size(); }
 			std::map<std::string, std::string> getAttributes() const { return attribute; }
-            std::string getAttribute(const std::string& name) const { auto it = attribute.find(name); if (it != attribute.end()) return it->second; else return ""; }
-			std::string getAttributeValue(const std::string& name) const { auto it = attribute.find(name); if (it != attribute.end()) return it->second; else return ""; }
+            std::string getAttribute(const std::string& name) const { auto it = attribute.find(name); if (it != attribute.end()) return it->second; else return "n/a"; }
+			std::string getAttributeValue(const std::string& name) const { auto it = attribute.find(name); if (it != attribute.end()) return it->second; else return "n/a"; }
 			// output result API
             std::size_t getNrOutputs() const noexcept { return resultType.size(); }
-            std::string getResultValue(std::size_t idx) const { if (idx < resultValue.size()) return resultValue[idx]; else return "out of bounds"; }
-            std::string getResultType(std::size_t idx) const noexcept { if (idx < resultType.size()) return resultType[idx]; else return "out of bounds"; }
+            std::string getResultValue(std::size_t slot) const noexcept { auto it = resultValue.find(slot);  if (it != resultValue.end()) return it->second; else return "n/a"; }
+            std::string getResultType(std::size_t slot) const noexcept { auto it = resultType.find(slot); if (it != resultType.end()) return it->second; else return "n/a"; }
         
             // Functional operators
             std::vector<std::tuple<std::string, std::string, std::uint64_t>> getArithmeticComplexity() const noexcept {
@@ -72,7 +72,9 @@ namespace sw {
                         //    %out = tosa.add %in1, %in2 : tensor<12x6xf32>, tensor<12x6xf32>->tensor<12x6xf32>
                         // Elementwise addition with broadcasting.
                         //    %out = tosa.add %in1, %in2 : tensor<12x6xsi32>, tensor<1x1xsi32>->tensor<12x6xsi32>
-                        auto tensorInfo = parseTensorType(operandType[0]);
+
+                    // TODO: do we validate the validity of the operand pair?
+                        auto tensorInfo = parseTensorType(getOperandType(0));
                         std::uint64_t count{ 1 };
                         for (auto& dim : tensorInfo.shape) {
                             count *= dim;
@@ -88,7 +90,7 @@ namespace sw {
                         //    %out = tosa.add %in1, %in2 : tensor<12x6xf32>, tensor<12x6xf32>->tensor<12x6xf32>
                         // Elementwise addition with broadcasting.
                         //    %out = tosa.add %in1, %in2 : tensor<12x6xsi32>, tensor<1x1xsi32>->tensor<12x6xsi32>
-                        auto tensorInfo = parseTensorType(operandType[0]);
+                        auto tensorInfo = parseTensorType(getOperandType(0));
                         std::uint64_t count{ 1 };
                         for (auto& dim : tensorInfo.shape) {
                             count *= dim;
@@ -104,7 +106,7 @@ namespace sw {
                         //    %out = tosa.mull %in1, %in2 : tensor<12x6xf32>, tensor<12x6xf32>->tensor<12x6xf32>
                         // Elementwise multiplication with broadcasting.
                         //    %out = tosa.mull %in1, %in2 : tensor<12x6xsi32>, tensor<1x1xsi32>->tensor<12x6xsi32>
-                        auto tensorInfo = parseTensorType(operandType[0]);
+                        auto tensorInfo = parseTensorType(getOperandType(0));
                         std::uint64_t count{ 1 };
                         for (auto& dim : tensorInfo.shape) {
                             count *= dim;
@@ -115,8 +117,8 @@ namespace sw {
 					break;
                 case DomainFlowOperator::MATMUL:
                     {
-                        auto tensor1 = parseTensorType(operandType[0]);
-                        auto tensor2 = parseTensorType(operandType[1]);
+                        auto tensor1 = parseTensorType(getOperandType(0));
+                        auto tensor2 = parseTensorType(getOperandType(1));
                         std::uint16_t count{ 0 };
                         int a = tensor1.shape[0];
                         int b = tensor1.shape[1];
@@ -169,14 +171,14 @@ namespace sw {
                         switch (nrOperands) {
                         case 2:
 							// Conv2D with no bias
-							input = parseTensorType(operandType[0]);
-							kernel = parseTensorType(operandType[1]);
+							input = parseTensorType(getOperandType(0));
+							kernel = parseTensorType(getOperandType(1));
 							break;
                         case 3:
 							// Conv2D with bias
-							input = parseTensorType(operandType[0]);
-							kernel = parseTensorType(operandType[1]);
-							bias = parseTensorType(operandType[2]);
+							input = parseTensorType(getOperandType(0));
+							kernel = parseTensorType(getOperandType(1));
+							bias = parseTensorType(getOperandType(2));
 							break;
 						default:
 							std::cerr << "Error: Conv2D operation requires 2 or 3 operands" << std::endl;
@@ -186,7 +188,7 @@ namespace sw {
                             std::cerr << "Error: Conv2D operation requires 1 result" << std::endl;
                             break;
                         }
-                        result = parseTensorType(resultType[0]);
+                        result = parseTensorType(getResultType(0));
                         // double check we have the proper 4D tensors
                         if (input.shape.size() != 4 || kernel.shape.size() != 4 || result.shape.size() != 4) {
                             std::cerr << "Error: Conv2D operation requires 4D tensors" << std::endl;
@@ -232,14 +234,14 @@ namespace sw {
                         switch (nrOperands) {
                         case 2:
                             // Conv2D with no bias
-                            input = parseTensorType(operandType[0]);
-                            kernel = parseTensorType(operandType[1]);
+                            input = parseTensorType(getOperandType(0));
+                            kernel = parseTensorType(getOperandType(1));
                             break;
                         case 3:
                             // Conv2D with bias
-                            input = parseTensorType(operandType[0]);
-                            kernel = parseTensorType(operandType[1]);
-                            bias = parseTensorType(operandType[2]);
+                            input = parseTensorType(getOperandType(0));
+                            kernel = parseTensorType(getOperandType(1));
+                            bias = parseTensorType(getOperandType(2));
                             break;
                         default:
                             std::cerr << "Error: Depthwise Conv2D operation requires 2 or 3 operands" << std::endl;
@@ -249,7 +251,7 @@ namespace sw {
                             std::cerr << "Error: Depthwise Conv2D operation requires 1 result" << std::endl;
                             break;
                         }
-                        result = parseTensorType(resultType[0]);
+                        result = parseTensorType(getResultType(0));
                         // double check we have the proper 4D tensors
                         if (input.shape.size() != 4 || kernel.shape.size() != 4 || result.shape.size() != 4) {
                             std::cerr << "Error: Depthwise Conv2D operation requires 4D tensors" << std::endl;
@@ -291,7 +293,7 @@ namespace sw {
                     {
                         // Clamp operation
                         //    %out = tosa.clamp %in : tensor<12x6xf32> -> tensor<12x6xf32>
-                        auto tensorInfo = parseTensorType(operandType[0]);
+                        auto tensorInfo = parseTensorType(getOperandType(1));
                         std::uint64_t count{ 1 };
                         for (auto& dim : tensorInfo.shape) {
                             count *= dim;
@@ -309,9 +311,9 @@ namespace sw {
                         // The `reduce_sum` operator sums the elements of the input tensor along the specified axis.
                         // In this case, we're summing along the height dimension (axis 1). This means that for each batch, width, and channel, we'll sum the 7 elements along the height.
 
-					    auto imageIn = parseTensorType(operandType[0]);
+					    auto imageIn = parseTensorType(getOperandType(1));
 
-						auto imageOut = parseTensorType(resultType[0]);
+						auto imageOut = parseTensorType(getResultType(0));
                         // structure of vector
                         // batchSize x height
                         // batchSize x height x width
@@ -345,7 +347,7 @@ namespace sw {
         };
 
 		bool operator==(const DomainFlowNode& lhs, const DomainFlowNode& rhs) {
-			return (lhs.opType == rhs.opType) && (lhs.name == rhs.name) && (lhs.operandType == rhs.operandType)
+			return (lhs.opType == rhs.opType) && (lhs.name == rhs.name) && (lhs.operandType == rhs.operandType) && (lhs.attribute == rhs.attribute)
 				&& (lhs.resultValue == rhs.resultValue) && (lhs.resultType == rhs.resultType) && (lhs.depth == rhs.depth);
 		}
         bool operator!=(const DomainFlowNode& lhs, const DomainFlowNode& rhs) {
@@ -363,7 +365,7 @@ namespace sw {
             bool first = true;
             for (const auto& type : node.operandType) {
                 if (!first) os << ",";
-                os << type;
+                os << type.first << ':' << type.second;
                 first = false;
             }
 			os << "|";
@@ -381,7 +383,7 @@ namespace sw {
             first = true;
             for (const auto& val : node.resultValue) {
                 if (!first) os << ",";
-                os << val;
+                os << val.first << ':' << val.second;
                 first = false;
             }
             os << "|";
@@ -390,7 +392,7 @@ namespace sw {
             first = true;
             for (const auto& type : node.resultType) {
                 if (!first) os << ",";
-                os << type;
+                os << type.first << ':' << type.second;
                 first = false;
             }
 
@@ -442,7 +444,14 @@ namespace sw {
                 std::istringstream input_ss(segment);
                 std::string input;
                 while (std::getline(input_ss, input, ',')) {
-                    node.operandType.push_back(input);
+					std::string slot, type;
+					std::size_t pos = input.find(':');
+                    if (pos != std::string::npos) {
+                        slot = input.substr(0, pos);
+                        type = input.substr(pos + 1);
+                        std::size_t slotNum = std::stoul(slot);
+                        node.operandType[slotNum] = type;
+                    }
                 }
             }
 
@@ -476,7 +485,14 @@ namespace sw {
                 std::istringstream val_ss(segment);
                 std::string val;
                 while (std::getline(val_ss, val, ',')) {
-                    node.resultValue.push_back(val);
+					std::string slot, type;
+					std::size_t pos = val.find(':');
+					if (pos != std::string::npos) {
+						slot = val.substr(0, pos);
+						type = val.substr(pos + 1);
+						std::size_t slotNum = std::stoul(slot);
+						node.resultValue[slotNum] = type;
+					}
                 }
             }
 
@@ -490,7 +506,14 @@ namespace sw {
                 std::istringstream type_ss(segment);
                 std::string type;
                 while (std::getline(type_ss, type, ',')) {
-                    node.resultType.push_back(type);
+					std::string slot, typeStr;
+					std::size_t pos = type.find(':');
+					if (pos != std::string::npos) {
+						slot = type.substr(0, pos);
+						typeStr = type.substr(pos + 1);
+						std::size_t slotNum = std::stoul(slot);
+						node.resultType[slotNum] = typeStr;
+					}
                 }
             }
 

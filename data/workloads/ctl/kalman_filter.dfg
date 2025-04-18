@@ -1,15 +1,18 @@
 DIRECTED
-RUNNING_NODE_ID 3
-NODES 4
-NODE 0 : |inputVector|FUNCTION_ARGUMENT|0|tensor<4x256xf32|||
-NODE 1 : |matmul|MATMUL|1|tensor<4x256xf32,tensor<4x256x16xf32>||out|tensor<tensor<4x16xf32>
-NODE 2 : |sigmoid|SIGMOID|2|tensor<16xf32>||out|tensor<16xf32>
-NODE 3 : |output|FUNCTION_RETURN|3|tensor<16xf32>|||
-EDGES 3
-EDGE 1 -> 2 : 0|false|tensor<4x256x16>|32|1,1,1
-EDGE 0 -> 1 : 0|true|tensor<4x256>|32|1,1,1
-EDGE 2 -> 3 : 0|false|tensor<16>|32|1,1,1
-ADJACENCY 3
-ADJ 0 : 1
+RUNNING_NODE_ID 4
+NODES 5
+NODE 0 : |weights|CONSTANT|0|0:tensor<4x256x16xf32>|||
+NODE 1 : |inputVector|FUNCTION_ARGUMENT|0|0:tensor<4x256xf32|||
+NODE 2 : |matmul|MATMUL|1|0:tensor<4x256xf32,1:tensor<4x256x16xf32>||0:out|0:tensor<tensor<4x16xf32>
+NODE 3 : |sigmoid|SIGMOID|2|0:tensor<16xf32>||0:out|0:tensor<16xf32>
+NODE 4 : |output|FUNCTION_RETURN|3|0:tensor<16xf32>|||
+EDGES 4
+EDGE 0 -> 2 : 0|true|tensor<4x256x16xf32>|32|0|1|0,0,0
+EDGE 1 -> 2 : 0|true|tensor<4x256>|32|0|0|0,0,0
+EDGE 2 -> 3 : 0|false|tensor<4x256x16>|32|0|0|0,0,0
+EDGE 3 -> 4 : 0|false|tensor<16>|32|0|0|0,0,0
+ADJACENCY 4
+ADJ 0 : 2
 ADJ 1 : 2
 ADJ 2 : 3
+ADJ 3 : 4
