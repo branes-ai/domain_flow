@@ -46,11 +46,16 @@ namespace sw {
 			DomainFlowOperator getOperator() const noexcept { return opType; }
             std::string getName() const noexcept { return name; }
             int getDepth() const noexcept { return depth; }
+            // input operand API
 			std::size_t getNrInputs() const noexcept { return operandType.size(); }
 			std::string getOperandType(std::size_t idx) const { if (idx < operandType.size()) return operandType[idx]; else return "out of bounds"; }
-			std::string getAttribute(const std::string& name) const { auto it = attribute.find(name); if (it != attribute.end()) return it->second; else return ""; }
+			// attribute API
+            std::size_t getNrAttributes() const noexcept { return attribute.size(); }
+			std::map<std::string, std::string> getAttributes() const { return attribute; }
+            std::string getAttribute(const std::string& name) const { auto it = attribute.find(name); if (it != attribute.end()) return it->second; else return ""; }
 			std::string getAttributeValue(const std::string& name) const { auto it = attribute.find(name); if (it != attribute.end()) return it->second; else return ""; }
-			std::size_t getNrOutputs() const noexcept { return resultType.size(); }
+			// output result API
+            std::size_t getNrOutputs() const noexcept { return resultType.size(); }
             std::string getResultValue(std::size_t idx) const { if (idx < resultValue.size()) return resultValue[idx]; else return "out of bounds"; }
             std::string getResultType(std::size_t idx) const noexcept { if (idx < resultType.size()) return resultType[idx]; else return "out of bounds"; }
         

@@ -32,14 +32,26 @@ int main(int argc, char** argv) {
 	for (const auto& [nodeId, node] : dfg.graph.nodes()) {
 		std::cout << "Node ID: " << nodeId << ", Name: " << node.getName() << " Depth: " << node.getDepth() << std::endl;
 		std::cout << "  Operator: " << node.getOperator() << std::endl;
-		std::cout << "  Inputs: ";
-        for (int i = 0; i < node.getNrInputs(); ++i) {
-			std::cout << "Operand " << i << " : " << node.getOperandType(i) << '\n';
+		if (node.getNrInputs() > 0) {
+            std::cout << "  Inputs:\n";
+            for (int i = 0; i < node.getNrInputs(); ++i) {
+                std::cout << "    Operand   : " << i << " : " << node.getOperandType(i) << '\n';
+            }
 		}
-		std::cout << "  Outputs: ";
-        for (int i = 0; i < node.getNrOutputs(); ++i) {
-			std::cout << "Result " << i << " : " << node.getResultType(i) << '\n';
+
+		if (node.getNrAttributes() > 0) {
+			std::cout << "  Attributes:\n";
+			for (auto& pair : node.getAttributes()) {
+				std::cout << "    Attribute : " << pair.first << " : " << pair.second << '\n';
+			}
 		}
+
+        if (node.getNrOutputs() > 0) {
+            std::cout << "  Outputs:\n";
+            for (int i = 0; i < node.getNrOutputs(); ++i) {
+                std::cout << "    Result    : " << i << " : " << node.getResultType(i) << '\n';
+            }
+        }
 
 	}
 

@@ -19,7 +19,7 @@ int main() {
 	// relu takes the output of the linear layer and applies the ReLU activation function
 	auto sigmoid = DomainFlowNode(DomainFlowOperator::SIGMOID, "sigmoid").addOperand("tensor<16xf32>").addResult("out", "tensor<16xf32>");
 	// output result
-	auto output = DomainFlowNode(DomainFlowOperator::FUNCTION_RETURN, "output").addOperand("tensor<16xf32>");
+	auto output = DomainFlowNode(DomainFlowOperator::FUNCTION_RETURN, "output").addOperand("tensor<16xf32>").addAttribute("target", "memory");
 
 	auto inputId = nla.addNode(input);
 	auto matmulId = nla.addNode(matmul);
