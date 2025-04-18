@@ -15,7 +15,7 @@ int main() {
 	auto input = DomainFlowNode(DomainFlowOperator::FUNCTION_ARGUMENT, "inputVector").addOperand("tensor<4x256xf32");
 	// matmul takes an input tensor, a weights matrix
 	// batch of 4, 256 element vectors input, with a 256x16 to 16 categories
-	auto matmul = DomainFlowNode(DomainFlowOperator::MATMUL, "matmul").addOperand("tensor<4x256xf32").addOperand("tensor<4x256x16xf32>").addResult("out", "tensor<tensor<4x16xf32>");
+	auto matmul = DomainFlowNode(DomainFlowOperator::MATMUL, "matmul").addOperand("tensor<4x256xf32").addOperand("tensor<4x256x16xf32>").addResult("out", "tensor<4x16xf32>");
 	// relu takes the output of the linear layer and applies the ReLU activation function
 	auto sigmoid = DomainFlowNode(DomainFlowOperator::SIGMOID, "sigmoid").addOperand("tensor<16xf32>").addResult("out", "tensor<16xf32>");
 	// output result
