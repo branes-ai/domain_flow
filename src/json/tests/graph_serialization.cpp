@@ -12,7 +12,7 @@ namespace sw {
         struct Operator {
             std::string name;
         };
-		std::ostream& operator<<(std::ostream& ostr, const Operator& op) {
+		inline std::ostream& operator<<(std::ostream& ostr, const Operator& op) {
 			ostr << op.name;
 			return ostr;
 		}

@@ -33,17 +33,17 @@ namespace sw {
             ~DomainFlowEdge() {}
         };
 
-        bool operator==(const DomainFlowEdge& lhs, const DomainFlowEdge& rhs) {
+        inline bool operator==(const DomainFlowEdge& lhs, const DomainFlowEdge& rhs) {
             return (lhs.flow == rhs.flow) && (lhs.stationair == rhs.stationair) && (lhs.shape == rhs.shape)
                 && (lhs.scalarSizeInBits == rhs.scalarSizeInBits) && (lhs.srcSlot == rhs.srcSlot) && (lhs.dstSlot == rhs.dstSlot)
                 && (lhs.schedule == rhs.schedule);
         }
-        bool operator!=(const DomainFlowEdge& lhs, const DomainFlowEdge& rhs) {
+        inline bool operator!=(const DomainFlowEdge& lhs, const DomainFlowEdge& rhs) {
             return !(lhs == rhs);
         }
 
         // Output stream operator
-        std::ostream& operator<<(std::ostream& os, const DomainFlowEdge& df) {
+        inline std::ostream& operator<<(std::ostream& os, const DomainFlowEdge& df) {
             // Format: flow|stationair|shape|tau1,tau2,...
             os << df.flow << "|" << (df.stationair ? "true" : "false") << '|' << df.shape << '|' << df.scalarSizeInBits << '|' << df.srcSlot << '|' << df.dstSlot << '|';
 
@@ -59,7 +59,7 @@ namespace sw {
         }
 
         // Input stream operator
-        std::istream& operator>>(std::istream& is, DomainFlowEdge& df) {
+        inline std::istream& operator>>(std::istream& is, DomainFlowEdge& df) {
             std::string line;
             if (!std::getline(is, line)) {
                 is.setstate(std::ios::failbit);

@@ -52,7 +52,7 @@ namespace sw {
         };
 
         // Output stream operator
-        std::ostream& operator<<(std::ostream& os, DomainFlowOperator dfo) {
+        inline std::ostream& operator<<(std::ostream& os, DomainFlowOperator dfo) {
             switch (dfo) {
             case DomainFlowOperator::FUNCTION_ARGUMENT:   os << "FUNCTION_ARGUMENT";   break;
 			case DomainFlowOperator::FUNCTION_RETURN:    os << "FUNCTION_RETURN";    break;
@@ -101,7 +101,7 @@ namespace sw {
         }
 
         // Input stream operator
-        std::istream& operator>>(std::istream& is, DomainFlowOperator& dfo) {
+        inline std::istream& operator>>(std::istream& is, DomainFlowOperator& dfo) {
             std::string token;
             if (!std::getline(is, token, '|')) {  // Assuming '|' as delimiter from previous format
                 is.setstate(std::ios::failbit);

@@ -15,7 +15,7 @@ namespace sw {
             }
         };
 
-        TensorTypeInfo parseTensorType(const std::string& tensorTypeStr) {
+        inline TensorTypeInfo parseTensorType(const std::string& tensorTypeStr) {
             TensorTypeInfo result;
 
 			std::string workingStr = tensorTypeStr;

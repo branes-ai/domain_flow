@@ -812,7 +812,7 @@ namespace sw {
 	        friend std::ostream& operator<<(std::ostream& os, const DependencyGraph* graph);
         };
 
-        std::ostream& operator<<(std::ostream& os, const DependencyGraph* graph) {
+        inline std::ostream& operator<<(std::ostream& os, const DependencyGraph* graph) {
             os << "Dependency Graph:\n";
             for (const auto& var : graph->variables) {
                 os << "  " << var->getName() << " (dim=" << var->getDimension() << "): ";
