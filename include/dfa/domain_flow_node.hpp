@@ -11,12 +11,41 @@
 namespace sw {
     namespace dfa {
 
-        struct Point : public std::vector<float> {};
+        struct Point : public std::vector<float> {
+            Point(float x, float y, float z) {
+                push_back(x);
+                push_back(y);
+                push_back(z);
+            }
+            Point() {
+                origin();
+            }
+            void origin() {
+                clear();
+                push_back(0.0f);
+                push_back(0.0f);
+                push_back(0.0f);
+            }
+        };
+        std::ostream& operator<<(std::ostream& ostr, const Point& p) {
+            ostr << "[ ";
+            bool first = true;
+            for (auto e : p) {
+                if (!first) ostr << ", ";
+                ostr << e;
+                first = false;
+            }
+            return ostr << " ]";
+        }
 
         struct PointSet {
             std::vector<Point> pointSet;
             void clear() { pointSet.clear(); }
+            void add(const Point& p) {
+                pointSet.push_back(p);
+            }
         };
+
 
         struct shapeAnalysisResults {
             int64_t batchSize, m, k, n;
@@ -501,7 +530,56 @@ namespace sw {
         
             PointSet getConvexHull() const noexcept {
                 PointSet points;
+                Point origin;
+                points.add(origin);
+                switch (opType) {
+                case DomainFlowOperator::ADD:
+                case DomainFlowOperator::SUB:
+                case DomainFlowOperator::MUL:
+                    {
+                        auto tensorInfo = parseTensorType(getOperandType(0));
+                    }
+                    break;
+                case DomainFlowOperator::MATMUL:
+                    {
+                        TensorTypeInfo tensor1 = parseTensorType(getOperandType(0));
+                        TensorTypeInfo tensor2 = parseTensorType(getOperandType(1));
+                        if (tensor1.empty() || tensor2.empty()) {
+                            std::cerr << "DomainFlowNode getConvexHull: invalid matmul arguments: ignoring matmul operator" << std::endl;
+                            break;
+                        }
 
+                        shapeAnalysisResults result;
+                        if (!calculateMatmulComplexity(tensor1.shape, tensor2.shape, result)) {
+                            std::cerr << "DomainFlowNode getConvexHull: " << result.errMsg << std::endl;
+                            break;
+                        }
+
+                        float m_ = result.m - 1.0f;
+                        float k_ = result.k - 1.0f;
+                        float n_ = result.n - 1.0f;
+
+                        // computational domain is m x k x n
+                        // system( (i, j, k) : 0 <= i < m, 0 <= j < n, 0 <= l < k)
+                        // points are
+                        // (0, 0, 0)
+                        // (0, 0, k-1)
+                        // (m-1, 0, 0)
+                        // (m-1, 0, k-1)
+                        // (m-1, n-1, 0)
+                        // (m-1, n-1, k-1)
+                        // (0, n-1, 0)
+                        // (0, n-1, k-1)
+                        points.add(Point(0, 0, k_));
+                        points.add(Point(m_, 0, 0));
+                        points.add(Point(m_, 0, k_));
+                        points.add(Point(m_, n_, 0));
+                        points.add(Point(m_, n_, k_));
+                        points.add(Point(0, n_, 0));
+                        points.add(Point(0, n_, k_));
+                    }
+                    break;
+                }
                 return points;
             }
         };
