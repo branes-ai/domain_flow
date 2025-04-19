@@ -10,6 +10,9 @@ namespace sw {
         struct TensorTypeInfo {
             std::vector<int> shape;
             std::string elementType;
+            bool empty() {
+                return shape.empty();
+            }
         };
 
         TensorTypeInfo parseTensorType(const std::string& tensorTypeStr) {
@@ -53,6 +56,9 @@ namespace sw {
                     // Last dimension
                     result.shape.push_back(std::stoi(dimensionsStr));
                 }
+            }
+            else {
+                std::cerr << "parseTensorType error: unable to extract tensor spec from -" << tensorTypeStr << "-\n";
             }
 
             return result;

@@ -9,6 +9,112 @@
 namespace sw {
     namespace dfa {
 
+        struct shapeAnalysisResults {
+            int64_t batchSize, m, k, n;
+            std::string errMsg;
+            void clear() {
+                batchSize = 0;
+                m = 0;
+                k = 0;
+                n = 0;
+                errMsg.clear();
+            }
+            void setError(const std::string& errMsg) { this->errMsg = errMsg; }
+            uint64_t macOps() const {
+                return batchSize * m * n * k;
+            }
+        };
+
+        /// <summary>
+        /// shape analysis: for numpy matmul, the last two dimensions are the matmul dimensions, leading dimensions are batch dimensions
+        /// (b1, b2, ..., bn, m, k) * (b1, b2, ..., bn, k, n) yields (b1, b2, ..., bn, m, n)
+        /// </summary>
+        /// <param name="shape0"></param>
+        /// <param name="shape1"></param>
+        /// <returns>true if analysis determines there are no inconsistencies, false otherwise</returns>
+        bool calculateMatmulComplexity(const std::vector<int>& lhsShape, const std::vector<int>& rhsShape, shapeAnalysisResults& result) {
+            result.clear();
+            // Ensure rhs tensor has at least 2 dimensions
+            if (rhsShape.size() < 2) {
+                result.setError("Right tensor must have at least 2 dimensions.");
+                return false;
+            }
+
+            // Ensure lhs tensor has at least 1 dimension
+            if (lhsShape.empty()) {
+                result.setError("Left tensor must have at least 1 dimension.");
+                return false;
+            }
+
+            // Extract k, n from rhs tensor
+            int k1 = rhsShape[rhsShape.size() - 2]; // Rows of right matrix
+            int n = rhsShape[rhsShape.size() - 1];  // Columns of right matrix
+
+            // Determine batch dimensions from shape1
+            size_t batch_dims = rhsShape.size() - 2; // Number of batch dimensions
+
+            // Determine if shape0 is a vector or matrix
+            bool is_vector = (lhsShape.size() == batch_dims + 1);
+            bool is_matrix = (lhsShape.size() == batch_dims + 2);
+
+            // Validate shape0 size
+            if (!is_vector && !is_matrix) {
+                result.setError("Left tensor has incompatible number of dimensions.");
+                return false;
+            }
+
+            // Extract m, k from lhs tensor
+            int m, k0;
+            if (lhsShape.size() == 1) {
+                // Vector case: lhs shape = (batch_size,)
+                m = 1;
+                k0 = lhsShape[0];
+            }
+            else {
+                // Matrix case: lhs shape = (..., m, k)
+                m = lhsShape[lhsShape.size() - 2];
+                k0 = lhsShape[lhsShape.size() - 1];
+            }
+
+            // Validate that reduction dimensions match
+            if (k0 != k1) {
+                result.setError("Inner dimensions must match: k0 != k1");
+                return false;
+            }
+            int k = k0;
+
+            // Check batch dimensions
+            uint64_t batch_size = 1;
+            for (size_t i = 0; i < batch_dims; ++i) {
+                if (i >= lhsShape.size()) {
+                    result.setError("Left tensor has too few dimensions for batch.");
+                    return false;
+                }
+                if (lhsShape[i] != rhsShape[i]) {
+                    result.setError("Batch dimensions must match.");
+                    return false;
+                }
+                if (lhsShape[i] <= 0) {
+                    result.setError("Dimensions must be positive.");
+                    return false;
+                }
+                batch_size *= static_cast<uint64_t>(lhsShape[i]);
+            }
+
+            // Validate matrix/vector dimensions
+            if (m <= 0 || k <= 0 || n <= 0) {
+                result.setError("Matrix dimensions must be positive.");
+                return false;
+            }
+
+            // Total MAC operations = batch_size * m * n * k
+            result.batchSize = batch_size;
+            result.m = m;
+            result.k = k;
+            result.n = n;
+            return true;
+        }
+
         // the Domain Flow Graph node type
         struct DomainFlowNode {
             DomainFlowOperator opType;                      // domain flow operator type
@@ -48,15 +154,47 @@ namespace sw {
             int getDepth() const noexcept { return depth; }
             // input operand API
 			std::size_t getNrInputs() const noexcept { return operandType.size(); }
-            std::string getOperandType(std::size_t slot) const { auto it = operandType.find(slot); if (it != operandType.end()) return it->second; else return "n/a"; }
+            std::string getOperandType(std::size_t slot) const { 
+                auto it = operandType.find(slot); 
+                if (it != operandType.end()) {
+                    return it->second;
+                }
+                else {
+                    return "n/a";
+                }
+            }
 			// attribute API
             std::size_t getNrAttributes() const noexcept { return attribute.size(); }
-			std::map<std::string, std::string> getAttributes() const { return attribute; }
-            std::string getAttribute(const std::string& name) const { auto it = attribute.find(name); if (it != attribute.end()) return it->second; else return "n/a"; }
-			std::string getAttributeValue(const std::string& name) const { auto it = attribute.find(name); if (it != attribute.end()) return it->second; else return "n/a"; }
+			std::map<std::string, std::string> getAttributes() const noexcept { return attribute; }
+            std::string getAttribute(const std::string& name) const noexcept { 
+                auto it = attribute.find(name); 
+                if (it != attribute.end()) {
+                    return it->second;
+                }
+                else {
+                    return "n/a";
+                }
+            }
+            std::string getAttributeValue(const std::string& name) const {
+                auto it = attribute.find(name);
+                if (it != attribute.end()) {
+                    return it->second;
+                }
+                else {
+                    return "n/a";
+                }
+            }
 			// output result API
             std::size_t getNrOutputs() const noexcept { return resultType.size(); }
-            std::string getResultValue(std::size_t slot) const noexcept { auto it = resultValue.find(slot);  if (it != resultValue.end()) return it->second; else return "n/a"; }
+            std::string getResultValue(std::size_t slot) const noexcept { 
+                auto it = resultValue.find(slot);  
+                if (it != resultValue.end()) {
+                    return it->second;
+                }
+                else {
+                    return "n/a";
+                }
+            }
             std::string getResultType(std::size_t slot) const noexcept { auto it = resultType.find(slot); if (it != resultType.end()) return it->second; else return "n/a"; }
         
             // Functional operators
@@ -117,19 +255,35 @@ namespace sw {
 					break;
                 case DomainFlowOperator::MATMUL:
                     {
-                        auto tensor1 = parseTensorType(getOperandType(0));
-                        auto tensor2 = parseTensorType(getOperandType(1));
-                        std::uint16_t count{ 0 };
-                        int a = tensor1.shape[0];
-                        int b = tensor1.shape[1];
-                        int c = tensor1.shape[2];
-                        int d = tensor2.shape[0];
-                        int e = tensor2.shape[1];
-                        int f = tensor2.shape[2];
+                        TensorTypeInfo tensor1 = parseTensorType(getOperandType(0));
+                        TensorTypeInfo tensor2 = parseTensorType(getOperandType(1));
+                        if (tensor1.empty() || tensor2.empty()) {
+                            std::cerr << "DomainFlowNode getArithmeticComplexity: invalid matmul arguments: ignoring matmul operator" << std::endl;
+                            break;
+                        }
+
+                        shapeAnalysisResults result;
+                        if (!calculateMatmulComplexity(tensor1.shape, tensor2.shape, result)) {
+                            std::cerr << "DomainFlowNode getArithmeticComplexity: " << result.errMsg << std::endl;
+                            break;
+                        }
+                        else {
+                            std::uint64_t count = result.macOps();
+
+                            stats = { "Fused Multiply", tensor1.elementType, count };
+                            work.push_back(stats);
+                            stats = { "Add", tensor1.elementType, count };
+                            work.push_back(stats);
+                        }
+
+                        // TBD: calculate conversion cost
+#ifdef CALCULATE_CONVERSION_COST
+                        // a, b, c used to be dimension of lhs tensor
+                        // d, e, f the shape of the rhs tensor
                         if (tensor1.elementType != tensor2.elementType) {
                             int sizeOf1 = a * b * c;
 							int sizeOf2 = d * e * f;
-                            // instpect types to see which tensor needs to be converted by inspecting the type conversion rules
+                            // inspect types to see which tensor needs to be converted by inspecting the type conversion rules
 							int typeConversion = isArithmeticTypeContained(tensor1.elementType, tensor2.elementType); // 0 = same type, 1 = contained, 2 = not contained
 							switch (typeConversion) { 
                             case 1:
@@ -151,17 +305,8 @@ namespace sw {
 							// add the conversion to the stats
 							work.push_back(stats);
 						}
-						// check if the tensors are compatible for matrix multiplication    
-                        if (c == e) {
-                            count = d * a * b * f;
-                            stats = { "Fused Multiply", tensor1.elementType, count };
-							work.push_back(stats);
-							stats = { "Add", tensor1.elementType, count };
-							work.push_back(stats);
-						}
-                        else {
-                            std::cerr << "Error: incompatible tensor dimensions for matrix multiplication" << std::endl;
-                        }
+#endif
+
                     }
 					break;
                 case DomainFlowOperator::CONV2D:

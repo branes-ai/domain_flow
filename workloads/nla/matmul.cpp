@@ -16,16 +16,16 @@ int main() {
 	// model a single layer Multi Level Perceptron using a Linear operator,
 	// which consists of an input, a weights matrix, and a bias
 	constexpr size_t weightsOutputSlot = 0;
-	auto weights = DomainFlowNode(DomainFlowOperator::CONSTANT, "weights").addResult(weightsOutputSlot, "weights", "tensor<4x256x16xf32>");
+	auto weights = DomainFlowNode(DomainFlowOperator::CONSTANT, "constant.weights").addResult(weightsOutputSlot, "weights", "tensor<4x256x16xf32>");
 	// weights are a constant tensor of 4x256x16
 	constexpr size_t inputOutputSlot = 0;
-	auto input = DomainFlowNode(DomainFlowOperator::FUNCTION_ARGUMENT, "inputVector").addOperand(inputOutputSlot, "tensor<4x256xf32");
+	auto input = DomainFlowNode(DomainFlowOperator::FUNCTION_ARGUMENT, "inputVector").addOperand(inputOutputSlot, "tensor<4x256xf32>");
 	// matmul takes an input tensor, a weights matrix
 	// batch of 4, 256 element vectors input, with a 256x16 weight matrix to generate 16 categories
 	constexpr size_t matmulInputSlot_A = 0;
 	constexpr size_t matmulInputSlot_B = 1;
 	constexpr size_t matmulOutputSlot = 0;
-	auto matmul = DomainFlowNode(DomainFlowOperator::MATMUL, "matmul").addOperand(matmulInputSlot_A, "tensor<4x256xf32").addOperand(matmulInputSlot_B, "tensor<4x256x16xf32>").addResult(matmulOutputSlot, "out", "tensor<4x16xf32>");
+	auto matmul = DomainFlowNode(DomainFlowOperator::MATMUL, "matmul").addOperand(matmulInputSlot_A, "tensor<4x256xf32>").addOperand(matmulInputSlot_B, "tensor<4x256x16xf32>").addResult(matmulOutputSlot, "out", "tensor<4x16xf32>");
 	// sigmoid takes the output of the linear layer and applies the Sigmoid activation function
 	constexpr size_t sigmoidInputSlot_A = 0;
 	constexpr size_t sigmoidOutputSlot = 0;
@@ -58,15 +58,18 @@ int main() {
 	nla.addSource(inputId);
 	nla.addSink(outputId);
 
+	std::cout << nla << '\n';
+
 	// report on the operator statistics
 	reportOperatorStats(nla);
+	reportArithmeticComplexity(nla);
 
 	// Save the graph to a file
 	std::string dfgFilename = graphName + ".dfg";
 	dfgFilename = generateDataOutputFile(std::string("workloads/nla/") + dfgFilename);  // stick it in the data directory
-	nla.graph.save(dfgFilename);
+	nla.save(dfgFilename);
 
-	std::cout << "Saved graph to: " << dfgFilename << std::endl;    
+	std::cout << "Saved graph to: " << dfgFilename << std::endl;
 	
 	return EXIT_SUCCESS;
 }

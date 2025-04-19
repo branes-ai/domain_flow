@@ -12,11 +12,11 @@ int main() {
 
 	// model a single layer Multi Level Perceptron using a Linear operator, 
 	// which consists of an input, a weights matrix, and a bias
-	auto weights = DomainFlowNode(DomainFlowOperator::CONSTANT, "weights").addOperand(0, "tensor<4x256x16xf32>");
-	auto input = DomainFlowNode(DomainFlowOperator::FUNCTION_ARGUMENT, "inputVector").addOperand(0, "tensor<4x256xf32");
+	auto weights = DomainFlowNode(DomainFlowOperator::CONSTANT, "constant.weights").addOperand(0, "tensor<4x256x16xf32>");
+	auto input = DomainFlowNode(DomainFlowOperator::FUNCTION_ARGUMENT, "inputVector").addOperand(0, "tensor<4x256xf32>");
 	// matmul takes an input tensor, a weights matrix
 	// batch of 4, 256 element vectors input, with a 256x16 to 16 categories
-	auto matmul = DomainFlowNode(DomainFlowOperator::MATMUL, "matmul").addOperand(0, "tensor<4x256xf32").addOperand(1, "tensor<4x256x16xf32>").addResult(0, "out", "tensor<tensor<4x16xf32>");
+	auto matmul = DomainFlowNode(DomainFlowOperator::MATMUL, "matmul").addOperand(0, "tensor<4x256xf32>").addOperand(1, "tensor<4x256x16xf32>").addResult(0, "out", "tensor<tensor<4x16xf32>");
 	// sigmoid takes the output of the linear layer and applies the Sigmoid activation function
 	auto sigmoid = DomainFlowNode(DomainFlowOperator::SIGMOID, "sigmoid").addOperand(0, "tensor<16xf32>").addResult(0, "out", "tensor<16xf32>");
 	// output result
@@ -47,12 +47,14 @@ int main() {
 
 	// report on the operator statistics
 	reportOperatorStats(dfa);
+	reportArithmeticComplexity(dfa);
 
 	// Save the graph to a file
 	std::string dfgFilename = graphName + ".dfg";
 	dfgFilename = generateDataOutputFile(std::string("workloads/dfa/") + dfgFilename);  // stick it in the data directory
-	dfa.graph.save(dfgFilename);
+	dfa.save(dfgFilename);
 
 	std::cout << "Saved graph to: " << dfgFilename << std::endl;
+
     return EXIT_SUCCESS;
 }
