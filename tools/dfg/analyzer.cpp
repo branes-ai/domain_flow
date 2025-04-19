@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
     }
 
     DomainFlowGraph dfg(dataFileName); // Deep Learning graph
-    dfg.graph.load(dataFileName);
+    dfg.load(dataFileName);
 
     // report on the operator statistics
     reportOperatorStats(dfg);

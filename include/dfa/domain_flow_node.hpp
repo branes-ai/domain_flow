@@ -4,10 +4,19 @@
 #include <graph/graphlib.hpp>
 #include <dfa/domain_flow_operator.hpp>
 #include <dfa/tensor_spec_parser.hpp>
+#include <dfa/index_point.hpp>
+// helper
 #include <dfa/arithmetic_complexity.hpp>
 
 namespace sw {
     namespace dfa {
+
+        struct Point : public std::vector<float> {};
+
+        struct PointSet {
+            std::vector<Point> pointSet;
+            void clear() { pointSet.clear(); }
+        };
 
         struct shapeAnalysisResults {
             int64_t batchSize, m, k, n;
@@ -488,6 +497,12 @@ namespace sw {
                     break;
 				}
                 return work;
+            }
+        
+            PointSet getConvexHull() const noexcept {
+                PointSet points;
+
+                return points;
             }
         };
 

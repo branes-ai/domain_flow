@@ -138,7 +138,7 @@ namespace sw {
 
             using nodeSet_t = std::unordered_set<nodeId_t>;
 
-            using nodeId_to_node_t = std::unordered_map<nodeId_t, NodeType>;
+            using nodeId_to_node_t = std::unordered_map<nodeId_t, node_t>;
             using edgeId_to_edge_t = std::unordered_map<edgeId_t, edge_t, edge_id_hash>;
 
             // selectors

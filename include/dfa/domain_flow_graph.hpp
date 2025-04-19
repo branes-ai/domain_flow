@@ -175,12 +175,12 @@ namespace sw {
 					dfgName.erase(0, 1);
 				}
 				this->name = dfgName;
-				std::cout << "Stream state after graph name: " << istr.good() << " " << istr.fail() << " " << istr.eof() << std::endl;
+				//std::cout << "Stream state after graph name: " << istr.good() << " " << istr.fail() << " " << istr.eof() << std::endl;
 
 				///////////////////////////////////////////////////////
 				// Read the graph from the input stream
 				graph.load(istr);
-				std::cout << "Stream state after graph.load: " << istr.good() << " " << istr.fail() << " " << istr.eof() << std::endl;
+				//std::cout << "Stream state after graph.load: " << istr.good() << " " << istr.fail() << " " << istr.eof() << std::endl;
 				///////////////////////////////////////////////////////
 				if (!std::getline(istr, line)) {
 					istr.setstate(std::ios::failbit);
@@ -232,7 +232,7 @@ namespace sw {
 						}
 					}
 				}
-				std::cout << "Stream state after SOURCES: " << istr.good() << " " << istr.fail() << " " << istr.eof() << std::endl;
+				//std::cout << "Stream state after SOURCES: " << istr.good() << " " << istr.fail() << " " << istr.eof() << std::endl;
 
 				// Read sinks
 				if (!std::getline(istr, line)) {
@@ -285,9 +285,9 @@ namespace sw {
 						}
 					}
 				}
-				std::cout << "Stream state after SINKS: " << istr.good() << " " << istr.fail() << " " << istr.eof() << std::endl;
-
-
+				//std::cout << "Stream state after SINKS: " << istr.good() << " " << istr.fail() << " " << istr.eof() << std::endl;
+				// the expected state is that at this point, istr.eof() is true, and istr.fail() is false. istr.good() is useless at this point
+				// the receiver should check for istr.fail() for any caught issues and adapt accordingly.
 				return istr;
 			}
 		};

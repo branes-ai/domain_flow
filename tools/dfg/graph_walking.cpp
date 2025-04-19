@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
     }
 
     DomainFlowGraph dfg(dataFileName); // Deep Learning graph
-    dfg.graph.load(dataFileName);
+    dfg.load(dataFileName);
 
 	// walk the graph
 	for (const auto& [nodeId, node] : dfg.graph.nodes()) {
@@ -54,6 +54,22 @@ int main(int argc, char** argv) {
         }
 
 	}
+
+    // Report on the SOURCES and SINKS
+    bool first = true;
+    std::cout << "SOURCE: ";
+    for (const auto& srcId : dfg.source) {
+        if (!first) std::cout << ", ";
+        std::cout << srcId;
+        first = false;
+    }
+    first = true;
+    std::cout << "\nSINK: ";
+    for (const auto& snkId : dfg.sink) {
+        if (!first) std::cout << ", ";
+        std::cout << snkId;
+        first = false;
+    }
 
     return EXIT_SUCCESS;
 }
