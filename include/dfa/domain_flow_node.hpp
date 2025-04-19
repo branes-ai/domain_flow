@@ -491,16 +491,16 @@ namespace sw {
             }
         };
 
-		bool operator==(const DomainFlowNode& lhs, const DomainFlowNode& rhs) {
+		inline bool operator==(const DomainFlowNode& lhs, const DomainFlowNode& rhs) {
 			return (lhs.opType == rhs.opType) && (lhs.name == rhs.name) && (lhs.operandType == rhs.operandType) && (lhs.attribute == rhs.attribute)
 				&& (lhs.resultValue == rhs.resultValue) && (lhs.resultType == rhs.resultType) && (lhs.depth == rhs.depth);
 		}
-        bool operator!=(const DomainFlowNode& lhs, const DomainFlowNode& rhs) {
+        inline bool operator!=(const DomainFlowNode& lhs, const DomainFlowNode& rhs) {
             return !(lhs == rhs);
         }
 
         // Output stream operator
-        std::ostream& operator<<(std::ostream& os, const DomainFlowNode& node) {
+        inline std::ostream& operator<<(std::ostream& os, const DomainFlowNode& node) {
             // Format: name|operator|depth|operandType1,operandType2|resultValue1,resultValue2|resultType1,resultType2
             os << "|" << node.name << "|";
             os << node.opType << "|";
@@ -545,7 +545,7 @@ namespace sw {
         }
 
         // Input stream operator
-        std::istream& operator>>(std::istream& is, DomainFlowNode& node) {
+        inline std::istream& operator>>(std::istream& is, DomainFlowNode& node) {
             std::string line;
             if (!std::getline(is, line)) {
                 is.setstate(std::ios::failbit);
