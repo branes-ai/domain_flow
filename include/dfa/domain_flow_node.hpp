@@ -27,7 +27,8 @@ namespace sw {
                 push_back(0.0f);
             }
         };
-        std::ostream& operator<<(std::ostream& ostr, const Point& p) {
+        
+        inline std::ostream& operator<<(std::ostream& ostr, const Point& p) {
             ostr << "[ ";
             bool first = true;
             for (auto e : p) {
