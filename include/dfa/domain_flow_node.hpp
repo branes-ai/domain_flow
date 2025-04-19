@@ -32,7 +32,7 @@ namespace sw {
         /// <param name="shape0"></param>
         /// <param name="shape1"></param>
         /// <returns>true if analysis determines there are no inconsistencies, false otherwise</returns>
-        bool calculateMatmulComplexity(const std::vector<int>& lhsShape, const std::vector<int>& rhsShape, shapeAnalysisResults& result) {
+        inline bool calculateMatmulComplexity(const std::vector<int>& lhsShape, const std::vector<int>& rhsShape, shapeAnalysisResults& result) {
             result.clear();
             // Ensure rhs tensor has at least 2 dimensions
             if (rhsShape.size() < 2) {
