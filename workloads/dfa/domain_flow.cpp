@@ -12,7 +12,7 @@ int main() {
 
 	// model a single layer Multi Level Perceptron using a Linear operator, 
 	// which consists of an input, a weights matrix, and a bias
-	auto weights = DomainFlowNode(DomainFlowOperator::CONSTANT, "constant.weights").addOperand(0, "tensor<4x256x16xf32>");
+	auto weights = DomainFlowNode(DomainFlowOperator::CONSTANT, "constant.weights").addResult(0, "weights", "tensor<4x256x16xf32>");
 	auto input = DomainFlowNode(DomainFlowOperator::FUNCTION_ARGUMENT, "inputVector").addResult(0, "arg", "tensor<4x256xf32>");
 	// matmul takes an input tensor, a weights matrix
 	// batch of 4, 256 element vectors input, with a 256x16 to 16 categories

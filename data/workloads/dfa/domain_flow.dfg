@@ -2,7 +2,7 @@ Domain Flow Graph: domain_flow
 DIRECTED
 RUNNING_NODE_ID 4
 NODES 5
-NODE 0 : |constant.weights|CONSTANT|0|0:tensor<4x256x16xf32>|||
+NODE 0 : |constant.weights|CONSTANT|0|||0:weights|0:tensor<4x256x16xf32>
 NODE 1 : |inputVector|FUNCTION_ARGUMENT|0|||0:arg|0:tensor<4x256xf32>
 NODE 2 : |matmul|MATMUL|1|0:tensor<4x256xf32>,1:tensor<4x256x16xf32>||0:out|0:tensor<tensor<4x16xf32>
 NODE 3 : |sigmoid|SIGMOID|2|0:tensor<16xf32>||0:out|0:tensor<16xf32>
