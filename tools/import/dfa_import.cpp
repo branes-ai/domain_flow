@@ -57,12 +57,14 @@ int main(int argc, char** argv) {
     // Walk through the operations in the module and parse them
     DomainFlowGraph dfg(dataFileName); // Deep Learning graph
     processModule(dfg, module);
+	std::cout << dfg << std::endl;
 
+	// Save the graph to a file
     std::string dfgFilename = replaceExtension(dataFileName, ".mlir", ".dfg");
     std::cout << "Original filename: " << dataFileName << std::endl;
     std::cout << "New filename: " << dfgFilename << std::endl;
 
-    dfg.graph.save(dfgFilename);
+    dfg.save(dfgFilename);
 
     // report on the operator statistics
     reportOperatorStats(dfg);

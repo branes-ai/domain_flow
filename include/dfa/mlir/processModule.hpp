@@ -39,7 +39,7 @@ namespace sw {
 
 		// Function to process the MLIR module and build the domain flow graph
         void processModule(DomainFlowGraph& dfg, mlir::ModuleOp& module) {
-            domain_flow_graph& gr = dfg.graph;
+            //domain_flow_graph& gr = dfg.graph;
 			constexpr bool bTrace = false; // Set to true for detailed tracing
 
             std::string output;
@@ -52,16 +52,31 @@ namespace sw {
             for (auto func : module.getOps<mlir::func::FuncOp>()) {
                 os << "Processing function: " << func.getName() << "\n";
 
-                // Handle function arguments as potential input nodes
-                for (unsigned i = 0; i < func.getNumArguments(); ++i) {
+				mlir::FunctionType funcType = func.getFunctionType();
+                auto node = DomainFlowNode(DomainFlowOperator::FUNCTION, "func.func");
+                auto inputTypes = funcType.getInputs();
+                for (unsigned i = 0; i < inputTypes.size(); ++i) {
                     std::string argName = "arg" + std::to_string(i);
-                    int nodeId = gr.add_node(DomainFlowNode(DomainFlowOperator::FUNCTION_ARGUMENT, argName));
-                    opToNodeId[nullptr] = nodeId; // Special case for function arguments
+					std::string typeStr;
+					llvm::raw_string_ostream typeOs(typeStr);
+					inputTypes[i].print(typeOs);  // Print the type (e.g., f32, i32, tensor<...>)
+					node.addOperand(i, typeStr);
+					dfg.addNode(DomainFlowNode(DomainFlowOperator::FUNCTION_ARGUMENT, "func.arg").addResult(0, argName, typeStr));
                 }
+				auto resultTypes = funcType.getResults();
+                for (unsigned i = 0; i < resultTypes.size(); ++i) {
+                    std::string resultName = "result" + std::to_string(i);
+                    std::string typeStr;
+                    llvm::raw_string_ostream typeOs(typeStr);
+                    resultTypes[i].print(typeOs);  // Print the type (e.g., f32, i32, tensor<...>)
+                    node.addResult(i, resultName, typeStr);
+                }
+                int nodeId = dfg.addNode(node);
+                opToNodeId[nullptr] = nodeId; // Special case for function arguments
 
                 // First pass: Create nodes for all operations
                 for (auto& op : func.getBody().getOps()) {                  
-					auto graphNode = parseOperation(gr, op, os); // Parse the operation
+					auto graphNode = parseOperation(dfg, op, os); // Parse the operation
 
 					unsigned nrOperands = op.getNumOperands();
                     for (unsigned idx = 0; idx < nrOperands; ++idx) {
@@ -122,7 +137,7 @@ namespace sw {
 
                     }
                     
-                    int nodeId = gr.add_node(graphNode);
+                    int nodeId = dfg.addNode(graphNode);
                     opToNodeId[&op] = nodeId;
                     if constexpr (bTrace) os << "Created node: " << graphNode.getName() << " with ID: " << nodeId << "\n";
                 }
@@ -146,7 +161,7 @@ namespace sw {
                             DomainFlowEdge flow(1);
 
                             // Add edge: from defining op to current op
-                            gr.add_edge(srcDefiningNodeId, destNodeId, flow);
+							dfg.addEdge(srcDefiningNodeId, 0, destNodeId, i, flow); // assume that the output slot is 0: TBD validate this is true
 
                             std::string definingOpName = definingOp->getName().getStringRef().str();
                             if constexpr (bTrace) os << "  Added edge: " << definingOpName << " -> " << opName
@@ -165,7 +180,7 @@ namespace sw {
                             DomainFlowEdge flow(1);
 
                             // Add edge: from argument to current op
-                            gr.add_edge(srcArgNodeId, destNodeId, flow);
+                            dfg.addEdge(srcArgNodeId, argIdx, destNodeId, i, flow);
 
                             if constexpr (bTrace) os << "  Added edge from function argument " << argIdx << " to " << opName
                                 << " (NodeIDs: " << srcArgNodeId << " -> " << destNodeId << ")\n";
@@ -185,7 +200,7 @@ namespace sw {
                     // Create result nodes
                     for (unsigned i = 0; i < returnOp.getNumOperands(); ++i) {
                         std::string resultName = "result" + std::to_string(i);
-                        int resultNodeId = gr.add_node(DomainFlowNode(resultName));
+                        int resultNodeId = dfg.addNode(DomainFlowNode(resultName));
                         dfg.addSink(resultNodeId);
                         if constexpr (bTrace) os << "Created result node: " << resultName << " with ID: " << resultNodeId << "\n";
 
@@ -198,7 +213,7 @@ namespace sw {
 
                             // Create an edge from the defining op to the result node
                             DomainFlowEdge flow(1);
-                            gr.add_edge(definingOpNodeId, resultNodeId, flow);
+                            dfg.addEdge(definingOpNodeId, 0, resultNodeId, i, flow);
 
                             std::string definingOpName = definingOp->getName().getStringRef().str();
                             if constexpr (bTrace) os << "  Added edge: " << definingOpName << " -> " << resultName
@@ -223,7 +238,7 @@ namespace sw {
                             if (argNodeId != -1) {
                                 // Create an edge from the argument node to the result node
                                 DomainFlowEdge flow(1);
-                                gr.add_edge(argNodeId, resultNodeId, flow);
+                                dfg.addEdge(argNodeId, argIdx, resultNodeId, i, flow);
 
                                 if constexpr (bTrace) os << "  Added edge from function argument " << argIdx << " to result " << i
                                     << " (NodeIDs: " << argNodeId << " -> " << resultNodeId << ")\n";
