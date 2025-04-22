@@ -8,3 +8,6 @@ add_subdirectory("dfa")
 add_subdirectory("dnn")
 # Control compute graphs
 add_subdirectory("ctl")
+
+## more complicated Deep Learning models
+add_subdirectory("cnn")
