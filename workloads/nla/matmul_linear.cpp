@@ -7,14 +7,14 @@
 int main() {
     using namespace sw::dfa;
 
-	std::string graphName = "matmul";
+	std::string graphName = "matmul_linear";
 	DomainFlowGraph nla(graphName); // Numerical Linear Algebra
 
 	size_t SLOT_A = 0;
 	size_t SLOT_B = 1;
 
-	// model a single layer Multi Level Perceptron using a Linear operator,
-	// which consists of an input, a weights matrix, and a bias
+	// model of a single layer Multi Level Perceptron using a Linear operator, 
+	// which consists of an input, a weights matrix, and a bias.
 	constexpr size_t weightsOutputSlot = 0;
 	// weights are a constant tensor of 4x256x16
 	auto weights = DomainFlowNode(DomainFlowOperator::CONSTANT, "constant.weights").addResult(weightsOutputSlot, "weights", "tensor<4x256x16xf32>");

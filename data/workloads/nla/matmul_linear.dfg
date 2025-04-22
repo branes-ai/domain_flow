@@ -1,4 +1,4 @@
-Domain Flow Graph: matmul
+Domain Flow Graph: matmul_linear
 DIRECTED
 RUNNING_NODE_ID 4
 NODES 5

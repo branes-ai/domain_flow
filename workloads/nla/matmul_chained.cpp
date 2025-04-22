@@ -7,7 +7,7 @@
 int main() {
     using namespace sw::dfa;
 
-	std::string graphName = "chained_matmul";
+	std::string graphName = "matmul_chained";
 	DomainFlowGraph nla(graphName); // Numerical Linear Algebra
 
 	size_t SLOT_A = 0;

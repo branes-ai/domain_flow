@@ -1,0 +1,24 @@
+Domain Flow Graph: AtimesBtimesC_skinny
+DIRECTED
+RUNNING_NODE_ID 5
+NODES 6
+NODE 0 : |const.A-matrix|CONSTANT|0|||0:A-matrix|0:tensor<32x256xf32>
+NODE 1 : |const.B-matrix|CONSTANT|0|||0:B-matrix|0:tensor<256x32xf32>
+NODE 2 : |const.C-matrix|CONSTANT|0|||0:C-matrix|0:tensor<32x32xf32>
+NODE 3 : |matmul|MATMUL|1|0:tensor<32x256xf32>,1:tensor<256x32xf32>||0:AB|0:tensor<32x32xf32>
+NODE 4 : |matmul|MATMUL|2|0:tensor<32x32xf32>,1:tensor<32x32xf32>||0:D|0:tensor<32x32xf32>
+NODE 5 : |output|FUNCTION_RETURN|3|0:tensor<32x32xf32>|target:memory||
+EDGES 5
+EDGE 0 -> 3 : 0|true|tensor<32x256>|32|0|0|1,1,1
+EDGE 1 -> 3 : 0|true|tensor<256x32>|32|0|1|1,1,1
+EDGE 3 -> 4 : 0|false|tensor<32x32>|32|0|0|1,1,1
+EDGE 2 -> 4 : 0|true|tensor<32x32>|32|0|1|1,1,1
+EDGE 4 -> 5 : 0|false|tensor<32x32>|32|0|0|1,1,1
+ADJACENCY 5
+ADJ 0 : 3
+ADJ 1 : 3
+ADJ 3 : 4
+ADJ 2 : 4
+ADJ 4 : 5
+SOURCE: 0, 1, 2
+SINK: 5
