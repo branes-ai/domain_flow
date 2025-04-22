@@ -477,12 +477,18 @@ namespace sw {
                     {
                         // Clamp operation
                         //    %out = tosa.clamp %in : tensor<12x6xf32> -> tensor<12x6xf32>
-                        auto tensorInfo = parseTensorType(getOperandType(1));
+                        auto tensorIn = parseTensorType(getOperandType(0));
+						auto tensorOut = parseTensorType(getResultType(0));
+                        if (tensorIn.empty() || tensorOut.empty()) {
+                            std::cerr << "DomainFlowNode getArithmeticComplexity: invalid clamp arguments: ignoring clamp operator" << std::endl;
+                            break;
+                        }
+						// assuming the input and output tensors are the same structure
                         std::uint64_t count{ 1 };
-                        for (auto& dim : tensorInfo.shape) {
+                        for (auto& dim : tensorIn.shape) {
                             count *= dim;
                         }
-                        stats = { "Clamp cmp", tensorInfo.elementType, 2*count };
+                        stats = { "Clamp cmp", tensorIn.elementType, 2*count };
 						work.push_back(stats);
                     }
                     break;
@@ -495,9 +501,12 @@ namespace sw {
                         // The `reduce_sum` operator sums the elements of the input tensor along the specified axis.
                         // In this case, we're summing along the height dimension (axis 1). This means that for each batch, width, and channel, we'll sum the 7 elements along the height.
 
-					    auto imageIn = parseTensorType(getOperandType(1));
-
+					    auto imageIn = parseTensorType(getOperandType(0));
 						auto imageOut = parseTensorType(getResultType(0));
+						if (imageIn.empty() || imageOut.empty()) {
+							std::cerr << "DomainFlowNode getArithmeticComplexity: invalid reduce_sum arguments: ignoring reduce_sum operator" << std::endl;
+							break;
+						}
                         // structure of vector
                         // batchSize x height
                         // batchSize x height x width
