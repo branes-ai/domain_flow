@@ -126,8 +126,8 @@ NODE 120 : |tosa.exp|EXP|62|0:tensor<?x1000xf32>||0:result_0|0:tensor<?x1000xf32
 NODE 121 : |tosa.reduce_sum|REDUCE_SUM|63|0:tensor<?x1000xf32>|axis:1 : i32|0:result_0|0:tensor<?x1xf32>
 NODE 122 : |tosa.reciprocal|RECIPROCAL|64|0:tensor<?x1xf32>||0:result_0|0:tensor<?x1xf32>
 NODE 123 : |tosa.mul|MUL|65|0:tensor<?x1000xf32>,1:tensor<?x1xf32>|shift:0 : i8|0:result_0|0:tensor<?x1000xf32>
-NODE 124 : |func.return|UNKNOWN|66|0:tensor<?x1000xf32>|||
-NODE 125 : |result0|UNKNOWN|66||||
+NODE 124 : |func.return|FUNCTION_RETURN|66|0:tensor<?x1000xf32>|||
+NODE 125 : |result0|FUNCTION_RESULT|66||||
 EDGES 126
 EDGE 76 -> 77 : 1|true|1xi32|32|0|0|0,0,0
 EDGE 52 -> 67 : 1|true|1xi32|32|0|1|0,0,0

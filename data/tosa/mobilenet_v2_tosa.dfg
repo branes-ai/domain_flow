@@ -1,0 +1,672 @@
+Domain Flow Graph: F:\Users\tomtz\dev\branes\clones\domain_flow\data\tosa/mobilenet_v2_tosa.mlir
+DIRECTED
+RUNNING_NODE_ID 218
+NODES 219
+NODE 0 : |func.arg|FUNCTION_ARGUMENT|0|||0:arg0|0:tensor<?x224x224x3xf32>
+NODE 1 : |func.func|FUNCTION|0|0:tensor<?x224x224x3xf32>||0:result0|0:tensor<?x1000xf32>
+NODE 2 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<3x3x960x1xf32>
+NODE 3 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<3x3x960x1xf32>
+NODE 4 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<3x3x960x1xf32>
+NODE 5 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<3x3x576x1xf32>
+NODE 6 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<3x3x576x1xf32>
+NODE 7 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<3x3x576x1xf32>
+NODE 8 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<3x3x384x1xf32>
+NODE 9 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<3x3x384x1xf32>
+NODE 10 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<3x3x384x1xf32>
+NODE 11 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<3x3x384x1xf32>
+NODE 12 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<3x3x192x1xf32>
+NODE 13 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<3x3x192x1xf32>
+NODE 14 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<3x3x192x1xf32>
+NODE 15 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<3x3x144x1xf32>
+NODE 16 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<3x3x144x1xf32>
+NODE 17 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<3x3x96x1xf32>
+NODE 18 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<3x3x32x1xf32>
+NODE 19 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<1x1xf32>
+NODE 20 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<1000xf32>
+NODE 21 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<1000x1280xf32>
+NODE 22 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<1280xf32>
+NODE 23 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<1280x1x1x320xf32>
+NODE 24 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<320xf32>
+NODE 25 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<320x1x1x960xf32>
+NODE 26 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<960xf32>
+NODE 27 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<960xf32>
+NODE 28 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<960x1x1x160xf32>
+NODE 29 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<160xf32>
+NODE 30 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<160x1x1x960xf32>
+NODE 31 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<960xf32>
+NODE 32 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<960xf32>
+NODE 33 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<960x1x1x160xf32>
+NODE 34 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<160xf32>
+NODE 35 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<160x1x1x960xf32>
+NODE 36 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<960xf32>
+NODE 37 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<960xf32>
+NODE 38 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<960x1x1x160xf32>
+NODE 39 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<160xf32>
+NODE 40 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<160x1x1x576xf32>
+NODE 41 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<576xf32>
+NODE 42 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<576xf32>
+NODE 43 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<576x1x1x96xf32>
+NODE 44 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<96xf32>
+NODE 45 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<96x1x1x576xf32>
+NODE 46 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<576xf32>
+NODE 47 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<576xf32>
+NODE 48 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<576x1x1x96xf32>
+NODE 49 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<96xf32>
+NODE 50 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<96x1x1x576xf32>
+NODE 51 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<576xf32>
+NODE 52 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<576xf32>
+NODE 53 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<576x1x1x96xf32>
+NODE 54 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<96xf32>
+NODE 55 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<96x1x1x384xf32>
+NODE 56 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<384xf32>
+NODE 57 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<384xf32>
+NODE 58 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<384x1x1x64xf32>
+NODE 59 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<64xf32>
+NODE 60 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<64x1x1x384xf32>
+NODE 61 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<384xf32>
+NODE 62 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<384xf32>
+NODE 63 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<384x1x1x64xf32>
+NODE 64 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<64xf32>
+NODE 65 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<64x1x1x384xf32>
+NODE 66 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<384xf32>
+NODE 67 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<384xf32>
+NODE 68 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<384x1x1x64xf32>
+NODE 69 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<64xf32>
+NODE 70 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<64x1x1x384xf32>
+NODE 71 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<384xf32>
+NODE 72 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<384xf32>
+NODE 73 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<384x1x1x64xf32>
+NODE 74 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<64xf32>
+NODE 75 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<64x1x1x192xf32>
+NODE 76 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<192xf32>
+NODE 77 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<192xf32>
+NODE 78 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<192x1x1x32xf32>
+NODE 79 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<32xf32>
+NODE 80 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<32x1x1x192xf32>
+NODE 81 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<192xf32>
+NODE 82 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<192xf32>
+NODE 83 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<192x1x1x32xf32>
+NODE 84 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<32xf32>
+NODE 85 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<32x1x1x192xf32>
+NODE 86 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<192xf32>
+NODE 87 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<192xf32>
+NODE 88 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<192x1x1x32xf32>
+NODE 89 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<32xf32>
+NODE 90 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<32x1x1x144xf32>
+NODE 91 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<144xf32>
+NODE 92 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<144xf32>
+NODE 93 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<144x1x1x24xf32>
+NODE 94 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<24xf32>
+NODE 95 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<24x1x1x144xf32>
+NODE 96 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<144xf32>
+NODE 97 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<144xf32>
+NODE 98 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<144x1x1x24xf32>
+NODE 99 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<24xf32>
+NODE 100 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<24x1x1x96xf32>
+NODE 101 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<96xf32>
+NODE 102 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<96xf32>
+NODE 103 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<96x1x1x16xf32>
+NODE 104 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<16xf32>
+NODE 105 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<16x1x1x32xf32>
+NODE 106 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<32xf32>
+NODE 107 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<32x3x3x3xf32>
+NODE 108 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<32xf32>
+NODE 109 : |tosa.conv2d|CONV2D|1|0:tensor<?x224x224x3xf32>,1:tensor<32x3x3x3xf32>,2:tensor<32xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 1, 0, 1>,stride:array<i64: 2, 2>|0:result_0|0:tensor<?x112x112x32xf32>
+NODE 110 : |tosa.clamp|CLAMP|2|0:tensor<?x112x112x32xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x112x112x32xf32>
+NODE 111 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|3|0:tensor<?x112x112x32xf32>,1:tensor<3x3x32x1xf32>,2:tensor<32xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x112x112x32xf32>
+NODE 112 : |tosa.clamp|CLAMP|4|0:tensor<?x112x112x32xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x112x112x32xf32>
+NODE 113 : |tosa.conv2d|CONV2D|5|0:tensor<?x112x112x32xf32>,1:tensor<16x1x1x32xf32>,2:tensor<16xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x112x112x16xf32>
+NODE 114 : |tosa.conv2d|CONV2D|6|0:tensor<?x112x112x16xf32>,1:tensor<96x1x1x16xf32>,2:tensor<96xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x112x112x96xf32>
+NODE 115 : |tosa.clamp|CLAMP|7|0:tensor<?x112x112x96xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x112x112x96xf32>
+NODE 116 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|8|0:tensor<?x112x112x96xf32>,1:tensor<3x3x96x1xf32>,2:tensor<96xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 1, 0, 1>,stride:array<i64: 2, 2>|0:result_0|0:tensor<?x56x56x96xf32>
+NODE 117 : |tosa.clamp|CLAMP|9|0:tensor<?x56x56x96xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x56x56x96xf32>
+NODE 118 : |tosa.conv2d|CONV2D|10|0:tensor<?x56x56x96xf32>,1:tensor<24x1x1x96xf32>,2:tensor<24xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x56x56x24xf32>
+NODE 119 : |tosa.conv2d|CONV2D|11|0:tensor<?x56x56x24xf32>,1:tensor<144x1x1x24xf32>,2:tensor<144xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x56x56x144xf32>
+NODE 120 : |tosa.clamp|CLAMP|12|0:tensor<?x56x56x144xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x56x56x144xf32>
+NODE 121 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|13|0:tensor<?x56x56x144xf32>,1:tensor<3x3x144x1xf32>,2:tensor<144xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x56x56x144xf32>
+NODE 122 : |tosa.clamp|CLAMP|14|0:tensor<?x56x56x144xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x56x56x144xf32>
+NODE 123 : |tosa.conv2d|CONV2D|15|0:tensor<?x56x56x144xf32>,1:tensor<24x1x1x144xf32>,2:tensor<24xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x56x56x24xf32>
+NODE 124 : |tosa.add|ADD|16|0:tensor<?x56x56x24xf32>,1:tensor<?x56x56x24xf32>||0:result_0|0:tensor<?x56x56x24xf32>
+NODE 125 : |tosa.conv2d|CONV2D|17|0:tensor<?x56x56x24xf32>,1:tensor<144x1x1x24xf32>,2:tensor<144xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x56x56x144xf32>
+NODE 126 : |tosa.clamp|CLAMP|18|0:tensor<?x56x56x144xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x56x56x144xf32>
+NODE 127 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|19|0:tensor<?x56x56x144xf32>,1:tensor<3x3x144x1xf32>,2:tensor<144xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 1, 0, 1>,stride:array<i64: 2, 2>|0:result_0|0:tensor<?x28x28x144xf32>
+NODE 128 : |tosa.clamp|CLAMP|20|0:tensor<?x28x28x144xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x28x28x144xf32>
+NODE 129 : |tosa.conv2d|CONV2D|21|0:tensor<?x28x28x144xf32>,1:tensor<32x1x1x144xf32>,2:tensor<32xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x28x28x32xf32>
+NODE 130 : |tosa.conv2d|CONV2D|22|0:tensor<?x28x28x32xf32>,1:tensor<192x1x1x32xf32>,2:tensor<192xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x28x28x192xf32>
+NODE 131 : |tosa.clamp|CLAMP|23|0:tensor<?x28x28x192xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x28x28x192xf32>
+NODE 132 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|24|0:tensor<?x28x28x192xf32>,1:tensor<3x3x192x1xf32>,2:tensor<192xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x28x28x192xf32>
+NODE 133 : |tosa.clamp|CLAMP|25|0:tensor<?x28x28x192xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x28x28x192xf32>
+NODE 134 : |tosa.conv2d|CONV2D|26|0:tensor<?x28x28x192xf32>,1:tensor<32x1x1x192xf32>,2:tensor<32xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x28x28x32xf32>
+NODE 135 : |tosa.add|ADD|27|0:tensor<?x28x28x32xf32>,1:tensor<?x28x28x32xf32>||0:result_0|0:tensor<?x28x28x32xf32>
+NODE 136 : |tosa.conv2d|CONV2D|28|0:tensor<?x28x28x32xf32>,1:tensor<192x1x1x32xf32>,2:tensor<192xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x28x28x192xf32>
+NODE 137 : |tosa.clamp|CLAMP|29|0:tensor<?x28x28x192xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x28x28x192xf32>
+NODE 138 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|30|0:tensor<?x28x28x192xf32>,1:tensor<3x3x192x1xf32>,2:tensor<192xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x28x28x192xf32>
+NODE 139 : |tosa.clamp|CLAMP|31|0:tensor<?x28x28x192xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x28x28x192xf32>
+NODE 140 : |tosa.conv2d|CONV2D|32|0:tensor<?x28x28x192xf32>,1:tensor<32x1x1x192xf32>,2:tensor<32xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x28x28x32xf32>
+NODE 141 : |tosa.add|ADD|33|0:tensor<?x28x28x32xf32>,1:tensor<?x28x28x32xf32>||0:result_0|0:tensor<?x28x28x32xf32>
+NODE 142 : |tosa.conv2d|CONV2D|34|0:tensor<?x28x28x32xf32>,1:tensor<192x1x1x32xf32>,2:tensor<192xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x28x28x192xf32>
+NODE 143 : |tosa.clamp|CLAMP|35|0:tensor<?x28x28x192xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x28x28x192xf32>
+NODE 144 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|36|0:tensor<?x28x28x192xf32>,1:tensor<3x3x192x1xf32>,2:tensor<192xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 1, 0, 1>,stride:array<i64: 2, 2>|0:result_0|0:tensor<?x14x14x192xf32>
+NODE 145 : |tosa.clamp|CLAMP|37|0:tensor<?x14x14x192xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x14x14x192xf32>
+NODE 146 : |tosa.conv2d|CONV2D|38|0:tensor<?x14x14x192xf32>,1:tensor<64x1x1x192xf32>,2:tensor<64xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x14x14x64xf32>
+NODE 147 : |tosa.conv2d|CONV2D|39|0:tensor<?x14x14x64xf32>,1:tensor<384x1x1x64xf32>,2:tensor<384xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x14x14x384xf32>
+NODE 148 : |tosa.clamp|CLAMP|40|0:tensor<?x14x14x384xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x14x14x384xf32>
+NODE 149 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|41|0:tensor<?x14x14x384xf32>,1:tensor<3x3x384x1xf32>,2:tensor<384xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x14x14x384xf32>
+NODE 150 : |tosa.clamp|CLAMP|42|0:tensor<?x14x14x384xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x14x14x384xf32>
+NODE 151 : |tosa.conv2d|CONV2D|43|0:tensor<?x14x14x384xf32>,1:tensor<64x1x1x384xf32>,2:tensor<64xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x14x14x64xf32>
+NODE 152 : |tosa.add|ADD|44|0:tensor<?x14x14x64xf32>,1:tensor<?x14x14x64xf32>||0:result_0|0:tensor<?x14x14x64xf32>
+NODE 153 : |tosa.conv2d|CONV2D|45|0:tensor<?x14x14x64xf32>,1:tensor<384x1x1x64xf32>,2:tensor<384xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x14x14x384xf32>
+NODE 154 : |tosa.clamp|CLAMP|46|0:tensor<?x14x14x384xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x14x14x384xf32>
+NODE 155 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|47|0:tensor<?x14x14x384xf32>,1:tensor<3x3x384x1xf32>,2:tensor<384xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x14x14x384xf32>
+NODE 156 : |tosa.clamp|CLAMP|48|0:tensor<?x14x14x384xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x14x14x384xf32>
+NODE 157 : |tosa.conv2d|CONV2D|49|0:tensor<?x14x14x384xf32>,1:tensor<64x1x1x384xf32>,2:tensor<64xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x14x14x64xf32>
+NODE 158 : |tosa.add|ADD|50|0:tensor<?x14x14x64xf32>,1:tensor<?x14x14x64xf32>||0:result_0|0:tensor<?x14x14x64xf32>
+NODE 159 : |tosa.conv2d|CONV2D|51|0:tensor<?x14x14x64xf32>,1:tensor<384x1x1x64xf32>,2:tensor<384xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x14x14x384xf32>
+NODE 160 : |tosa.clamp|CLAMP|52|0:tensor<?x14x14x384xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x14x14x384xf32>
+NODE 161 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|53|0:tensor<?x14x14x384xf32>,1:tensor<3x3x384x1xf32>,2:tensor<384xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x14x14x384xf32>
+NODE 162 : |tosa.clamp|CLAMP|54|0:tensor<?x14x14x384xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x14x14x384xf32>
+NODE 163 : |tosa.conv2d|CONV2D|55|0:tensor<?x14x14x384xf32>,1:tensor<64x1x1x384xf32>,2:tensor<64xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x14x14x64xf32>
+NODE 164 : |tosa.add|ADD|56|0:tensor<?x14x14x64xf32>,1:tensor<?x14x14x64xf32>||0:result_0|0:tensor<?x14x14x64xf32>
+NODE 165 : |tosa.conv2d|CONV2D|57|0:tensor<?x14x14x64xf32>,1:tensor<384x1x1x64xf32>,2:tensor<384xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x14x14x384xf32>
+NODE 166 : |tosa.clamp|CLAMP|58|0:tensor<?x14x14x384xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x14x14x384xf32>
+NODE 167 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|59|0:tensor<?x14x14x384xf32>,1:tensor<3x3x384x1xf32>,2:tensor<384xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x14x14x384xf32>
+NODE 168 : |tosa.clamp|CLAMP|60|0:tensor<?x14x14x384xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x14x14x384xf32>
+NODE 169 : |tosa.conv2d|CONV2D|61|0:tensor<?x14x14x384xf32>,1:tensor<96x1x1x384xf32>,2:tensor<96xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x14x14x96xf32>
+NODE 170 : |tosa.conv2d|CONV2D|62|0:tensor<?x14x14x96xf32>,1:tensor<576x1x1x96xf32>,2:tensor<576xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x14x14x576xf32>
+NODE 171 : |tosa.clamp|CLAMP|63|0:tensor<?x14x14x576xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x14x14x576xf32>
+NODE 172 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|64|0:tensor<?x14x14x576xf32>,1:tensor<3x3x576x1xf32>,2:tensor<576xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x14x14x576xf32>
+NODE 173 : |tosa.clamp|CLAMP|65|0:tensor<?x14x14x576xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x14x14x576xf32>
+NODE 174 : |tosa.conv2d|CONV2D|66|0:tensor<?x14x14x576xf32>,1:tensor<96x1x1x576xf32>,2:tensor<96xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x14x14x96xf32>
+NODE 175 : |tosa.add|ADD|67|0:tensor<?x14x14x96xf32>,1:tensor<?x14x14x96xf32>||0:result_0|0:tensor<?x14x14x96xf32>
+NODE 176 : |tosa.conv2d|CONV2D|68|0:tensor<?x14x14x96xf32>,1:tensor<576x1x1x96xf32>,2:tensor<576xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x14x14x576xf32>
+NODE 177 : |tosa.clamp|CLAMP|69|0:tensor<?x14x14x576xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x14x14x576xf32>
+NODE 178 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|70|0:tensor<?x14x14x576xf32>,1:tensor<3x3x576x1xf32>,2:tensor<576xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x14x14x576xf32>
+NODE 179 : |tosa.clamp|CLAMP|71|0:tensor<?x14x14x576xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x14x14x576xf32>
+NODE 180 : |tosa.conv2d|CONV2D|72|0:tensor<?x14x14x576xf32>,1:tensor<96x1x1x576xf32>,2:tensor<96xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x14x14x96xf32>
+NODE 181 : |tosa.add|ADD|73|0:tensor<?x14x14x96xf32>,1:tensor<?x14x14x96xf32>||0:result_0|0:tensor<?x14x14x96xf32>
+NODE 182 : |tosa.conv2d|CONV2D|74|0:tensor<?x14x14x96xf32>,1:tensor<576x1x1x96xf32>,2:tensor<576xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x14x14x576xf32>
+NODE 183 : |tosa.clamp|CLAMP|75|0:tensor<?x14x14x576xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x14x14x576xf32>
+NODE 184 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|76|0:tensor<?x14x14x576xf32>,1:tensor<3x3x576x1xf32>,2:tensor<576xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 1, 0, 1>,stride:array<i64: 2, 2>|0:result_0|0:tensor<?x7x7x576xf32>
+NODE 185 : |tosa.clamp|CLAMP|77|0:tensor<?x7x7x576xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x7x7x576xf32>
+NODE 186 : |tosa.conv2d|CONV2D|78|0:tensor<?x7x7x576xf32>,1:tensor<160x1x1x576xf32>,2:tensor<160xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x7x7x160xf32>
+NODE 187 : |tosa.conv2d|CONV2D|79|0:tensor<?x7x7x160xf32>,1:tensor<960x1x1x160xf32>,2:tensor<960xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x7x7x960xf32>
+NODE 188 : |tosa.clamp|CLAMP|80|0:tensor<?x7x7x960xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x7x7x960xf32>
+NODE 189 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|81|0:tensor<?x7x7x960xf32>,1:tensor<3x3x960x1xf32>,2:tensor<960xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x7x7x960xf32>
+NODE 190 : |tosa.clamp|CLAMP|82|0:tensor<?x7x7x960xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x7x7x960xf32>
+NODE 191 : |tosa.conv2d|CONV2D|83|0:tensor<?x7x7x960xf32>,1:tensor<160x1x1x960xf32>,2:tensor<160xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x7x7x160xf32>
+NODE 192 : |tosa.add|ADD|84|0:tensor<?x7x7x160xf32>,1:tensor<?x7x7x160xf32>||0:result_0|0:tensor<?x7x7x160xf32>
+NODE 193 : |tosa.conv2d|CONV2D|85|0:tensor<?x7x7x160xf32>,1:tensor<960x1x1x160xf32>,2:tensor<960xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x7x7x960xf32>
+NODE 194 : |tosa.clamp|CLAMP|86|0:tensor<?x7x7x960xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x7x7x960xf32>
+NODE 195 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|87|0:tensor<?x7x7x960xf32>,1:tensor<3x3x960x1xf32>,2:tensor<960xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x7x7x960xf32>
+NODE 196 : |tosa.clamp|CLAMP|88|0:tensor<?x7x7x960xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x7x7x960xf32>
+NODE 197 : |tosa.conv2d|CONV2D|89|0:tensor<?x7x7x960xf32>,1:tensor<160x1x1x960xf32>,2:tensor<160xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x7x7x160xf32>
+NODE 198 : |tosa.add|ADD|90|0:tensor<?x7x7x160xf32>,1:tensor<?x7x7x160xf32>||0:result_0|0:tensor<?x7x7x160xf32>
+NODE 199 : |tosa.conv2d|CONV2D|91|0:tensor<?x7x7x160xf32>,1:tensor<960x1x1x160xf32>,2:tensor<960xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x7x7x960xf32>
+NODE 200 : |tosa.clamp|CLAMP|92|0:tensor<?x7x7x960xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x7x7x960xf32>
+NODE 201 : |tosa.depthwise_conv2d|DEPTHWISE_CONV2D|93|0:tensor<?x7x7x960xf32>,1:tensor<3x3x960x1xf32>,2:tensor<960xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 1, 1, 1, 1>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x7x7x960xf32>
+NODE 202 : |tosa.clamp|CLAMP|94|0:tensor<?x7x7x960xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x7x7x960xf32>
+NODE 203 : |tosa.conv2d|CONV2D|95|0:tensor<?x7x7x960xf32>,1:tensor<320x1x1x960xf32>,2:tensor<320xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x7x7x320xf32>
+NODE 204 : |tosa.conv2d|CONV2D|96|0:tensor<?x7x7x320xf32>,1:tensor<1280x1x1x320xf32>,2:tensor<1280xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<?x7x7x1280xf32>
+NODE 205 : |tosa.clamp|CLAMP|97|0:tensor<?x7x7x1280xf32>|max_fp:6.000000e+00 : f32,max_int:6 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<?x7x7x1280xf32>
+NODE 206 : |tosa.reduce_sum|REDUCE_SUM|98|0:tensor<?x7x7x1280xf32>|axis:1 : i32|0:result_0|0:tensor<?x1x7x1280xf32>
+NODE 207 : |tosa.reduce_sum|REDUCE_SUM|99|0:tensor<?x1x7x1280xf32>|axis:2 : i32|0:result_0|0:tensor<?x1x1x1280xf32>
+NODE 208 : |tosa.reshape|RESHAPE|100|0:tensor<?x1x1x1280xf32>|new_shape:array<i64: -1, 1280>|0:result_0|0:tensor<?x1280xf32>
+NODE 209 : |tosa.mul|MUL|101|0:tensor<?x1280xf32>,1:tensor<1x1xf32>|shift:0 : i8|0:result_0|0:tensor<?x1280xf32>
+NODE 210 : |tosa.fully_connected|FC|102|0:tensor<?x1280xf32>,1:tensor<1000x1280xf32>,2:tensor<1000xf32>||0:result_0|0:tensor<?x1000xf32>
+NODE 211 : |tosa.reduce_max|REDUCE_MAX|103|0:tensor<?x1000xf32>|axis:1 : i32|0:result_0|0:tensor<?x1xf32>
+NODE 212 : |tosa.sub|SUB|104|0:tensor<?x1000xf32>,1:tensor<?x1xf32>||0:result_0|0:tensor<?x1000xf32>
+NODE 213 : |tosa.exp|EXP|105|0:tensor<?x1000xf32>||0:result_0|0:tensor<?x1000xf32>
+NODE 214 : |tosa.reduce_sum|REDUCE_SUM|106|0:tensor<?x1000xf32>|axis:1 : i32|0:result_0|0:tensor<?x1xf32>
+NODE 215 : |tosa.reciprocal|RECIPROCAL|107|0:tensor<?x1xf32>||0:result_0|0:tensor<?x1xf32>
+NODE 216 : |tosa.mul|MUL|108|0:tensor<?x1000xf32>,1:tensor<?x1xf32>|shift:0 : i8|0:result_0|0:tensor<?x1000xf32>
+NODE 217 : |func.return|FUNCTION_RETURN|109|0:tensor<?x1000xf32>|||
+NODE 218 : |result0|FUNCTION_RESULT|109||||
+EDGES 229
+EDGE 196 -> 197 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 73 -> 147 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 111 -> 112 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 106 -> 111 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 207 -> 208 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 109 -> 110 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 192 -> 198 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 107 -> 109 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 103 -> 114 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 1 -> 109 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 105 -> 113 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 108 -> 109 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 15 -> 127 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 110 -> 111 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 199 -> 200 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 48 -> 176 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 91 -> 127 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 23 -> 204 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 117 -> 118 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 18 -> 111 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 112 -> 113 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 104 -> 113 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 81 -> 138 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 131 -> 132 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 113 -> 114 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 102 -> 114 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 216 -> 218 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 90 -> 129 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 172 -> 173 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 80 -> 140 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 114 -> 115 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 115 -> 116 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 94 -> 123 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 100 -> 118 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 17 -> 116 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 86 -> 132 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 212 -> 213 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 101 -> 116 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 116 -> 117 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 137 -> 138 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 71 -> 149 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 99 -> 118 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 118 -> 119 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 98 -> 119 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 88 -> 130 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 97 -> 119 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 26 -> 201 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 119 -> 120 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 120 -> 121 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 134 -> 135 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 209 -> 210 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 16 -> 121 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 128 -> 129 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 96 -> 121 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 121 -> 122 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 122 -> 123 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 95 -> 123 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 13 -> 138 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 118 -> 124 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 123 -> 124 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 85 -> 134 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 130 -> 131 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 124 -> 125 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 93 -> 125 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 40 -> 186 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 135 -> 136 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 19 -> 209 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 92 -> 125 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 125 -> 126 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 84 -> 134 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 126 -> 127 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 127 -> 128 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 194 -> 195 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 89 -> 129 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 32 -> 193 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 175 -> 181 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 129 -> 130 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 25 -> 203 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 169 -> 175 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 87 -> 130 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 129 -> 135 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 14 -> 132 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 28 -> 199 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 35 -> 191 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 175 -> 176 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 132 -> 133 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 133 -> 134 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 75 -> 146 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 83 -> 136 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 74 -> 146 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 82 -> 136 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 136 -> 137 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 138 -> 139 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 152 -> 153 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 139 -> 140 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 79 -> 140 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 135 -> 141 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 140 -> 141 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 141 -> 142 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 78 -> 142 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 77 -> 142 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 142 -> 143 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 2 -> 201 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 164 -> 165 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 143 -> 144 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 12 -> 144 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 216 -> 217 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 76 -> 144 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 210 -> 212 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 166 -> 167 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 144 -> 145 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 145 -> 146 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 204 -> 205 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 146 -> 147 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 176 -> 177 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 72 -> 147 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 30 -> 197 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 147 -> 148 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 148 -> 149 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 11 -> 149 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 149 -> 150 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 150 -> 151 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 70 -> 151 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 69 -> 151 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 146 -> 152 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 151 -> 152 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 170 -> 171 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 68 -> 153 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 9 -> 161 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 67 -> 153 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 206 -> 207 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 153 -> 154 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 154 -> 155 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 10 -> 155 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 66 -> 155 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 155 -> 156 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 156 -> 157 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 65 -> 157 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 64 -> 157 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 152 -> 158 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 202 -> 203 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 157 -> 158 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 158 -> 159 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 63 -> 159 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 62 -> 159 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 159 -> 160 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 160 -> 161 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 61 -> 161 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 161 -> 162 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 162 -> 163 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 60 -> 163 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 59 -> 163 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 158 -> 164 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 163 -> 164 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 58 -> 165 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 34 -> 191 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 45 -> 180 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 57 -> 165 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 165 -> 166 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 8 -> 167 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 56 -> 167 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 27 -> 199 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 167 -> 168 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 168 -> 169 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 55 -> 169 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 37 -> 187 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 54 -> 169 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 169 -> 170 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 53 -> 170 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 52 -> 170 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 184 -> 185 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 171 -> 172 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 7 -> 172 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 43 -> 182 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 51 -> 172 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 173 -> 174 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 50 -> 174 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 49 -> 174 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 174 -> 175 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 47 -> 176 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 177 -> 178 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 6 -> 178 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 46 -> 178 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 178 -> 179 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 179 -> 180 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 44 -> 180 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 180 -> 181 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 181 -> 182 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 42 -> 182 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 193 -> 194 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 182 -> 183 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 183 -> 184 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 5 -> 184 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 41 -> 184 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 185 -> 186 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 39 -> 186 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 186 -> 187 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 38 -> 187 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 187 -> 188 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 188 -> 189 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 4 -> 189 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 36 -> 189 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 22 -> 204 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 189 -> 190 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 190 -> 191 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 186 -> 192 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 191 -> 192 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 192 -> 193 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 33 -> 193 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 3 -> 195 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 31 -> 195 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 195 -> 196 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 29 -> 197 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 197 -> 198 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 198 -> 199 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 200 -> 201 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 201 -> 202 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 24 -> 203 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 203 -> 204 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 205 -> 206 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 208 -> 209 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 21 -> 210 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 20 -> 210 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 210 -> 211 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 211 -> 212 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 213 -> 214 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 214 -> 215 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 213 -> 216 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 215 -> 216 : 1|true|1xi32|32|0|1|0,0,0
+ADJACENCY 216
+ADJ 129 : 130, 135
+ADJ 1 : 109
+ADJ 107 : 109
+ADJ 108 : 109
+ADJ 109 : 110
+ADJ 110 : 111
+ADJ 106 : 111
+ADJ 82 : 136
+ADJ 18 : 111
+ADJ 111 : 112
+ADJ 112 : 113
+ADJ 105 : 113
+ADJ 104 : 113
+ADJ 113 : 114
+ADJ 103 : 114
+ADJ 102 : 114
+ADJ 114 : 115
+ADJ 115 : 116
+ADJ 81 : 138
+ADJ 17 : 116
+ADJ 101 : 116
+ADJ 116 : 117
+ADJ 117 : 118
+ADJ 100 : 118
+ADJ 99 : 118
+ADJ 118 : 119, 124
+ADJ 98 : 119
+ADJ 97 : 119
+ADJ 119 : 120
+ADJ 120 : 121
+ADJ 16 : 121
+ADJ 96 : 121
+ADJ 121 : 122
+ADJ 122 : 123
+ADJ 95 : 123
+ADJ 94 : 123
+ADJ 123 : 124
+ADJ 124 : 125
+ADJ 93 : 125
+ADJ 92 : 125
+ADJ 125 : 126
+ADJ 126 : 127
+ADJ 15 : 127
+ADJ 91 : 127
+ADJ 127 : 128
+ADJ 128 : 129
+ADJ 90 : 129
+ADJ 89 : 129
+ADJ 88 : 130
+ADJ 87 : 130
+ADJ 130 : 131
+ADJ 131 : 132
+ADJ 14 : 132
+ADJ 86 : 132
+ADJ 132 : 133
+ADJ 133 : 134
+ADJ 85 : 134
+ADJ 84 : 134
+ADJ 134 : 135
+ADJ 135 : 136, 141
+ADJ 83 : 136
+ADJ 136 : 137
+ADJ 137 : 138
+ADJ 13 : 138
+ADJ 138 : 139
+ADJ 139 : 140
+ADJ 80 : 140
+ADJ 79 : 140
+ADJ 140 : 141
+ADJ 141 : 142
+ADJ 78 : 142
+ADJ 77 : 142
+ADJ 142 : 143
+ADJ 143 : 144
+ADJ 12 : 144
+ADJ 76 : 144
+ADJ 144 : 145
+ADJ 145 : 146
+ADJ 75 : 146
+ADJ 74 : 146
+ADJ 146 : 147, 152
+ADJ 73 : 147
+ADJ 72 : 147
+ADJ 147 : 148
+ADJ 148 : 149
+ADJ 11 : 149
+ADJ 71 : 149
+ADJ 149 : 150
+ADJ 150 : 151
+ADJ 70 : 151
+ADJ 69 : 151
+ADJ 151 : 152
+ADJ 152 : 153, 158
+ADJ 68 : 153
+ADJ 67 : 153
+ADJ 153 : 154
+ADJ 154 : 155
+ADJ 10 : 155
+ADJ 66 : 155
+ADJ 155 : 156
+ADJ 156 : 157
+ADJ 65 : 157
+ADJ 64 : 157
+ADJ 157 : 158
+ADJ 158 : 159, 164
+ADJ 63 : 159
+ADJ 62 : 159
+ADJ 159 : 160
+ADJ 160 : 161
+ADJ 9 : 161
+ADJ 61 : 161
+ADJ 161 : 162
+ADJ 162 : 163
+ADJ 60 : 163
+ADJ 59 : 163
+ADJ 163 : 164
+ADJ 164 : 165
+ADJ 58 : 165
+ADJ 57 : 165
+ADJ 165 : 166
+ADJ 166 : 167
+ADJ 8 : 167
+ADJ 56 : 167
+ADJ 167 : 168
+ADJ 168 : 169
+ADJ 55 : 169
+ADJ 54 : 169
+ADJ 169 : 170, 175
+ADJ 53 : 170
+ADJ 52 : 170
+ADJ 170 : 171
+ADJ 171 : 172
+ADJ 7 : 172
+ADJ 51 : 172
+ADJ 172 : 173
+ADJ 173 : 174
+ADJ 50 : 174
+ADJ 49 : 174
+ADJ 174 : 175
+ADJ 175 : 176, 181
+ADJ 48 : 176
+ADJ 47 : 176
+ADJ 176 : 177
+ADJ 177 : 178
+ADJ 6 : 178
+ADJ 46 : 178
+ADJ 178 : 179
+ADJ 179 : 180
+ADJ 45 : 180
+ADJ 44 : 180
+ADJ 180 : 181
+ADJ 181 : 182
+ADJ 43 : 182
+ADJ 42 : 182
+ADJ 182 : 183
+ADJ 183 : 184
+ADJ 5 : 184
+ADJ 41 : 184
+ADJ 184 : 185
+ADJ 185 : 186
+ADJ 40 : 186
+ADJ 39 : 186
+ADJ 186 : 187, 192
+ADJ 38 : 187
+ADJ 37 : 187
+ADJ 187 : 188
+ADJ 188 : 189
+ADJ 4 : 189
+ADJ 36 : 189
+ADJ 189 : 190
+ADJ 190 : 191
+ADJ 35 : 191
+ADJ 34 : 191
+ADJ 191 : 192
+ADJ 192 : 193, 198
+ADJ 33 : 193
+ADJ 32 : 193
+ADJ 193 : 194
+ADJ 194 : 195
+ADJ 3 : 195
+ADJ 31 : 195
+ADJ 195 : 196
+ADJ 196 : 197
+ADJ 30 : 197
+ADJ 29 : 197
+ADJ 197 : 198
+ADJ 198 : 199
+ADJ 28 : 199
+ADJ 27 : 199
+ADJ 199 : 200
+ADJ 200 : 201
+ADJ 2 : 201
+ADJ 26 : 201
+ADJ 201 : 202
+ADJ 202 : 203
+ADJ 25 : 203
+ADJ 24 : 203
+ADJ 203 : 204
+ADJ 23 : 204
+ADJ 22 : 204
+ADJ 204 : 205
+ADJ 205 : 206
+ADJ 206 : 207
+ADJ 207 : 208
+ADJ 208 : 209
+ADJ 19 : 209
+ADJ 209 : 210
+ADJ 21 : 210
+ADJ 20 : 210
+ADJ 210 : 211, 212
+ADJ 211 : 212
+ADJ 212 : 213
+ADJ 213 : 214, 216
+ADJ 214 : 215
+ADJ 215 : 216
+ADJ 216 : 217, 218
+SOURCE: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108
+SINK: 218

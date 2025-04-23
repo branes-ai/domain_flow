@@ -1,0 +1,30 @@
+Domain Flow Graph: F:\Users\tomtz\dev\branes\clones\domain_flow\data\tosa/oneLayerMLP_tosa.mlir
+DIRECTED
+RUNNING_NODE_ID 8
+NODES 9
+NODE 0 : |func.arg|FUNCTION_ARGUMENT|0|||0:arg0|0:tensor<1x4xf32>
+NODE 1 : |func.func|FUNCTION|0|0:tensor<1x4xf32>||0:result0|0:tensor<1x2xf32>
+NODE 2 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<2xf32>
+NODE 3 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<2x1x1x4xf32>
+NODE 4 : |tosa.reshape|RESHAPE|1|0:tensor<1x4xf32>|new_shape:array<i64: 1, 1, 1, 4>|0:result_0|0:tensor<1x1x1x4xf32>
+NODE 5 : |tosa.conv2d|CONV2D|2|0:tensor<1x1x1x4xf32>,1:tensor<2x1x1x4xf32>,2:tensor<2xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<1x1x1x2xf32>
+NODE 6 : |tosa.reshape|RESHAPE|3|0:tensor<1x1x1x2xf32>|new_shape:array<i64: 1, 2>|0:result_0|0:tensor<1x2xf32>
+NODE 7 : |func.return|FUNCTION_RETURN|4|0:tensor<1x2xf32>|||
+NODE 8 : |result0|FUNCTION_RESULT|4||||
+EDGES 7
+EDGE 1 -> 4 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 4 -> 5 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 3 -> 5 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 6 -> 8 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 2 -> 5 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 5 -> 6 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 6 -> 7 : 1|true|1xi32|32|0|0|0,0,0
+ADJACENCY 6
+ADJ 1 : 4
+ADJ 4 : 5
+ADJ 3 : 5
+ADJ 2 : 5
+ADJ 5 : 6
+ADJ 6 : 7, 8
+SOURCE: 0, 1, 2, 3
+SINK: 8

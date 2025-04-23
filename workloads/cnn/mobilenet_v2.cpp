@@ -26,7 +26,7 @@ int main() {
     reportArithmeticComplexity(mobilenet);
     reportNumericalComplexity(mobilenet);
 
-	// std::cout << mobilenet << std::endl;
+	std::cout << mobilenet << std::endl;
 
     return EXIT_SUCCESS;
 }

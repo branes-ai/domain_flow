@@ -606,24 +606,30 @@ namespace sw {
             }
 
             else {
-                os << "\nDetected untracked TOSA operation:\n";
+
                 std::string opName = op.getName().getStringRef().str();
-				os << "Operation: " << opName << "\n";
-                node = DomainFlowNode(opName);
-
-                // Parse operands
-                std::vector<OperandInfo> operands = parseOperands(op);
-                os << "Operands (" << operands.size() << "):\n";
-                for (const auto& operand : operands) {
-                    os << "  " << operand.index << ": " << operand.name << " of type " << operand.type << "\n";
+                if (opName == "func.return") {
+					node = DomainFlowNode(DomainFlowOperator::FUNCTION_RETURN, opName);
                 }
+                else {
+                    os << "\nDetected untracked TOSA operation:\n";
+                    os << "Operation: " << opName << "\n";
+                    node = DomainFlowNode(opName);
 
-                // Parse attributes
-                std::vector<AttributeInfo> attributes = parseAttributes(op);
-                os << "Attributes (" << attributes.size() << "):\n";
-                for (const auto& attr : attributes) {
-                    os << "  " << attr.name << "\n";
-                    //os << "  " << attr.name << ": " << attr.valueStr << "\n";
+                    // Parse operands
+                    std::vector<OperandInfo> operands = parseOperands(op);
+                    os << "Operands (" << operands.size() << "):\n";
+                    for (const auto& operand : operands) {
+                        os << "  " << operand.index << ": " << operand.name << " of type " << operand.type << "\n";
+                    }
+
+                    // Parse attributes
+                    std::vector<AttributeInfo> attributes = parseAttributes(op);
+                    os << "Attributes (" << attributes.size() << "):\n";
+                    for (const auto& attr : attributes) {
+                        os << "  " << attr.name << "\n";
+                        //os << "  " << attr.name << ": " << attr.valueStr << "\n";
+                    }
                 }
             }
 

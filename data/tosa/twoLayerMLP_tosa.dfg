@@ -1,0 +1,48 @@
+Domain Flow Graph: F:\Users\tomtz\dev\branes\clones\domain_flow\data\tosa/twoLayerMLP_tosa.mlir
+DIRECTED
+RUNNING_NODE_ID 14
+NODES 15
+NODE 0 : |func.arg|FUNCTION_ARGUMENT|0|||0:arg0|0:tensor<1x4xf32>
+NODE 1 : |func.func|FUNCTION|0|0:tensor<1x4xf32>||0:result0|0:tensor<1x2xf32>
+NODE 2 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<2xf32>
+NODE 3 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<2x1x1x8xf32>
+NODE 4 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<8xf32>
+NODE 5 : |tosa.const|CONSTANT|0|||0:result_0|0:tensor<8x1x1x4xf32>
+NODE 6 : |tosa.reshape|RESHAPE|1|0:tensor<1x4xf32>|new_shape:array<i64: 1, 1, 1, 4>|0:result_0|0:tensor<1x1x1x4xf32>
+NODE 7 : |tosa.conv2d|CONV2D|2|0:tensor<1x1x1x4xf32>,1:tensor<8x1x1x4xf32>,2:tensor<8xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<1x1x1x8xf32>
+NODE 8 : |tosa.reshape|RESHAPE|3|0:tensor<1x1x1x8xf32>|new_shape:array<i64: 1, 8>|0:result_0|0:tensor<1x8xf32>
+NODE 9 : |tosa.clamp|CLAMP|4|0:tensor<1x8xf32>|max_fp:3.40282347E+38 : f32,max_int:2147483647 : i64,min_fp:0.000000e+00 : f32,min_int:0 : i64|0:result_0|0:tensor<1x8xf32>
+NODE 10 : |tosa.reshape|RESHAPE|5|0:tensor<1x8xf32>|new_shape:array<i64: 1, 1, 1, 8>|0:result_0|0:tensor<1x1x1x8xf32>
+NODE 11 : |tosa.conv2d|CONV2D|6|0:tensor<1x1x1x8xf32>,1:tensor<2x1x1x8xf32>,2:tensor<2xf32>|dilation:array<i64: 1, 1>,pad:array<i64: 0, 0, 0, 0>,stride:array<i64: 1, 1>|0:result_0|0:tensor<1x1x1x2xf32>
+NODE 12 : |tosa.reshape|RESHAPE|7|0:tensor<1x1x1x2xf32>|new_shape:array<i64: 1, 2>|0:result_0|0:tensor<1x2xf32>
+NODE 13 : |func.return|FUNCTION_RETURN|8|0:tensor<1x2xf32>|||
+NODE 14 : |result0|FUNCTION_RESULT|8||||
+EDGES 13
+EDGE 6 -> 7 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 1 -> 6 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 8 -> 9 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 5 -> 7 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 12 -> 13 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 4 -> 7 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 2 -> 11 : 1|true|1xi32|32|0|2|0,0,0
+EDGE 7 -> 8 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 9 -> 10 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 3 -> 11 : 1|true|1xi32|32|0|1|0,0,0
+EDGE 10 -> 11 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 11 -> 12 : 1|true|1xi32|32|0|0|0,0,0
+EDGE 12 -> 14 : 1|true|1xi32|32|0|0|0,0,0
+ADJACENCY 12
+ADJ 9 : 10
+ADJ 1 : 6
+ADJ 6 : 7
+ADJ 5 : 7
+ADJ 4 : 7
+ADJ 7 : 8
+ADJ 8 : 9
+ADJ 10 : 11
+ADJ 3 : 11
+ADJ 2 : 11
+ADJ 11 : 12
+ADJ 12 : 13, 14
+SOURCE: 0, 1, 2, 3, 4, 5
+SINK: 14

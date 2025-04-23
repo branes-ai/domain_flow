@@ -200,7 +200,7 @@ namespace sw {
                     // Create result nodes
                     for (unsigned i = 0; i < returnOp.getNumOperands(); ++i) {
                         std::string resultName = "result" + std::to_string(i);
-                        int resultNodeId = dfg.addNode(DomainFlowNode(resultName));
+                        int resultNodeId = dfg.addNode(DomainFlowNode(DomainFlowOperator::FUNCTION_RESULT, resultName));
                         dfg.addSink(resultNodeId);
                         if constexpr (bTrace) os << "Created result node: " << resultName << " with ID: " << resultNodeId << "\n";
 

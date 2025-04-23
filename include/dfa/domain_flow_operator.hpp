@@ -11,6 +11,7 @@ namespace sw {
 			FUNCTION = 0,
             FUNCTION_ARGUMENT,
 			FUNCTION_RETURN,
+			FUNCTION_RESULT,
             ABS,
             ADD,
             CAST,
@@ -55,9 +56,10 @@ namespace sw {
         // Output stream operator
         inline std::ostream& operator<<(std::ostream& os, DomainFlowOperator dfo) {
             switch (dfo) {
-			case DomainFlowOperator::FUNCTION:           os << "FUNCTION";        break;
-            case DomainFlowOperator::FUNCTION_ARGUMENT:  os << "FUNCTION_ARGUMENT";   break;
+			case DomainFlowOperator::FUNCTION:           os << "FUNCTION";           break;
+            case DomainFlowOperator::FUNCTION_ARGUMENT:  os << "FUNCTION_ARGUMENT";  break;
 			case DomainFlowOperator::FUNCTION_RETURN:    os << "FUNCTION_RETURN";    break;
+			case DomainFlowOperator::FUNCTION_RESULT:    os << "FUNCTION_RESULT";    break;
             case DomainFlowOperator::ABS:        os << "ABS";        break;
             case DomainFlowOperator::ADD:        os << "ADD";        break;
             case DomainFlowOperator::CAST:       os << "CAST";       break;
@@ -113,6 +115,7 @@ namespace sw {
             if (token == "FUNCTION")               dfo = DomainFlowOperator::FUNCTION;
             else if (token == "FUNCTION_ARGUMENT") dfo = DomainFlowOperator::FUNCTION_ARGUMENT;
 			else if (token == "FUNCTION_RETURN")   dfo = DomainFlowOperator::FUNCTION_RETURN;
+			else if (token == "FUNCTION_RESULT")   dfo = DomainFlowOperator::FUNCTION_RESULT;
             else if (token == "ABS")    dfo = DomainFlowOperator::ABS;
             else if (token == "ADD")    dfo = DomainFlowOperator::ADD;
             else if (token == "CAST")    dfo = DomainFlowOperator::CAST;

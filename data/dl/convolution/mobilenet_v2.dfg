@@ -219,8 +219,8 @@ NODE 213 : |tosa.exp|EXP|105|0:tensor<?x1000xf32>||0:result_0|0:tensor<?x1000xf3
 NODE 214 : |tosa.reduce_sum|REDUCE_SUM|106|0:tensor<?x1000xf32>|axis:1 : i32|0:result_0|0:tensor<?x1xf32>
 NODE 215 : |tosa.reciprocal|RECIPROCAL|107|0:tensor<?x1xf32>||0:result_0|0:tensor<?x1xf32>
 NODE 216 : |tosa.mul|MUL|108|0:tensor<?x1000xf32>,1:tensor<?x1xf32>|shift:0 : i8|0:result_0|0:tensor<?x1000xf32>
-NODE 217 : |func.return|UNKNOWN|109|0:tensor<?x1000xf32>|||
-NODE 218 : |result0|UNKNOWN|109||||
+NODE 217 : |func.return|FUNCTION_RETURN|109|0:tensor<?x1000xf32>|||
+NODE 218 : |result0|FUNCTION_RESULT|109||||
 EDGES 229
 EDGE 196 -> 197 : 1|true|1xi32|32|0|0|0,0,0
 EDGE 73 -> 147 : 1|true|1xi32|32|0|1|0,0,0

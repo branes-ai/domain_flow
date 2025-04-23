@@ -339,6 +339,30 @@ namespace sw {
                 return edge(lhs, rhs);
             }
 
+            // distribute the constants among the graph nodes that need them
+            void distributeConstants() {
+                // This function distributes constants in the graph.
+                // To display a graph nicely, we want to move the constants that an operator depends on
+                // from the edge to closer to where the operator is displayed. 
+                // We make a simple observation that in long graphs, it is nice to order the graph spatially
+                // by the depth of the nodes. However, constants at depth 0 would then all end up at the
+                // first spatial column in the display. We can eleviate this by moving the constants
+                // closer to the operator that uses them. To make the arc between the constant and the operator
+                // flow nicely, we move the constant to the column that represents the depth of the operator minus 1.
+                // This is a simple heuristic, but it works well in practice.
+
+                // find all the constants in the graph
+                for (auto& [nodeId, nodeRef] : m_nodes) {
+                    if (nodeRef.depth == 0) { // test if this is a constant
+                        // find the node that uses the constant
+                        for (auto& targetNodeId : neighbors(nodeId)) {
+                            int depth = this->node(targetNodeId).getDepth();
+                            // move the constant to the column of the target operator minus 1
+                            nodeRef.setDepth(depth - 1);
+                        }
+                    }
+                }
+            }
 
             // Save the graph to a text file
             void save(const std::string& filename) const {

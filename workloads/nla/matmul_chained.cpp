@@ -107,6 +107,7 @@ int main() {
 	// report on the operator statistics
 	reportOperatorStats(nla);
 	reportArithmeticComplexity(nla);
+	reportNumericalComplexity(nla);
 
 	// Save the graph to a file
 	std::string dfgFilename = graphName + ".dfg";
@@ -114,6 +115,9 @@ int main() {
 	nla.save(dfgFilename);
 
 	std::cout << "Saved graph to: " << dfgFilename << std::endl;
+
+	nla.graph.distributeConstants();
+	std::cout << "Graph after distributeConstants\n" << nla << '\n';
 	
 	return EXIT_SUCCESS;
 }
