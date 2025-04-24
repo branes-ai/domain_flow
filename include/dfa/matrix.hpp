@@ -104,9 +104,9 @@ namespace sw {
  
         template<typename _T>
         std::ostream& operator<<(std::ostream& ostr, const Matrix<_T>& M) {
-            ostr << '{';
+            ostr << "{\n";
             for (int i = 0; i < M.rows(); ++i) {
-                ostr << '{';
+                ostr << " { ";
                 for (int j = 0; j < M.cols(); ++j) {
                     ostr << M[i][j];
                     if (j < M.cols() - 1) ostr << ", ";

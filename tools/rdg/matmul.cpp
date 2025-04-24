@@ -90,8 +90,7 @@ int main() {
 
 	std::cout << matmulRDG << '\n';
 
-	// std::cout << "Affine Map for A: " << matmulRDG.getAffineMap("A") << '\n';
-	// std::cout << "A propagation : " << jDirection << '\n';
+	std::cout << "A propagation : " << jDirection << '\n';
 
 	return EXIT_SUCCESS;
 }
