@@ -7,12 +7,19 @@
 int main() {
     using namespace sw::dfa;
 
-	std::string graphName = "matmul_chained";
+//	std::string matmulSpec = "256x256";
+	std::string matmulSpec = "16x16";
+	std::string graphName = "matmul_" + matmulSpec + "_chained";
 	DomainFlowGraph nla(graphName); // Numerical Linear Algebra
 
 	size_t SLOT_A = 0;
 	size_t SLOT_B = 1;
 	size_t SLOT_C = 2;
+
+	std::string tensorStage1 = "tensor<" + matmulSpec + "xf8>";
+	std::string tensorStage2 = "tensor<" + matmulSpec + "xf16>";
+	std::string tensorStage3 = "tensor<" + matmulSpec + "xf32>";
+	std::string tensorStage4 = "tensor<" + matmulSpec + "xf64>";
 
 	// model a chain of matrix mulitplications, the output matrix of each matmul feeds into the C input of the next
 	// we are going to set up a set of A and B matrices for each layer in the chain as constants.
@@ -20,22 +27,22 @@ int main() {
 	// 
 	// all matrices are 256x256, but at each stage the output is upsampled to the next precision floating-point
 	size_t SLOT_OUTPUT = 0;
-	auto A1 = DomainFlowNode(DomainFlowOperator::CONSTANT, "const.A1").addResult(SLOT_OUTPUT, "A1", "tensor<256x256xf8>");
-	auto B1 = DomainFlowNode(DomainFlowOperator::CONSTANT, "const.B1").addResult(SLOT_OUTPUT, "B1", "tensor<256x256xf8>");
-	auto A2 = DomainFlowNode(DomainFlowOperator::CONSTANT, "const.A2").addResult(SLOT_OUTPUT, "A2", "tensor<256x256xf16>");
-	auto B2 = DomainFlowNode(DomainFlowOperator::CONSTANT, "const.B2").addResult(SLOT_OUTPUT, "B2", "tensor<256x256xf16>");
-	auto A3 = DomainFlowNode(DomainFlowOperator::CONSTANT, "const.A3").addResult(SLOT_OUTPUT, "A3", "tensor<256x256xf32>");
-	auto B3 = DomainFlowNode(DomainFlowOperator::CONSTANT, "const.B3").addResult(SLOT_OUTPUT, "B3", "tensor<256x256xf32>");
-	auto A4 = DomainFlowNode(DomainFlowOperator::CONSTANT, "const.A4").addResult(SLOT_OUTPUT, "A4", "tensor<256x256xf64>");
-	auto B4 = DomainFlowNode(DomainFlowOperator::CONSTANT, "const.B4").addResult(SLOT_OUTPUT, "B4", "tensor<256x256xf64>");
+	auto A1 = DomainFlowNode(DomainFlowOperator::CONSTANT, "const.A1").addResult(SLOT_OUTPUT, "A1", tensorStage1);
+	auto B1 = DomainFlowNode(DomainFlowOperator::CONSTANT, "const.B1").addResult(SLOT_OUTPUT, "B1", tensorStage1);
+	auto A2 = DomainFlowNode(DomainFlowOperator::CONSTANT, "const.A2").addResult(SLOT_OUTPUT, "A2", tensorStage2);
+	auto B2 = DomainFlowNode(DomainFlowOperator::CONSTANT, "const.B2").addResult(SLOT_OUTPUT, "B2", tensorStage2);
+	auto A3 = DomainFlowNode(DomainFlowOperator::CONSTANT, "const.A3").addResult(SLOT_OUTPUT, "A3", tensorStage3);
+	auto B3 = DomainFlowNode(DomainFlowOperator::CONSTANT, "const.B3").addResult(SLOT_OUTPUT, "B3", tensorStage3);
+	auto A4 = DomainFlowNode(DomainFlowOperator::CONSTANT, "const.A4").addResult(SLOT_OUTPUT, "A4", tensorStage4);
+	auto B4 = DomainFlowNode(DomainFlowOperator::CONSTANT, "const.B4").addResult(SLOT_OUTPUT, "B4", tensorStage4);
 
 
-	auto mm1 = DomainFlowNode(DomainFlowOperator::MATMUL, "matmul").addOperand(SLOT_A, "tensor<256x256xf8>").addOperand(SLOT_B, "tensor<256x256xf8>").addResult(0, "C1", "tensor<256x256xf8>");  // 8-bit matmul with implicit C=0
-	auto mm2 = DomainFlowNode(DomainFlowOperator::MATMUL, "matmul").addOperand(SLOT_A, "tensor<256x256xf16>").addOperand(SLOT_B, "tensor<256x256xf16>").addOperand(SLOT_C, "tensor<256x256xf16>").addResult(0, "C2", "tensor<256x256xf16>");
-	auto mm3 = DomainFlowNode(DomainFlowOperator::MATMUL, "matmul").addOperand(SLOT_A, "tensor<256x256xf32>").addOperand(SLOT_B, "tensor<256x256xf32>").addOperand(SLOT_C, "tensor<256x256xf32>").addResult(0, "C3", "tensor<256x256xf32>");
-	auto mm4 = DomainFlowNode(DomainFlowOperator::MATMUL, "matmul").addOperand(SLOT_A, "tensor<256x256xf64>").addOperand(SLOT_B, "tensor<256x256xf64>").addOperand(SLOT_C, "tensor<256x256xf64>").addResult(0, "C4", "tensor<256x256xf64>");
+	auto mm1 = DomainFlowNode(DomainFlowOperator::MATMUL, "matmul").addOperand(SLOT_A, tensorStage1).addOperand(SLOT_B, tensorStage1).addResult(0, "C1", tensorStage1);  // 8-bit matmul with implicit C=0
+	auto mm2 = DomainFlowNode(DomainFlowOperator::MATMUL, "matmul").addOperand(SLOT_A, tensorStage2).addOperand(SLOT_B, tensorStage2).addOperand(SLOT_C, tensorStage2).addResult(0, "C2", tensorStage2);
+	auto mm3 = DomainFlowNode(DomainFlowOperator::MATMUL, "matmul").addOperand(SLOT_A, tensorStage3).addOperand(SLOT_B, tensorStage3).addOperand(SLOT_C, tensorStage3).addResult(0, "C3", tensorStage3);
+	auto mm4 = DomainFlowNode(DomainFlowOperator::MATMUL, "matmul").addOperand(SLOT_A, tensorStage4).addOperand(SLOT_B, tensorStage4).addOperand(SLOT_C, tensorStage4).addResult(0, "C4", tensorStage4);
 
-	auto output = DomainFlowNode(DomainFlowOperator::FUNCTION_RETURN, "output").addOperand(0, "tensor<256x256xf64>").addAttribute("target", "memory").addResult(0, "C4", "tensor<256x256xf64>");
+	auto output = DomainFlowNode(DomainFlowOperator::FUNCTION_RETURN, "output").addOperand(0, tensorStage4).addAttribute("target", "memory").addResult(0, "C4", tensorStage4);
 
 	// create the nodes
 	auto a1Id = nla.addNode(A1);

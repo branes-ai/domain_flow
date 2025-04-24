@@ -1,4 +1,4 @@
-Domain Flow Graph: matmul_chained
+Domain Flow Graph: matmul_256x256_chained
 DIRECTED
 RUNNING_NODE_ID 12
 NODES 13
