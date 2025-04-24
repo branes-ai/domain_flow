@@ -1,0 +1,45 @@
+Domain Flow Graph: matmul_8x8_chained
+DIRECTED
+RUNNING_NODE_ID 12
+NODES 13
+NODE 0 : |const.A1|CONSTANT|0|||0:A1|0:tensor<8x8xf8>
+NODE 1 : |const.B1|CONSTANT|0|||0:B1|0:tensor<8x8xf8>
+NODE 2 : |const.A2|CONSTANT|0|||0:A2|0:tensor<8x8xf16>
+NODE 3 : |const.B2|CONSTANT|0|||0:B2|0:tensor<8x8xf16>
+NODE 4 : |const.A3|CONSTANT|0|||0:A3|0:tensor<8x8xf32>
+NODE 5 : |const.B3|CONSTANT|0|||0:B3|0:tensor<8x8xf32>
+NODE 6 : |const.A4|CONSTANT|0|||0:A4|0:tensor<8x8xf64>
+NODE 7 : |const.B4|CONSTANT|0|||0:B4|0:tensor<8x8xf64>
+NODE 8 : |matmul|MATMUL|1|0:tensor<8x8xf8>,1:tensor<8x8xf8>||0:C1|0:tensor<8x8xf8>
+NODE 9 : |matmul|MATMUL|2|0:tensor<8x8xf16>,1:tensor<8x8xf16>,2:tensor<8x8xf16>||0:C2|0:tensor<8x8xf16>
+NODE 10 : |matmul|MATMUL|3|0:tensor<8x8xf32>,1:tensor<8x8xf32>,2:tensor<8x8xf32>||0:C3|0:tensor<8x8xf32>
+NODE 11 : |matmul|MATMUL|4|0:tensor<8x8xf64>,1:tensor<8x8xf64>,2:tensor<8x8xf64>||0:C4|0:tensor<8x8xf64>
+NODE 12 : |output|FUNCTION_RETURN|5|0:tensor<8x8xf64>|target:memory|0:C4|0:tensor<8x8xf64>
+EDGES 12
+EDGE 3 -> 9 : 0|true|tensor<8x8xf16>|16|0|1|1,1,1
+EDGE 0 -> 8 : 0|true|tensor<8x8xf8>|8|0|0|1,1,1
+EDGE 1 -> 8 : 0|true|tensor<8x8xf8>|8|0|1|1,1,1
+EDGE 8 -> 9 : 0|false|tensor<8x8xf8>|8|0|2|1,1,1
+EDGE 2 -> 9 : 0|true|tensor<8x8xf16>|16|0|0|1,1,1
+EDGE 4 -> 10 : 0|true|tensor<8x8xf32>|32|0|0|1,1,1
+EDGE 9 -> 10 : 0|false|tensor<8x8xf16>|16|0|2|1,1,1
+EDGE 5 -> 10 : 0|true|tensor<8x8xf32>|32|0|1|1,1,1
+EDGE 10 -> 11 : 0|false|tensor<8x8xf32>|32|0|2|1,1,1
+EDGE 6 -> 11 : 0|true|tensor<8x8xf64>|64|0|0|1,1,1
+EDGE 7 -> 11 : 0|true|tensor<8x8xf64>|64|0|1|1,1,1
+EDGE 11 -> 12 : 0|false|tensor<8x8xf64>|64|0|0|1,1,1
+ADJACENCY 12
+ADJ 8 : 9
+ADJ 0 : 8
+ADJ 9 : 10
+ADJ 1 : 8
+ADJ 2 : 9
+ADJ 3 : 9
+ADJ 4 : 10
+ADJ 5 : 10
+ADJ 10 : 11
+ADJ 6 : 11
+ADJ 7 : 11
+ADJ 11 : 12
+SOURCE: 0, 1, 2, 3, 4, 5, 6, 7
+SINK: 12

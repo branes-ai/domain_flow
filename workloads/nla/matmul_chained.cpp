@@ -8,7 +8,8 @@ int main() {
     using namespace sw::dfa;
 
 //	std::string matmulSpec = "256x256";
-	std::string matmulSpec = "16x16";
+//	std::string matmulSpec = "16x16";
+	std::string matmulSpec = "8x8";
 	std::string graphName = "matmul_" + matmulSpec + "_chained";
 	DomainFlowGraph nla(graphName); // Numerical Linear Algebra
 
@@ -60,39 +61,39 @@ int main() {
 	auto outputId = nla.addNode(output);
 
 	// Add edges between the nodes
-	DomainFlowEdge A1_flow(0, true, "tensor<256x256>", 8, 0, 0, { 1, 1, 1 });
+	DomainFlowEdge A1_flow(0, true, tensorStage1, 8, 0, 0, { 1, 1, 1 });
 	nla.addEdge(a1Id, SLOT_OUTPUT, mm1Id, SLOT_A, A1_flow);
-	DomainFlowEdge B1_flow(0, true, "tensor<256x256>", 8, 0, 0, { 1, 1, 1 });
+	DomainFlowEdge B1_flow(0, true, tensorStage1, 8, 0, 0, { 1, 1, 1 });
 	nla.addEdge(b1Id, SLOT_OUTPUT, mm1Id, SLOT_B, B1_flow);
 
 	// second stage
-	DomainFlowEdge C1_flow(0, false, "tensor<256x256>", 8, 0, 0, { 1, 1, 1 });
+	DomainFlowEdge C1_flow(0, false, tensorStage1, 8, 0, 0, { 1, 1, 1 });
 	nla.addEdge(mm1Id, SLOT_OUTPUT, mm2Id, SLOT_C, C1_flow);  // implicit conversion to f16 inside the matmul
 
-	DomainFlowEdge A2_flow(0, true, "tensor<256x256>", 16, 0, 0, { 1, 1, 1 });
+	DomainFlowEdge A2_flow(0, true, tensorStage2, 16, 0, 0, { 1, 1, 1 });
 	nla.addEdge(a2Id, SLOT_OUTPUT, mm2Id, SLOT_A, A2_flow);
-	DomainFlowEdge B2_flow(0, true, "tensor<256x256>", 16, 0, 0, { 1, 1, 1 });
+	DomainFlowEdge B2_flow(0, true, tensorStage2, 16, 0, 0, { 1, 1, 1 });
 	nla.addEdge(b2Id, SLOT_OUTPUT, mm2Id, SLOT_B, B2_flow);
 
 	// third stage
-	DomainFlowEdge C2_flow(0, false, "tensor<256x256>", 16, 0, 0, { 1, 1, 1 });
+	DomainFlowEdge C2_flow(0, false, tensorStage2, 16, 0, 0, { 1, 1, 1 });
 	nla.addEdge(mm2Id, SLOT_OUTPUT, mm3Id, SLOT_C, C2_flow);  // implicit conversion to f32 inside the matmul
 
-	DomainFlowEdge A3_flow(0, true, "tensor<256x256>", 32, 0, 0, { 1, 1, 1 });
+	DomainFlowEdge A3_flow(0, true, tensorStage3, 32, 0, 0, { 1, 1, 1 });
 	nla.addEdge(a3Id, SLOT_OUTPUT, mm3Id, SLOT_A, A3_flow);
-	DomainFlowEdge B3_flow(0, true, "tensor<256x256>", 32, 0, 0, { 1, 1, 1 });
+	DomainFlowEdge B3_flow(0, true, tensorStage3, 32, 0, 0, { 1, 1, 1 });
 	nla.addEdge(b3Id, SLOT_OUTPUT, mm3Id, SLOT_B, B3_flow);
 
 	// fourth stage
-	DomainFlowEdge C3_flow(0, false, "tensor<256x256>", 32, 0, 0, { 1, 1, 1 });
+	DomainFlowEdge C3_flow(0, false, tensorStage3, 32, 0, 0, { 1, 1, 1 });
 	nla.addEdge(mm3Id, SLOT_OUTPUT, mm4Id, SLOT_C, C3_flow);  // implicit conversion to f64 inside the matmul
-	DomainFlowEdge A4_flow(0, true, "tensor<256x256>", 64, 0, 0, { 1, 1, 1 });
+	DomainFlowEdge A4_flow(0, true, tensorStage4, 64, 0, 0, { 1, 1, 1 });
 	nla.addEdge(a4Id, SLOT_OUTPUT, mm4Id, SLOT_A, A4_flow);
-	DomainFlowEdge B4_flow(0, true, "tensor<256x256>", 64, 0, 0, { 1, 1, 1 });
+	DomainFlowEdge B4_flow(0, true, tensorStage4, 64, 0, 0, { 1, 1, 1 });
 	nla.addEdge(b4Id, SLOT_OUTPUT, mm4Id, SLOT_B, B4_flow);
 
 	// connect the output of the last matmul to the output node
-	DomainFlowEdge C4_flow(0, false, "tensor<256x256>", 64, 0, 0, { 1, 1, 1 });
+	DomainFlowEdge C4_flow(0, false, tensorStage4, 64, 0, 0, { 1, 1, 1 });
 	nla.addEdge(mm4Id, SLOT_OUTPUT, outputId, 0, C4_flow);
 
 	// generate the graph order
