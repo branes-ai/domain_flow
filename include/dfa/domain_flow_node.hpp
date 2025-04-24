@@ -5,6 +5,7 @@
 #include <dfa/domain_flow_operator.hpp>
 #include <dfa/tensor_spec_parser.hpp>
 #include <dfa/index_point.hpp>
+#include <dfa/schedule.hpp>
 // helper
 #include <dfa/arithmetic_complexity.hpp>
 
@@ -46,7 +47,6 @@ namespace sw {
                 pointSet.push_back(p);
             }
         };
-
 
         struct shapeAnalysisResults {
             int64_t batchSize, m, k, n;
@@ -163,11 +163,23 @@ namespace sw {
             std::map<std::size_t, std::string> resultType; // slotted string version of mlir::Type
 			std::map<std::string, std::string> attribute;   // attributes of the operation, key/value pair where the value is encoded as a string
             int depth;                                      // depth of 0 represents a data source
+			IndexSpace<int> indexSpace;                     // index space for the operator
+			Schedule<int> tau;                              // tau represents the execution schedule for the operator
 
             // Constructor to initialize the node with just a string of the operator
-            DomainFlowNode() : opType{ DomainFlowOperator::UNKNOWN }, name{ "undefined" }, operandType{}, resultValue{}, resultType{}, depth { 0 } {}
-            DomainFlowNode(const std::string& name) : opType{ DomainFlowOperator::UNKNOWN }, name{ name }, operandType{}, resultValue{}, resultType{}, depth{ 0 } {}
-            DomainFlowNode(DomainFlowOperator opType, const std::string& name) : opType{ opType }, name{ name }, operandType{}, resultValue{}, resultType{}, depth{ 0 } {}
+            DomainFlowNode() 
+                : opType{ DomainFlowOperator::UNKNOWN }, name{ "undefined" }, 
+                operandType{}, resultValue{}, resultType{}, depth { 0 },
+				indexSpace{}, tau{} {}
+            DomainFlowNode(const std::string& name) 
+                : opType{ DomainFlowOperator::UNKNOWN }, name{ name }, 
+                operandType{}, resultValue{}, resultType{}, depth{ 0 },
+                indexSpace{}, tau{} {}
+            DomainFlowNode(DomainFlowOperator opType, const std::string& name) 
+                : opType{ opType }, name{ name }, 
+                operandType{}, resultValue{}, resultType{}, depth{ 0 },
+                indexSpace{}, tau{} {
+            }
 
             // Modifiers
             void setOperator(DomainFlowOperator opType, std::string name) { this->opType = opType;  this->name = name; }
@@ -187,6 +199,17 @@ namespace sw {
                 return *this;
             }
 
+            void clear() {
+                opType = DomainFlowOperator::UNKNOWN;
+                name.clear();
+                operandType.clear();
+                resultValue.clear();
+                resultType.clear();
+                attribute.clear();
+                depth = 0;
+                indexSpace.clear();
+                tau.clear();
+            }
             // selectors
 			DomainFlowOperator getOperator() const noexcept { return opType; }
             std::string getName() const noexcept { return name; }
@@ -593,55 +616,56 @@ namespace sw {
                 return points;
             }
 
-            IndexSpace<int> getIndexSpace() const noexcept {
+            IndexSpace<int> elaborateIndexSpace() const noexcept {
+                // generate the index space for the operator
                 ConstraintSet<int> c{};
-				switch (opType) {
-				case DomainFlowOperator::CONSTANT:
-				{
-					// constant operator
-					//    %out = tosa.constant 0.000000e+00 : tensor<12x6xf32>
-					auto tensorInfo = parseTensorType(getResultType(0));
-					c.shapeExtract(tensorInfo);
-				}
+                switch (opType) {
+                case DomainFlowOperator::CONSTANT:
+                {
+                    // constant operator
+                    //    %out = tosa.constant 0.000000e+00 : tensor<12x6xf32>
+                    auto tensorInfo = parseTensorType(getResultType(0));
+                    c.shapeExtract(tensorInfo);
+                }
                 break;
-				case DomainFlowOperator::ADD:
-				case DomainFlowOperator::SUB:
-				case DomainFlowOperator::MUL:
-				{
-					auto tensorInfo = parseTensorType(getOperandType(0));
-					c.shapeExtract(tensorInfo);
-				}
-				break;
-				case DomainFlowOperator::MATMUL:
-				{
-					TensorTypeInfo tensor1 = parseTensorType(getOperandType(0));
-					TensorTypeInfo tensor2 = parseTensorType(getOperandType(1));
-					if (tensor1.empty() || tensor2.empty()) {
-						std::cerr << "DomainFlowNode getIndexSpace: invalid matmul arguments: ignoring matmul operator" << std::endl;
-						break;
-					}
-					if (tensor1.size() != 2 || tensor2.size() != 2) {
-						std::cerr << "DomainFlowNode getIndexSpace: invalid matmul arguments: ignoring matmul operator" << std::endl;
-						break;
-					}
+                case DomainFlowOperator::ADD:
+                case DomainFlowOperator::SUB:
+                case DomainFlowOperator::MUL:
+                {
+                    auto tensorInfo = parseTensorType(getOperandType(0));
+                    c.shapeExtract(tensorInfo);
+                }
+                break;
+                case DomainFlowOperator::MATMUL:
+                {
+                    TensorTypeInfo tensor1 = parseTensorType(getOperandType(0));
+                    TensorTypeInfo tensor2 = parseTensorType(getOperandType(1));
+                    if (tensor1.empty() || tensor2.empty()) {
+                        std::cerr << "DomainFlowNode getIndexSpace: invalid matmul arguments: ignoring matmul operator" << std::endl;
+                        break;
+                    }
+                    if (tensor1.size() != 2 || tensor2.size() != 2) {
+                        std::cerr << "DomainFlowNode getIndexSpace: invalid matmul arguments: ignoring matmul operator" << std::endl;
+                        break;
+                    }
                     TensorTypeInfo indexSpaceShape;
                     // computational domain is m x k x n
                     // system( (i, j, k) : 0 <= i < m, 0 <= j < n, 0 <= l < k)
                     indexSpaceShape.elementType = tensor1.elementType;
-					// tensor<m, k> * tensor<k, n> -> tensor<m, n>  -> index space is m x n x k
+                    // tensor<m, k> * tensor<k, n> -> tensor<m, n>  -> index space is m x n x k
                     if (tensor1.size() == 2 && tensor2.size() == 2) {
-						int m = tensor1.shape[0];
-						int k = tensor1.shape[1];
+                        int m = tensor1.shape[0];
+                        int k = tensor1.shape[1];
                         int k1 = tensor2.shape[0];
-						int n = tensor2.shape[1];
-						if (k != k1) {
-							std::cerr << "DomainFlowNode getIndexSpace: tensor are incorrect shape: ignoring matmul operator" << std::endl;
-							break;
-						}
-						indexSpaceShape.shape.push_back(m);
-						indexSpaceShape.shape.push_back(n);
+                        int n = tensor2.shape[1];
+                        if (k != k1) {
+                            std::cerr << "DomainFlowNode getIndexSpace: tensor are incorrect shape: ignoring matmul operator" << std::endl;
+                            break;
+                        }
+                        indexSpaceShape.shape.push_back(m);
+                        indexSpaceShape.shape.push_back(n);
                         indexSpaceShape.shape.push_back(k);
-						c.shapeExtract(indexSpaceShape);
+                        c.shapeExtract(indexSpaceShape);
                     }
                     // tensor<batchSize, m, k> * tensor<batchSize, k, n> -> tensor<batchSize, m, n>
                     if (tensor1.size() == 3 && tensor2.size() == 3) {
@@ -658,17 +682,20 @@ namespace sw {
                         indexSpaceShape.shape.push_back(k);
                         c.shapeExtract(indexSpaceShape);
                     }
-				}
-				break;
-				}
+                }
+                break;
+                }
 
-				// catch any unprocessed nodes
-				if (c.empty()) {
-					std::cerr << "DomainFlowNode getIndexSpace: no index space defined for this operator" << std::endl;
-					return IndexSpace<int>();
-				}
-                IndexSpace<int> indexSpace(c);
-				return indexSpace;
+                // catch any unprocessed nodes
+                if (c.empty()) {
+                    std::cerr << "DomainFlowNode getIndexSpace: no index space defined for this operator" << std::endl;
+                    return IndexSpace<int>();
+                }
+                return IndexSpace<int>(c);
+            }
+            void generateIndexSpace() noexcept {
+				indexSpace.clear();
+				indexSpace = elaborateIndexSpace();
             }
         };
 

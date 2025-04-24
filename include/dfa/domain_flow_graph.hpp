@@ -68,6 +68,9 @@ namespace sw {
 				}
 			}
 
+			// Generate the index space for the graph
+			void generateIndexSpace() { graph.generateIndexSpace(); }
+
 			// Selectors
 			std::string getName() const noexcept { return name; }
 			std::size_t getNrNodes() const noexcept { return graph.nrNodes(); }

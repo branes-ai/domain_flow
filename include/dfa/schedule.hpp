@@ -1,42 +1,62 @@
 #pragma once
-#include <string>
+#include <iostream>
 #include <vector>
-
-#include <dfa/index_point.hpp>
+#include <stdexcept>
+#include <initializer_list>
 
 namespace sw {
     namespace dfa {
-
-        // Represents a specific schedule for the computation
+        
+        // Representing a piece-wise linear schedule
+        template<typename Scalar = int>
         class Schedule {
+        private:
+            std::vector<Scalar> data;
+
         public:
-            std::string name;
-            std::vector<float> timing_vector;  // Coefficients for timing function
-            std::vector<float> processor_vector;  // Coefficients for processor assignment
-            
-            Schedule(const std::string& n, 
-                    const std::vector<float>& timing,
-                    const std::vector<float>& proc)
-                : name(n), timing_vector(timing), processor_vector(proc) {}
-            
-            // Calculate execution time for an index point
-            float calculateExecutionTime(const IndexPoint& point) const {
-                float time = 0.0f;
-                for (size_t i = 0; i < point.coordinates.size(); ++i) {
-                    time += timing_vector[i] * point.coordinates[i];
+			// Constructors
+			Schedule() = default;
+            Schedule(std::initializer_list<Scalar> init) : data(init) {}
+            Schedule(std::vector<Scalar> init) : data(init) {}
+            Schedule(size_t size, Scalar value = 0) : data(size, value) {}
+
+            size_t size() const { return data.size(); }
+
+            // operator[] for const access
+            const Scalar& operator[](size_t index) const {
+                if (index >= data.size()) {
+                    throw std::out_of_range("Schedule index out of range.");
                 }
-                return time;
+                return data[index];
             }
-            
-            // Calculate processor assignment for an index point
-            int calculateProcessor(const IndexPoint& point) const {
-                float proc = 0.0f;
-                for (size_t i = 0; i < point.coordinates.size(); ++i) {
-                    proc += processor_vector[i] * point.coordinates[i];
+
+            // operator[] for non-const access
+            Scalar& operator[](size_t index) {
+                if (index >= data.size()) {
+                    throw std::out_of_range("Schedule index out of range.");
                 }
-                return static_cast<int>(proc);
+                return data[index];
             }
+
+            // modifiers
+			void clear() {
+				data.clear();
+			}
+            //selectors
+            std::vector<Scalar> toStdVector() const { return data; }
         };
+
+	template<typename Scalar>
+        std::ostream& operator<<(std::ostream& os, const Schedule<Scalar>& schedule) {
+            os << "[ ";
+            for (size_t i = 0; i < schedule.size(); ++i) {
+                os << schedule[i];
+                if (i < schedule.size() - 1) {
+                    os << ", ";
+                }
+            }
+            return os << " ]";
+        }
 
     }
 }

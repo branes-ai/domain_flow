@@ -339,6 +339,17 @@ namespace sw {
                 return edge(lhs, rhs);
             }
 
+			void generateIndexSpace() {
+                // walk the graph, and generate the index space for each operator
+                for (auto& [nodeId, node] : m_nodes) {
+                    if (in_degree(nodeId) > 0) { // filter out inputs
+                        std::cout << "Node ID: " << nodeId << ", Name: " << node.getName() << " Depth: " << node.getDepth() << std::endl;
+                        std::cout << "  Operator: " << node.getOperator() << std::endl;
+
+                        node.generateIndexSpace();
+                    }
+                }
+			}
             // distribute the constants among the graph nodes that need them
             void distributeConstants() {
                 // This function distributes constants in the graph.

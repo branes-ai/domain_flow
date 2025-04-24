@@ -13,6 +13,9 @@ namespace sw {
 		class ConstraintSet {
 			using Constraint = Hyperplane<ConstraintCoefficientType>;
 		public:
+			// default constructor
+			ConstraintSet() = default;
+			// constructor with initializer list
 			ConstraintSet(std::initializer_list<Constraint> init_constraints)
 				: constraints(init_constraints) {}
 

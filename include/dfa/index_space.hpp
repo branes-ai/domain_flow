@@ -16,24 +16,35 @@ namespace sw {
 				upper_bounds.resize(3, 0);
 				points.push_back(IndexPoint({ 0, 0, 0 }));
 			}
-            IndexSpace(const ConstraintSet<ConstraintCoefficientType>& c) : constraints(c), lower_bounds{}, upper_bounds{}, points{} {
-                if (constraints.empty()) {
-                    throw std::invalid_argument("At least one constraint is required.");
-                }
-                size_t dimensions = constraints[0].normal.size();
-                lower_bounds.resize(dimensions);
-                upper_bounds.resize(dimensions);
+            IndexSpace(const ConstraintSet<ConstraintCoefficientType>& c) {
+				setConstraints(c);
+			}
 
-                // Find bounds for each dimension
-                for (size_t dim = 0; dim < dimensions; ++dim) {
-                    auto [lb, ub] = find_dimension_bounds(dim);
-                    lower_bounds[dim] = lb;
-                    upper_bounds[dim] = ub;
-                }
-
-                generate();
-            }
-
+            // modifiers
+			void clear() {
+				constraints.clear();
+				lower_bounds.clear();
+				upper_bounds.clear();
+				points.clear();
+			}
+			void setConstraints(const ConstraintSet<ConstraintCoefficientType>& c) {
+				constraints.clear();
+				if (c.empty()) {
+					std::cerr << "IndexSpace setConstraints: at least one constraint is required\n";
+				}
+                constraints = c;
+				size_t dimensions = constraints[0].normal.size();
+				lower_bounds.resize(dimensions);
+				upper_bounds.resize(dimensions);
+				// Find bounds for each dimension
+				for (size_t dim = 0; dim < dimensions; ++dim) {
+					auto [lb, ub] = find_dimension_bounds(dim);
+					lower_bounds[dim] = lb;
+					upper_bounds[dim] = ub;
+				}
+				generate();
+			}
+            // selectors
             const std::vector<IndexPoint>& get_ssa_points() const {
                 return points;
             }

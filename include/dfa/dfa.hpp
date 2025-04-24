@@ -13,6 +13,8 @@
 #include <dfa/constraint_set.hpp>
 #include <dfa/index_point.hpp>
 #include <dfa/index_space.hpp>
-#include <dfa/domain_flow_edge.hpp>	   // definition of the edge
-#include <dfa/domain_flow_node.hpp>	   // definition of the node
+#include <dfa/schedule.hpp>
+#include <dfa/projection.hpp>
+#include <dfa/domain_flow_edge.hpp>    // definition of the edge
+#include <dfa/domain_flow_node.hpp>    // definition of the node
 #include <dfa/domain_flow_graph.hpp>   // definition of the graph
