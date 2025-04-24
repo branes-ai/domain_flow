@@ -24,6 +24,7 @@ namespace sw {
             Scalar rhs;                 // right hand side of the hyperplane constraint
             ConstraintType constraint;
 
+//			Hyperplane() : normal{1,1,1}, rhs(0), constraint(ConstraintType::Equal) {}
             Hyperplane(std::initializer_list<Scalar> n, Scalar o, ConstraintType c) : normal(n), rhs(o), constraint(c) {}
 
             bool is_satisfied(const std::vector<Scalar>& point) const {

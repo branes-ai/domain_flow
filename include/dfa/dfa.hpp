@@ -10,6 +10,7 @@
 
 // core domain flow abstractions
 #include <dfa/hyperplane.hpp>
+#include <dfa/constraint_set.hpp>
 #include <dfa/index_point.hpp>
 #include <dfa/index_space.hpp>
 #include <dfa/domain_flow_edge.hpp>	   // definition of the edge

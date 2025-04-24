@@ -10,9 +10,8 @@ namespace sw {
         struct TensorTypeInfo {
             std::vector<int> shape;
             std::string elementType;
-            bool empty() {
-                return shape.empty();
-            }
+            bool empty() const noexcept { return shape.empty(); }
+            size_t size() const noexcept { return shape.size(); }
         };
 
         inline TensorTypeInfo parseTensorType(const std::string& tensorTypeStr) {

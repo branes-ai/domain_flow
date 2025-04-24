@@ -592,6 +592,83 @@ namespace sw {
                 }
                 return points;
             }
+
+            IndexSpace<int> getIndexSpace() const noexcept {
+                ConstraintSet<int> c{};
+				switch (opType) {
+				case DomainFlowOperator::CONSTANT:
+				{
+					// constant operator
+					//    %out = tosa.constant 0.000000e+00 : tensor<12x6xf32>
+					auto tensorInfo = parseTensorType(getResultType(0));
+					c.shapeExtract(tensorInfo);
+				}
+                break;
+				case DomainFlowOperator::ADD:
+				case DomainFlowOperator::SUB:
+				case DomainFlowOperator::MUL:
+				{
+					auto tensorInfo = parseTensorType(getOperandType(0));
+					c.shapeExtract(tensorInfo);
+				}
+				break;
+				case DomainFlowOperator::MATMUL:
+				{
+					TensorTypeInfo tensor1 = parseTensorType(getOperandType(0));
+					TensorTypeInfo tensor2 = parseTensorType(getOperandType(1));
+					if (tensor1.empty() || tensor2.empty()) {
+						std::cerr << "DomainFlowNode getIndexSpace: invalid matmul arguments: ignoring matmul operator" << std::endl;
+						break;
+					}
+					if (tensor1.size() != 2 || tensor2.size() != 2) {
+						std::cerr << "DomainFlowNode getIndexSpace: invalid matmul arguments: ignoring matmul operator" << std::endl;
+						break;
+					}
+                    TensorTypeInfo indexSpaceShape;
+                    // computational domain is m x k x n
+                    // system( (i, j, k) : 0 <= i < m, 0 <= j < n, 0 <= l < k)
+                    indexSpaceShape.elementType = tensor1.elementType;
+					// tensor<m, k> * tensor<k, n> -> tensor<m, n>  -> index space is m x n x k
+                    if (tensor1.size() == 2 && tensor2.size() == 2) {
+						int m = tensor1.shape[0];
+						int k = tensor1.shape[1];
+                        int k1 = tensor2.shape[0];
+						int n = tensor2.shape[1];
+						if (k != k1) {
+							std::cerr << "DomainFlowNode getIndexSpace: tensor are incorrect shape: ignoring matmul operator" << std::endl;
+							break;
+						}
+						indexSpaceShape.shape.push_back(m);
+						indexSpaceShape.shape.push_back(n);
+                        indexSpaceShape.shape.push_back(k);
+                    }
+                    // tensor<batchSize, m, k> * tensor<batchSize, k, n> -> tensor<batchSize, m, n>
+                    if (tensor1.size() == 3 && tensor2.size() == 3) {
+                        int m = tensor1.shape[0];
+                        int k = tensor1.shape[1];
+                        int k1 = tensor2.shape[0];
+                        int n = tensor2.shape[1];
+                        if (k != k1) {
+                            std::cerr << "DomainFlowNode getIndexSpace: tensor are incorrect shape: ignoring matmul operator" << std::endl;
+                            break;
+                        }
+                        indexSpaceShape.shape.push_back(m);
+                        indexSpaceShape.shape.push_back(n);
+                        indexSpaceShape.shape.push_back(k);
+                        c.shapeExtract(indexSpaceShape);
+                    }
+				}
+				break;
+				}
+
+				// catch any unprocessed nodes
+				if (c.empty()) {
+					std::cerr << "DomainFlowNode getIndexSpace: no index space defined for this operator" << std::endl;
+					return IndexSpace<int>();
+				}
+                IndexSpace<int> indexSpace(c);
+				return indexSpace;
+            }
         };
 
 		inline bool operator==(const DomainFlowNode& lhs, const DomainFlowNode& rhs) {
