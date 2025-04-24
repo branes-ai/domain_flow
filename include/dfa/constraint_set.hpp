@@ -30,14 +30,14 @@ namespace sw {
 				// lower bound constraints
 				switch (tensorInfo.size()) {
 				case 1:
-					add(Constraint({ 1, 0, 0 }, 0, ConstraintType::GreaterOrEqual));
-					add(Constraint({ 1, 0, 0 }, tensorInfo.shape[0], ConstraintType::LessThan));
+					add(Constraint({ 1 }, 0, ConstraintType::GreaterOrEqual));
+					add(Constraint({ 1 }, tensorInfo.shape[0], ConstraintType::LessThan));
 					break;
 				case 2:
-					add(Constraint({ 1, 0, 0 }, 0, ConstraintType::GreaterOrEqual));
-					add(Constraint({ 1, 0, 0 }, tensorInfo.shape[0], ConstraintType::LessThan));
-					add(Constraint({ 0, 1, 0 }, 0, ConstraintType::GreaterOrEqual));
-					add(Constraint({ 0, 1, 0 }, tensorInfo.shape[1], ConstraintType::LessThan));
+					add(Constraint({ 1, 0 }, 0, ConstraintType::GreaterOrEqual));
+					add(Constraint({ 1, 0 }, tensorInfo.shape[0], ConstraintType::LessThan));
+					add(Constraint({ 0, 1 }, 0, ConstraintType::GreaterOrEqual));
+					add(Constraint({ 0, 1 }, tensorInfo.shape[1], ConstraintType::LessThan));
 					break;
 				case 3:
 					add(Constraint({ 1, 0, 0 }, 0, ConstraintType::GreaterOrEqual));

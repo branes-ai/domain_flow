@@ -641,6 +641,7 @@ namespace sw {
 						indexSpaceShape.shape.push_back(m);
 						indexSpaceShape.shape.push_back(n);
                         indexSpaceShape.shape.push_back(k);
+						c.shapeExtract(indexSpaceShape);
                     }
                     // tensor<batchSize, m, k> * tensor<batchSize, k, n> -> tensor<batchSize, m, n>
                     if (tensor1.size() == 3 && tensor2.size() == 3) {
