@@ -42,6 +42,13 @@ namespace sw {
 			void add(const Point<ConstraintCoefficientType>& p) {
 				pointSet.push_back(p);
 			}
+			friend std::ostream& operator<<(std::ostream& os, const PointSet& ps) {
+				os << "PointSet:\n";
+				for (const auto& p : ps.pointSet) {
+					os << "  " << p << '\n';
+				}
+				return os;
+			}
 		};
 
 		// Represents a face (tensor slice) defined by a variable number of vertices

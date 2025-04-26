@@ -4,6 +4,24 @@
 #include <dfa/dfa.hpp>
 #include <util/data_file.hpp>
 
+namespace sw::dfa {
+    void reportConvexHulls(const DomainFlowGraph& dfg) {
+        // for all the operators in the subgraph, print the convex hull of the domain of computation
+        for (const auto& [nodeId, node] : dfg.graph.nodes()) {
+            if (node.isOperator()) {
+                std::cout << "Node ID: " << nodeId << ", Name: " << node.getName() << " Depth: " << node.getDepth() << std::endl;
+                std::cout << "  Operator: " << node.getOperator() << std::endl;
+                // generate the domain of computation information for each node
+                std::cout << "Convex Hull\n";
+                auto pointCloud = node.getConvexHull();
+                for (const auto& p : pointCloud.pointSet) {
+                    std::cout << "Point: " << p << '\n';
+                }
+            }
+        }
+    }
+}
+
 int main(int argc, char** argv) {
     using namespace sw::dfa;
 
@@ -63,24 +81,14 @@ int main(int argc, char** argv) {
     
 	// now we can expand the subgraph to include the index space for each operator
     // First action: create all the domains of computation for the operators in the subgraph
+	std::cout << "\n\nFirst Step: Instantiate the Domains of Computation for the subgraph:\n";
 	subgraph.instantiateDomains();  
-	// for all the operators in the subgraph, print the convex hull of the domain of computation
-    for (const auto& [nodeId, node] : subgraph.graph.nodes()) {
-        if (node.isOperator()) {
-            std::cout << "Node ID: " << nodeId << ", Name: " << node.getName() << " Depth: " << node.getDepth() << std::endl;
-            std::cout << "  Operator: " << node.getOperator() << std::endl;
-            // generate the domain of computation information for each node
-            std::cout << "Convex Hull\n";
-            auto pointCloud = node.getConvexHull();
-            for (const auto& p : pointCloud.pointSet) {
-                std::cout << "Point: " << p << '\n';
-            }
-        }
-    }
+
 	// print the convex hull of the domain of computation for a specific node
-    //std::cout << subgraph.getConvexHull(8) << '\n';
+    std::cout << "\nConvex Hull Point Set for node 8:\n" << subgraph.getConvexHull(8) << '\n';
 
     // Second action: create the index space for each operator in the subgraph
+    std::cout << "\n\nSecond Step: Instantiate the Index Space for each DoC:\n";
 	subgraph.instantiateIndexSpaces(); 
 
     return EXIT_SUCCESS;
