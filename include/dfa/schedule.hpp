@@ -39,9 +39,17 @@ namespace sw {
             }
 
             // modifiers
-			void clear() {
-				data.clear();
+            void clear() { data.clear(); }
+			void resize(size_t newSize, Scalar value = 0) {
+				data.resize(newSize, value);
 			}
+			void push_back(Scalar value) noexcept { data.push_back(value); }
+			void pop_back() noexcept { data.pop_back(); }
+			void assign(size_t size, Scalar value) noexcept { data.assign(size, value); }
+			void assign(std::initializer_list<Scalar> init) noexcept { data.assign(init); }
+			void assign(std::vector<Scalar> init) noexcept { data.assign(init.begin(), init.end()); }
+			void assign(const Schedule<Scalar>& other) noexcept { data.assign(other.data.begin(), other.data.end()); }
+
             //selectors
             std::vector<Scalar> toStdVector() const { return data; }
         };

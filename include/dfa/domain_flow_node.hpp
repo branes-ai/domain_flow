@@ -641,11 +641,11 @@ namespace sw {
                     TensorTypeInfo tensor1 = parseTensorType(getOperandType(0));
                     TensorTypeInfo tensor2 = parseTensorType(getOperandType(1));
                     if (tensor1.empty() || tensor2.empty()) {
-                        std::cerr << "DomainFlowNode getIndexSpace: invalid matmul arguments: ignoring matmul operator" << std::endl;
+                        std::cerr << "DomainFlowNode elaborateIndexSpace: invalid matmul arguments: ignoring matmul operator" << std::endl;
                         break;
                     }
                     if (tensor1.size() != 2 || tensor2.size() != 2) {
-                        std::cerr << "DomainFlowNode getIndexSpace: invalid matmul arguments: ignoring matmul operator" << std::endl;
+                        std::cerr << "DomainFlowNode elaborateIndexSpace: invalid matmul arguments: ignoring matmul operator" << std::endl;
                         break;
                     }
                     TensorTypeInfo indexSpaceShape;
@@ -659,7 +659,7 @@ namespace sw {
                         int k1 = tensor2.shape[0];
                         int n = tensor2.shape[1];
                         if (k != k1) {
-                            std::cerr << "DomainFlowNode getIndexSpace: tensor are incorrect shape: ignoring matmul operator" << std::endl;
+                            std::cerr << "DomainFlowNode elaborateIndexSpace: tensor are incorrect shape: ignoring matmul operator" << std::endl;
                             break;
                         }
                         indexSpaceShape.shape.push_back(m);
@@ -674,7 +674,7 @@ namespace sw {
                         int k1 = tensor2.shape[0];
                         int n = tensor2.shape[1];
                         if (k != k1) {
-                            std::cerr << "DomainFlowNode getIndexSpace: tensor are incorrect shape: ignoring matmul operator" << std::endl;
+                            std::cerr << "DomainFlowNode elaborateIndexSpace: tensor are incorrect shape: ignoring matmul operator" << std::endl;
                             break;
                         }
                         indexSpaceShape.shape.push_back(m);
@@ -688,7 +688,7 @@ namespace sw {
 
                 // catch any unprocessed nodes
                 if (c.empty()) {
-                    std::cerr << "DomainFlowNode getIndexSpace: no index space defined for this operator" << std::endl;
+                    std::cerr << "DomainFlowNode elaborateIndexSpace: no index space defined for this operator" << std::endl;
                     return IndexSpace<int>();
                 }
                 return IndexSpace<int>(c);

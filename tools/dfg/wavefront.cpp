@@ -42,12 +42,28 @@ int main(int argc, char** argv) {
     DomainFlowGraph dfg(dataFileName); // Domain Flow Graph
     dfg.load(dataFileName);
 
-    // generate the index space for the graph
+    // generate the index space for the complete graph
 	dfg.generateIndexSpace();
 
+	// analyze the index space and gather valid schedules
+
+    // each operator has a 'native' schedule defined by their internal data dependencies
+    // These dependencies are part of the design of the system of recurrence equations
+	// and thus are not unique. When we walk the Domain Flow Graph, we key off the operator
+	// and select a system of recurrence equations that is a functional implementation
+	// of the operator. 
+    //
+    // Each operator thus has a set of schedules that are governed by these recurrence
+    // equations and can be seen as 'inherent' to the algorithm. But as we are data driven
+    // the schedule of each internal operation is also impacted by the arrival of
+    // input data.
+
+    // 
+    Schedule<int> schedule;
+    dfg.generateSchedule(schedule);
+
     // schedule the index space union
-    for (const auto& [nodeId, node] : dfg.graph.nodes()) {
-    }
+    //dfg.schedule(schedule);
 
     return EXIT_SUCCESS;
 }

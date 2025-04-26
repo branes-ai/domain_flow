@@ -142,7 +142,6 @@ namespace sw {
             using edgeId_to_edge_t = std::unordered_map<edgeId_t, edge_t, edge_id_hash>;
 
             // selectors
-
             constexpr bool is_directed() const noexcept { return graph_t; }
             std::size_t nrNodes() const noexcept { return m_nodes.size(); }
             std::size_t nrEdges() const noexcept { return m_edges.size(); }
@@ -549,6 +548,42 @@ namespace sw {
                 if (!ifs.good() && !ifs.eof()) {
                     throw std::runtime_error("error occurred while reading istream");
                 }
+            }
+
+            // graph manipulators
+
+			// extract the subgraph defined by a starting depth and an ending depth
+			// keep nodeId and edgeId the same as in the original graph so that 
+			// we can compared the subgraph with the original graph
+            graph<NodeType, EdgeType, GraphType> subgraph(int start_depth, int end_depth) const {
+                // Create a new graph of the same type
+                graph<NodeType, EdgeType, GraphType> sub;
+
+                // Step 1: Select nodes within the depth range
+                nodeSet_t selected_nodes;
+                for (const auto& [node_id, node] : m_nodes) {
+                    int depth = node.getDepth();
+                    if (depth >= start_depth && depth <= end_depth) {
+                        selected_nodes.insert(node_id);
+                        // Add node to the subgraph
+                        sub.add_node(node, node_id);
+                    }
+                }
+
+                // Step 2: Select edges connecting selected nodes
+                for (const auto& [edge_id, edge] : m_edges) {
+                    const auto [lhs, rhs] = edge_id;
+                    // Check if both endpoints are in the selected node set
+                    if (selected_nodes.contains(lhs) && selected_nodes.contains(rhs)) {
+                        // Add edge to the subgraph
+                        sub.add_edge(lhs, rhs, edge);
+                    }
+                }
+
+                // Step 3: Set the running node ID to avoid collisions
+                sub.m_runningNodeId = m_runningNodeId;
+
+                return sub;
             }
 
         private:

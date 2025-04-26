@@ -29,6 +29,8 @@ namespace sw {
 			// Modifiers
 			void clear() { graph.clear(); source.clear(); sink.clear(); name.clear(); }
 			void setName(const std::string& name) { this->name = name; }
+			void setSchedule(const Schedule<int>& tau) { /*graph.setSchedule(tau);*/ }
+
 			void addNode(const std::string& name) {
 				DomainFlowNode node(name);
 				graph.add_node(node);
@@ -57,7 +59,7 @@ namespace sw {
 
 			// sort the nodes in the graph
 			// Assign depth values to nodes based on their maximum distance from inputs
-			void assignNodeDepths() {
+			void assignNodeDepths() noexcept {
 				constexpr bool bTrace = false; // Set to true for detailed tracing
 				auto nodeDepths = calculateNodeDepths(graph);
 				// Store depth values in the operator nodes
@@ -68,8 +70,38 @@ namespace sw {
 				}
 			}
 
+			// distributed constants throughout the graph so they are close to their first use
+			void distributeConstants() noexcept {
+				graph.distributeConstants();
+			}
+
+			// extract a subgraph of the DFG based on starting and ending depth
+			DomainFlowGraph subgraph(int startDepth, int endDepth) const {
+				DomainFlowGraph subgraph(name + "_subgraph");
+				subgraph.graph.clear();
+				subgraph.graph = graph.subgraph(startDepth, endDepth);
+				for (const auto& src : source) {
+					if (subgraph.graph.has_node(src)) {
+						subgraph.source.push_back(src);
+					}
+				}
+				for (const auto& snk : sink) {
+					if (subgraph.graph.has_node(snk)) {
+						subgraph.sink.push_back(snk);
+					}
+				}
+				return subgraph;
+			}
+
 			// Generate the index space for the graph
 			void generateIndexSpace() { graph.generateIndexSpace(); }
+
+			// Generate the schedule for the graph
+			void generateSchedule(Schedule<int>& tau) noexcept {
+				tau.clear();
+				tau.assign({ 1, 1, 1 });
+				// TODO: analyze the index spaces that make up the pipeline and generate a valid schedule
+			}
 
 			// Selectors
 			std::string getName() const noexcept { return name; }
