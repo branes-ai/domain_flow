@@ -138,12 +138,13 @@ if(DOMAINFLOW_DATABASE_TOOLS)
 add_subdirectory(databases)
 endif()
 if(DOMAINFLOW_TOOLS)
+    # dfg tools
 add_subdirectory(tools)
 endif()
 if(DOMAINFLOW_MLIR_TOOLS)
-# the tools
+    # the MLIR tools
 add_subdirectory(tools/opt)
-add_subdirectory(tools/importer)
+add_subdirectory(tools/import)
 endif()
 
 # Install rules (for packaging)
