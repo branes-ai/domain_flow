@@ -59,10 +59,15 @@ namespace sw {
 
 		template<typename ConstraintCoefficientType = int>
 		class ConvexHull {
-		public:
 			using VertexId = size_t;
 			using FaceId = size_t;
+		private:
+			size_t dimension_; // Dimension of the convex hull (1D to 6D)
+			std::vector<Point<ConstraintCoefficientType>> vertices_; // List of vertex coordinates
+			std::vector<Face> faces_;     // List of faces (tensor slices)
+			std::unordered_map<VertexId, std::unordered_set<FaceId>> vertex_to_faces_; // Vertex-to-face adjacency
 
+		public:
 			ConvexHull() = default;
 
 			// modifiers
@@ -143,7 +148,7 @@ namespace sw {
 			// Get coordinates of vertices for a given face
 			std::vector<Point<ConstraintCoefficientType>> face_coordinates(FaceId face_id) const {
 				const Face& f = face(face_id);
-				std::vector<Point> coords;
+				std::vector<Point<ConstraintCoefficientType>> coords;
 				coords.reserve(f.num_vertices());
 				for (auto vid : f.vertices()) {
 					coords.push_back(vertex(vid));
@@ -165,13 +170,6 @@ namespace sw {
 			size_t num_vertices() const { return vertices_.size(); }
 			size_t num_faces() const { return faces_.size(); }
 
-
-
-		private:
-			size_t dimension_; // Dimension of the convex hull (1D to 6D)
-			std::vector<Point<ConstraintCoefficientType>> vertices_; // List of vertex coordinates
-			std::vector<Face> faces_;     // List of faces (tensor slices)
-			std::unordered_map<VertexId, std::unordered_set<FaceId>> vertex_to_faces_; // Vertex-to-face adjacency
 		};
 
 		// ostream operator for ConvexHull
