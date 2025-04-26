@@ -35,12 +35,12 @@ namespace sw {
 			TensorTypeInfo tensorTypeInfo; // parsed tensor type information
 			std::size_t faceId;      // the face ID of the convex hull
 
-			template<typename ConstraintCoefficientType>
-			friend inline std::ostream& operator<<(std::ostream& os, const Confluence<ConstraintCoefficientType>& c);
+			template<typename CCType>
+			friend inline std::ostream& operator<<(std::ostream& os, const Confluence<CCType>& c);
 		};
 
-		template<typename ConstraintCoefficientType>
-		inline std::ostream& operator<<(std::ostream& os, const Confluence<ConstraintCoefficientType>& c) {
+		template<typename CCType>
+		inline std::ostream& operator<<(std::ostream& os, const Confluence<CCType>& c) {
 			os << "Confluence: " << c.tensorSpec << " Face ID: " << c.faceId;
 			return os;
 		}
