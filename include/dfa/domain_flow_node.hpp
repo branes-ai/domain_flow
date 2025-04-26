@@ -453,15 +453,16 @@ namespace sw {
 				}
 				// interpret the DomainFlowOperator and select a parallel algorithm
                 doc.elaborateDomainOfComputation(opType);
-				// generate the constraints that define the domain of computation for the operator
-				doc.elaborateConstraintSet(opType);
+
 			}
-            PointSet<ConstraintCoefficientType> convexHull() const noexcept { return doc.convexHull(); }
+            PointSet<ConstraintCoefficientType> convexHullPointSet() const noexcept { return doc.convexHullPointSet(); }
+            ConvexHull<ConstraintCoefficientType> convexHull() const noexcept { return doc.convexHull(); }
+			ConfluenceSet<ConstraintCoefficientType> confluences() const noexcept { return doc.confluences(); }
 			ConstraintSet<ConstraintCoefficientType> constraints() const noexcept { return doc.constraints(); }
 
             void instantiateIndexSpace() noexcept {
-				doc.clear();
-				//indexSpace = elaborateIndexSpace();
+                // generate the constraints that define the domain of computation for the operator
+                doc.elaborateConstraintSet(opType);
             }
         };
 

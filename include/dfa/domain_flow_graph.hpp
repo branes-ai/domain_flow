@@ -109,14 +109,35 @@ namespace sw {
 			std::size_t getNrEdges() const noexcept { return graph.nrEdges(); }
 
 			// get the convex hull of a node
-			PointSet<ConstraintCoefficientType> convexHull(sw::graph::nodeId_t nodeId) const noexcept {
+			ConvexHull<ConstraintCoefficientType> convexHull(sw::graph::nodeId_t nodeId) const noexcept {
+				ConvexHull<ConstraintCoefficientType> hull;
 				for (const auto& node : graph.nodes()) {
 					if (node.first == nodeId) {
-						return node.second.convexHull();
+						hull = node.second.convexHull();
 					}
 				}
 				// return an empty PointSet if the node is not found
-				return PointSet<ConstraintCoefficientType>();
+				return hull;
+			}
+			PointSet<ConstraintCoefficientType> convexHullPointSet(sw::graph::nodeId_t nodeId) const noexcept {
+				PointSet<ConstraintCoefficientType> pointSet;
+				for (const auto& node : graph.nodes()) {
+					if (node.first == nodeId) {
+						pointSet = node.second.convexHullPointSet();
+					}
+				}
+				// return an empty PointSet if the node is not found
+				return pointSet;
+			}
+			// get the tensor confluences for a node
+			ConfluenceSet<ConstraintCoefficientType> confluences(sw::graph::nodeId_t nodeId) const noexcept {
+				ConfluenceSet<ConstraintCoefficientType> confluenceSet;
+				for (const auto& node : graph.nodes()) {
+					if (node.first == nodeId) {
+						confluenceSet = node.second.confluences();
+					}
+				}
+				return confluenceSet;
 			}
 			// get the constraint set of a node
 			ConstraintSet<ConstraintCoefficientType> constraints(sw::graph::nodeId_t nodeId) const noexcept {

@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
         std::cout << "  Operator: " << node.getOperator() << std::endl;
 
         std::cout << "Convex Hull\n";
-        auto pointCloud = node.convexHull();
+        auto pointCloud = node.convexHullPointSet();
         for (const auto& p : pointCloud.pointSet) {
             std::cout << "Point: " << p << '\n';
         }

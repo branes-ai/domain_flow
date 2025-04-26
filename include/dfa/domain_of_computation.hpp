@@ -17,7 +17,6 @@ namespace sw {
 		template<typename Scalar> struct Hyperplane;
 		struct TensorTypeInfo;
 
-
 		// a Confluence is the association of a tensor to a face of a DomainfOfComputation
 		//
 		// A Confluence must associate the 'corners' of a tensor with the 'corners'
@@ -28,9 +27,38 @@ namespace sw {
 		template<typename ConstraintCoefficientType = int>
 		class Confluence {
 		public:
+			Confluence(std::string tensorSpec, std::size_t faceId)
+				: tensorSpec{ tensorSpec }, faceId{ faceId } {
+			}
 		private:
 			std::string tensorSpec;  // something like tensor<4x256x16xf32>
+			TensorTypeInfo tensorTypeInfo; // parsed tensor type information
+			std::size_t faceId;      // the face ID of the convex hull
+
+			template<typename ConstraintCoefficientType>
+			friend inline std::ostream& operator<<(std::ostream& os, const Confluence<ConstraintCoefficientType>& c);
 		};
+
+		template<typename ConstraintCoefficientType>
+		inline std::ostream& operator<<(std::ostream& os, const Confluence<ConstraintCoefficientType>& c) {
+			os << "Confluence: " << c.tensorSpec << " Face ID: " << c.faceId;
+			return os;
+		}
+
+		template<typename ConstraintCoefficientType>
+		class ConfluenceSet : public std::vector<Confluence<ConstraintCoefficientType>> {
+		public:
+			void add(const Confluence<ConstraintCoefficientType>& c) noexcept { push_back(c); }
+		};
+
+		template<typename ConstraintCoefficientType>
+		inline std::ostream& operator<<(std::ostream& os, const ConfluenceSet<ConstraintCoefficientType>& cs) {
+			os << "ConfluenceSet:\n";
+			for (const auto& c : cs) {
+				os << "  " << c << '\n';
+			}
+			return os;
+		}
 
 		template<typename ConstraintCoefficientType = int>
 		class DomainOfComputation {
@@ -42,8 +70,8 @@ namespace sw {
 			ConstraintSet<ConstraintCoefficientType> constraints_;
 
 			ConvexHull<ConstraintCoefficientType> hull_;
-			std::vector<Confluence<ConstraintCoefficientType>> inputFaces_;
-			std::vector<Confluence<ConstraintCoefficientType>> outputFaces_;
+			ConfluenceSet<ConstraintCoefficientType> inputFaces_;
+			ConfluenceSet<ConstraintCoefficientType> outputFaces_;
 
 		public:
 			// default constructor
@@ -97,7 +125,8 @@ namespace sw {
 						break;
 					}
 
-					// computational domain is batchSize_1 x batchSize_2 x m x n
+					// computational domain is batchSize3 x batchSize_2 x batchSize_1 x m x n
+					// construct the convex hull of the domain of computation
 					switch (tensor0.size()) {
 					case 1:
 					{
@@ -183,6 +212,7 @@ namespace sw {
 					// define the faces
 					// A tensor confluence
 					auto f0 = hull_.add_face({ v0, v1, v2, v3 }); // left face
+					Confluence<ConstraintCoefficientType> confluence0(getInput(0), f0);
 					// B tensor confluence
 					auto f1 = hull_.add_face({ v0, v4, v5, v1 }); // back face
 					// input C tensor confluence
@@ -303,12 +333,23 @@ namespace sw {
 			ConstraintSet<ConstraintCoefficientType> constraints() const noexcept { return this->constraints_; }
 
 			// get the point set that defines the convex hull
-			PointSet<ConstraintCoefficientType> convexHull() const noexcept {
-			    PointSet<ConstraintCoefficientType> points;
+			ConvexHull<ConstraintCoefficientType> convexHull() const noexcept {
+				return hull_;
+			}
+			PointSet<ConstraintCoefficientType> convexHullPointSet() const noexcept {
+				PointSet<ConstraintCoefficientType> points;
 				for (const auto& vertex : hull_.vertices()) {
 					points.add(vertex);
 				}
-			    return points;
+				return points;
+			}
+			// get the confluence set that defines the tensor confluences
+			ConfluenceSet<ConstraintCoefficientType> confluences() const noexcept {
+				ConfluenceSet<ConstraintCoefficientType> confluences;
+				//for (const auto& confluence : inputFaces_) {
+				//	confluences.add(confluence);
+				//}
+				return confluences;
 			}
 
 		};

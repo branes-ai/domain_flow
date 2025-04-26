@@ -13,10 +13,7 @@ namespace sw::dfa {
                 std::cout << "  Operator: " << node.getOperator() << std::endl;
                 // generate the domain of computation information for each node
                 std::cout << "Convex Hull\n";
-                auto pointCloud = node.convexHull();
-                for (const auto& p : pointCloud.pointSet) {
-                    std::cout << "Point: " << p << '\n';
-                }
+                std::cout << node.convexHull() << '\n';
             }
         }
     }
@@ -85,12 +82,14 @@ int main(int argc, char** argv) {
 	subgraph.instantiateDomains();  
 
 	// print the convex hull of the domain of computation for a specific node
-    std::cout << "\nConvex Hull Point Set for node 8:\n" << subgraph.convexHull(8) << '\n';
-	std::cout << "Constraint Set for node 8:\n" << subgraph.constraints(8) << '\n';
+    std::cout << "\nConvex Hull for node 8:\n" << subgraph.convexHull(8) << '\n';
+    std::cout << "\nConvex Hull Point Set for node 8:\n" << subgraph.convexHullPointSet(8) << '\n';
+	std::cout << "Tensor Confluences for node 8:\n" << subgraph.confluences(8) << '\n';
 
     // Second action: create the index space for each operator in the subgraph
     std::cout << "\n\nSecond Step: Instantiate the Index Space for each DoC:\n";
 	subgraph.instantiateIndexSpaces(); 
+    std::cout << "Constraint Set for node 8:\n" << subgraph.constraints(8) << '\n';
 
     return EXIT_SUCCESS;
 }
