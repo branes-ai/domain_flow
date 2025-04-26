@@ -197,6 +197,87 @@ namespace sw {
 				}
 			}
 
+			/// <summary>
+			/// Interpret the DomainFlowOperator and construct the constraint set
+			/// defining the domain of computation for the operator.
+			/// </summary>
+			void elaborateConstraintSet(const DomainFlowOperator& opType) noexcept 
+			{
+				// generate the constraints that define the domain of computation for the operator
+				constraints_.clear();
+				switch (opType) {
+				case DomainFlowOperator::CONSTANT:
+				{
+					// constant operator
+					//    %out = tosa.constant 0.000000e+00 : tensor<12x6xf32>
+					auto tensorInfo = parseTensorType(getOutput(0));
+					constraints_.shapeExtract(tensorInfo);
+				}
+				break;
+				case DomainFlowOperator::ADD:
+				case DomainFlowOperator::SUB:
+				case DomainFlowOperator::MUL:
+				{
+					auto tensorInfo = parseTensorType(getInput(0));
+					constraints_.shapeExtract(tensorInfo);
+				}
+				break;
+				case DomainFlowOperator::MATMUL:
+				{
+					TensorTypeInfo tensor1 = parseTensorType(getInput(0));
+					TensorTypeInfo tensor2 = parseTensorType(getInput(1));
+					if (tensor1.empty() || tensor2.empty()) {
+						std::cerr << "DomainFlowNode generateConstraintSet: invalid matmul arguments: ignoring matmul operator" << std::endl;
+						break;
+					}
+					if (tensor1.size() != 2 || tensor2.size() != 2) {
+						std::cerr << "DomainFlowNode generateConstraintSet: invalid matmul arguments: ignoring matmul operator" << std::endl;
+						break;
+					}
+					TensorTypeInfo indexSpaceShape;
+					// computational domain is m x k x n
+					// system( (i, j, k) : 0 <= i < m, 0 <= j < n, 0 <= l < k)
+					indexSpaceShape.elementType = tensor1.elementType;
+					// tensor<m, k> * tensor<k, n> -> tensor<m, n>  -> index space is m x n x k
+					if (tensor1.size() == 2 && tensor2.size() == 2) {
+						int m = tensor1.shape[0];
+						int k = tensor1.shape[1];
+						int k1 = tensor2.shape[0];
+						int n = tensor2.shape[1];
+						if (k != k1) {
+							std::cerr << "DomainFlowNode generateConstraintSet: tensor are incorrect shape: ignoring matmul operator" << std::endl;
+							break;
+						}
+						indexSpaceShape.shape.push_back(m);
+						indexSpaceShape.shape.push_back(n);
+						indexSpaceShape.shape.push_back(k);
+						constraints_.shapeExtract(indexSpaceShape);
+					}
+					// tensor<batchSize, m, k> * tensor<batchSize, k, n> -> tensor<batchSize, m, n>
+					if (tensor1.size() == 3 && tensor2.size() == 3) {
+						int m = tensor1.shape[0];
+						int k = tensor1.shape[1];
+						int k1 = tensor2.shape[0];
+						int n = tensor2.shape[1];
+						if (k != k1) {
+							std::cerr << "DomainFlowNode generateConstraintSet: tensor are incorrect shape: ignoring matmul operator" << std::endl;
+							break;
+						}
+						indexSpaceShape.shape.push_back(m);
+						indexSpaceShape.shape.push_back(n);
+						indexSpaceShape.shape.push_back(k);
+						constraints_.shapeExtract(indexSpaceShape);
+					}
+				}
+				break;
+				}
+
+				// report on any unprocessed nodes
+				if (constraints_.empty()) {
+					std::cerr << "DomainFlowNode generateConstraintSet: no constraints defined for this operator" << std::endl;
+				}
+			}
+
 			// selectors
 			bool empty() const noexcept { return constraints_.empty(); }
 
@@ -217,10 +298,12 @@ namespace sw {
 			const std::map<std::size_t, std::string>& inputs() const noexcept { return this->inputs_; }
 			const std::map<std::size_t, std::string>& outputs() const noexcept { return this->outputs_; }
 			const std::vector<Confluence<ConstraintCoefficientType>>& inputFaces() const noexcept { return this->inputFaces_; }
-			const ConstraintSet<ConstraintCoefficientType>& constraints() const noexcept { return this->constraints_; }
+			
+			// get a copy of the constraints that define the domain of computation
+			ConstraintSet<ConstraintCoefficientType> constraints() const noexcept { return this->constraints_; }
 
 			// get the point set that defines the convex hull
-			PointSet<ConstraintCoefficientType> getConvexHull() const noexcept {
+			PointSet<ConstraintCoefficientType> convexHull() const noexcept {
 			    PointSet<ConstraintCoefficientType> points;
 				for (const auto& vertex : hull_.vertices()) {
 					points.add(vertex);

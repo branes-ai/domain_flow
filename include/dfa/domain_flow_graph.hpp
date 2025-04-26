@@ -13,6 +13,8 @@ namespace sw {
 
         // Definition of the Domain Flow graph
 		struct DomainFlowGraph {
+			using ConstraintCoefficientType = int;
+
 			std::string name;
 			domain_flow_graph graph{};
 			// sources and sinks: domains flow from sources to sinks
@@ -71,9 +73,7 @@ namespace sw {
 			}
 
 			// distributed constants throughout the graph so they are close to their first use
-			void distributeConstants() noexcept {
-				graph.distributeConstants();
-			}
+			void distributeConstants() noexcept { graph.distributeConstants(); }
 
 			// extract a subgraph of the DFG based on starting and ending depth
 			DomainFlowGraph subgraph(int startDepth, int endDepth) const {
@@ -109,12 +109,24 @@ namespace sw {
 			std::size_t getNrEdges() const noexcept { return graph.nrEdges(); }
 
 			// get the convex hull of a node
-			PointSet<int> getConvexHull(sw::graph::nodeId_t nodeId) const noexcept {
+			PointSet<ConstraintCoefficientType> convexHull(sw::graph::nodeId_t nodeId) const noexcept {
 				for (const auto& node : graph.nodes()) {
 					if (node.first == nodeId) {
-						return node.second.getConvexHull();
+						return node.second.convexHull();
 					}
 				}
+				// return an empty PointSet if the node is not found
+				return PointSet<ConstraintCoefficientType>();
+			}
+			// get the constraint set of a node
+			ConstraintSet<ConstraintCoefficientType> constraints(sw::graph::nodeId_t nodeId) const noexcept {
+				for (const auto& node : graph.nodes()) {
+					if (node.first == nodeId) {
+						return node.second.constraints();
+					}
+				}
+				// return an empty ConstraintSet if the node is not found
+				return ConstraintSet<ConstraintCoefficientType>();
 			}
 
 			std::map<std::string, int> operatorStats() const {

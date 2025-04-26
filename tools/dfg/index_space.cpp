@@ -34,16 +34,16 @@ int main(int argc, char** argv) {
         std::cout << "  Operator: " << node.getOperator() << std::endl;
 
         std::cout << "Convex Hull\n";
-        auto pointCloud = node.getConvexHull();
+        auto pointCloud = node.convexHull();
         for (const auto& p : pointCloud.pointSet) {
             std::cout << "Point: " << p << '\n';
         }
 
         std::cout << "Index Space\n";
-        auto indexSpace = node.elaborateIndexSpace();
-        for (const auto& p : indexSpace.get_ssa_points()) {
-            std::cout << "Point: " << p << '\n';
-        }
+        //auto indexSpace = node.elaborateIndexSpace();
+        //for (const auto& p : indexSpace.get_ssa_points()) {
+        //    std::cout << "Point: " << p << '\n';
+        //}
 
     }
 

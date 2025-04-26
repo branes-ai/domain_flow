@@ -84,5 +84,12 @@ namespace sw {
 			std::vector<Hyperplane<ConstraintCoefficientType>> constraints;
 		};
 
+		inline std::ostream& operator<<(std::ostream& os, const ConstraintSet<int>& cs) {
+			os << "ConstraintSet:\n";
+			for (const auto& c : cs.get_constraints()) {
+				os << "  " << c << '\n';
+			}
+			return os;
+		}
     }
 }

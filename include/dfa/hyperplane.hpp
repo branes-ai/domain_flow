@@ -58,5 +58,37 @@ namespace sw {
             }
         };
  
+		template<typename ConstraintCoefficientType>
+		inline std::ostream& operator<<(std::ostream& os, const Hyperplane<ConstraintCoefficientType>& hyperplane) {
+            os << " { { ";
+			size_t last = hyperplane.normal.size() - 1;
+			for (size_t i = 0; i < last; ++i) {
+				os << hyperplane.normal[i] << ", ";
+			}
+            os << hyperplane.normal[last] << " } ";
+            std::string inequality{};
+            switch (hyperplane.constraint) {
+            case ConstraintType::LessThan:
+                inequality = " <  ";
+                break;
+            case ConstraintType::LessOrEqual:
+                inequality = " <= ";
+                break;
+            case ConstraintType::Equal:
+                inequality = " == ";
+                break;
+            case ConstraintType::GreaterOrEqual:
+                inequality = " >= ";
+                break;
+            case ConstraintType::GreaterThan:
+                inequality = " >  ";
+                break;
+            default:
+                inequality = "  ? ";
+                break;
+            }
+            os << inequality << hyperplane.rhs << "}";
+			return os;
+		}
     }
 }
