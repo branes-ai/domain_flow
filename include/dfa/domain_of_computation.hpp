@@ -50,7 +50,7 @@ namespace sw {
 			DomainOfComputation() = default;
 			// constructor with initializer list
 			DomainOfComputation(std::initializer_list<Constraint> init_constraints)
-				: inputs_{}, outputs{}, constraints_{ init_constraints }, hull_{}, inputFaces_{}, outputFaces_{}  {}
+				: inputs_{}, outputs_{}, constraints_{ init_constraints }, hull_{}, inputFaces_{}, outputFaces_{}  {}
 
 
 			// modifiers
@@ -198,7 +198,7 @@ namespace sw {
 			}
 
 			// selectors
-			bool empty() const noexcept { return constraints.empty(); }
+			bool empty() const noexcept { return constraints_.empty(); }
 
 			std::string getInput(std::size_t slot) const noexcept {
 				auto it = inputs_.find(slot);
