@@ -93,15 +93,8 @@ namespace sw {
 				return subgraph;
 			}
 
-			void instantiateDomains() noexcept {
-				graph.instantiateDomains();
-			}
-			// Instantiate the index spaces for the graph
-			void instantiateIndexSpaces() noexcept {
-				graph.instantiateIndexSpaces();
-			}
-
-			// Generate the index space for the graph
+			void instantiateDomains() noexcept { graph.instantiateDomains(); }
+			void instantiateIndexSpaces() noexcept { graph.instantiateIndexSpaces(); }
 
 			// Generate the schedule for the graph
 			void generateSchedule(Schedule<int>& tau) noexcept {

@@ -13,7 +13,12 @@ namespace sw {
             bool empty() const noexcept { return shape.empty(); }
             size_t size() const noexcept { return shape.size(); }
         };
-
+		inline bool operator==(const TensorTypeInfo& lhs, const TensorTypeInfo& rhs) {
+			return lhs.shape == rhs.shape && lhs.elementType == rhs.elementType;
+		}
+        inline bool operator!=(const TensorTypeInfo& lhs, const TensorTypeInfo& rhs) {
+            return !(lhs == rhs);
+        }
         inline TensorTypeInfo parseTensorType(const std::string& tensorTypeStr) {
             TensorTypeInfo result;
 

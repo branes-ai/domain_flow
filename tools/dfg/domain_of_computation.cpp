@@ -64,15 +64,17 @@ int main(int argc, char** argv) {
 	// now we can expand the subgraph to include the index space for each operator
     // First action: create all the domains of computation for the operators in the subgraph
 	subgraph.instantiateDomains();  
-	// for all the nodes in the subgraph, print the convex hull of the domain of computation
+	// for all the operators in the subgraph, print the convex hull of the domain of computation
     for (const auto& [nodeId, node] : subgraph.graph.nodes()) {
-        std::cout << "Node ID: " << nodeId << ", Name: " << node.getName() << " Depth: " << node.getDepth() << std::endl;
-        std::cout << "  Operator: " << node.getOperator() << std::endl;
-        // generate the domain of computation information for each node
-        std::cout << "Convex Hull\n";
-        auto pointCloud = node.getConvexHull();
-        for (const auto& p : pointCloud.pointSet) {
-            std::cout << "Point: " << p << '\n';
+        if (node.isOperator()) {
+            std::cout << "Node ID: " << nodeId << ", Name: " << node.getName() << " Depth: " << node.getDepth() << std::endl;
+            std::cout << "  Operator: " << node.getOperator() << std::endl;
+            // generate the domain of computation information for each node
+            std::cout << "Convex Hull\n";
+            auto pointCloud = node.getConvexHull();
+            for (const auto& p : pointCloud.pointSet) {
+                std::cout << "Point: " << p << '\n';
+            }
         }
     }
 	// print the convex hull of the domain of computation for a specific node
@@ -80,21 +82,6 @@ int main(int argc, char** argv) {
 
     // Second action: create the index space for each operator in the subgraph
 	subgraph.instantiateIndexSpaces(); 
-
-    	// walk the graph, and report on the 3D points that make up the convex hull of the domain of computation
-	for (const auto& [nodeId, node] : subgraph.graph.nodes()) {
-		std::cout << "Node ID: " << nodeId << ", Name: " << node.getName() << " Depth: " << node.getDepth() << std::endl;
-		std::cout << "  Operator: " << node.getOperator() << std::endl;
-
-        // generate the domain of computation information for each node
-
-        std::cout << "Convex Hull\n";
-        auto pointCloud = node.getConvexHull();
-        for (const auto& p : pointCloud.pointSet) {
-            std::cout << "Point: " << p << '\n';
-        }
-
-	}
 
     return EXIT_SUCCESS;
 }
