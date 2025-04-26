@@ -93,8 +93,15 @@ namespace sw {
 				return subgraph;
 			}
 
+			void instantiateDomains() noexcept {
+				graph.instantiateDomains();
+			}
+			// Instantiate the index spaces for the graph
+			void instantiateIndexSpaces() noexcept {
+				graph.instantiateIndexSpaces();
+			}
+
 			// Generate the index space for the graph
-			void generateIndexSpace() { graph.generateIndexSpace(); }
 
 			// Generate the schedule for the graph
 			void generateSchedule(Schedule<int>& tau) noexcept {
@@ -107,6 +114,15 @@ namespace sw {
 			std::string getName() const noexcept { return name; }
 			std::size_t getNrNodes() const noexcept { return graph.nrNodes(); }
 			std::size_t getNrEdges() const noexcept { return graph.nrEdges(); }
+
+			// get the convex hull of a node
+			PointSet<int> getConvexHull(sw::graph::nodeId_t nodeId) const noexcept {
+				for (const auto& node : graph.nodes()) {
+					if (node.first == nodeId) {
+						return node.second.getConvexHull();
+					}
+				}
+			}
 
 			std::map<std::string, int> operatorStats() const {
 				std::map<std::string, int> opCount;

@@ -338,42 +338,6 @@ namespace sw {
                 return edge(lhs, rhs);
             }
 
-			void generateIndexSpace() {
-                // walk the graph, and generate the index space for each operator
-                for (auto& [nodeId, node] : m_nodes) {
-                    if (in_degree(nodeId) > 0) { // filter out inputs
-                        std::cout << "Node ID: " << nodeId << ", Name: " << node.getName() << " Depth: " << node.getDepth() << std::endl;
-                        std::cout << "  Operator: " << node.getOperator() << std::endl;
-
-                        node.generateIndexSpace();
-                    }
-                }
-			}
-            // distribute the constants among the graph nodes that need them
-            void distributeConstants() {
-                // This function distributes constants in the graph.
-                // To display a graph nicely, we want to move the constants that an operator depends on
-                // from the edge to closer to where the operator is displayed. 
-                // We make a simple observation that in long graphs, it is nice to order the graph spatially
-                // by the depth of the nodes. However, constants at depth 0 would then all end up at the
-                // first spatial column in the display. We can eleviate this by moving the constants
-                // closer to the operator that uses them. To make the arc between the constant and the operator
-                // flow nicely, we move the constant to the column that represents the depth of the operator minus 1.
-                // This is a simple heuristic, but it works well in practice.
-
-                // find all the constants in the graph
-                for (auto& [nodeId, nodeRef] : m_nodes) {
-                    if (nodeRef.depth == 0) { // test if this is a constant
-                        // find the node that uses the constant
-                        for (auto& targetNodeId : neighbors(nodeId)) {
-                            int depth = this->node(targetNodeId).getDepth();
-                            // move the constant to the column of the target operator minus 1
-                            nodeRef.setDepth(depth - 1);
-                        }
-                    }
-                }
-            }
-
             // Save the graph to a text file
             void save(const std::string& filename) const {
                 std::ofstream ofs(filename);
@@ -552,6 +516,32 @@ namespace sw {
 
             // graph manipulators
 
+            // distribute the constants among the graph nodes that need them
+            // This is a precondition that makes selecting and visualizing graphs better
+            void distributeConstants() {
+                // This function distributes constants in the graph.
+                // To display a graph nicely, we want to move the constants that an operator depends on
+                // from the edge to closer to where the operator is displayed. 
+                // We make a simple observation that in long graphs, it is nice to order the graph spatially
+                // by the depth of the nodes. However, constants at depth 0 would then all end up at the
+                // first spatial column in the display. We can eleviate this by moving the constants
+                // closer to the operator that uses them. To make the arc between the constant and the operator
+                // flow nicely, we move the constant to the column that represents the depth of the operator minus 1.
+                // This is a simple heuristic, but it works well in practice.
+
+                // find all the constants in the graph
+                for (auto& [nodeId, nodeRef] : m_nodes) {
+                    if (nodeRef.depth == 0) { // test if this is a constant
+                        // find the node that uses the constant
+                        for (auto& targetNodeId : neighbors(nodeId)) {
+                            int depth = this->node(targetNodeId).getDepth();
+                            // move the constant to the column of the target operator minus 1
+                            nodeRef.setDepth(depth - 1);
+                        }
+                    }
+                }
+            }
+
 			// extract the subgraph defined by a starting depth and an ending depth
 			// keep nodeId and edgeId the same as in the original graph so that 
 			// we can compared the subgraph with the original graph
@@ -584,6 +574,29 @@ namespace sw {
                 sub.m_runningNodeId = m_runningNodeId;
 
                 return sub;
+            }
+
+			// instantiate the domains of computation for the graph
+			void instantiateDomains() {
+				// walk the graph, and generate the domain of computation for each operator
+				for (auto& [nodeId, node] : m_nodes) {
+					if (in_degree(nodeId) > 0) { // filter out inputs
+						std::cout << "Node ID: " << nodeId << ", Name: " << node.getName() << " Depth: " << node.getDepth() << std::endl;
+						std::cout << "  Operator: " << node.getOperator() << std::endl;
+						node.instantiateDomain();
+					}
+				}
+			}
+            void instantiateIndexSpaces() {
+                // walk the graph, and generate the index space for each operator
+                for (auto& [nodeId, node] : m_nodes) {
+                    if (in_degree(nodeId) > 0) { // filter out inputs
+                        std::cout << "Node ID: " << nodeId << ", Name: " << node.getName() << " Depth: " << node.getDepth() << std::endl;
+                        std::cout << "  Operator: " << node.getOperator() << std::endl;
+
+                        node.instantiateIndexSpace();
+                    }
+                }
             }
 
         private:

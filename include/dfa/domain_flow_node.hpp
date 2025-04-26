@@ -4,6 +4,7 @@
 #include <graph/graphlib.hpp>
 #include <dfa/domain_flow_operator.hpp>
 #include <dfa/tensor_spec_parser.hpp>
+#include <dfa/domain_of_computation.hpp>
 #include <dfa/index_point.hpp>
 #include <dfa/schedule.hpp>
 // helper
@@ -12,41 +13,6 @@
 namespace sw {
     namespace dfa {
 
-        struct Point : public std::vector<float> {
-            Point(float x, float y, float z) {
-                push_back(x);
-                push_back(y);
-                push_back(z);
-            }
-            Point() {
-                origin();
-            }
-            void origin() {
-                clear();
-                push_back(0.0f);
-                push_back(0.0f);
-                push_back(0.0f);
-            }
-        };
-        
-        inline std::ostream& operator<<(std::ostream& ostr, const Point& p) {
-            ostr << "[ ";
-            bool first = true;
-            for (auto e : p) {
-                if (!first) ostr << ", ";
-                ostr << e;
-                first = false;
-            }
-            return ostr << " ]";
-        }
-
-        struct PointSet {
-            std::vector<Point> pointSet;
-            void clear() { pointSet.clear(); }
-            void add(const Point& p) {
-                pointSet.push_back(p);
-            }
-        };
 
         struct shapeAnalysisResults {
             int64_t batchSize, m, k, n;
@@ -163,22 +129,22 @@ namespace sw {
             std::map<std::size_t, std::string> resultType; // slotted string version of mlir::Type
 			std::map<std::string, std::string> attribute;   // attributes of the operation, key/value pair where the value is encoded as a string
             int depth;                                      // depth of 0 represents a data source
-			IndexSpace<int> indexSpace;                     // index space for the operator
+			DomainOfComputation<int> doc;                   // domain of computation for the operator
 			Schedule<int> tau;                              // tau represents the execution schedule for the operator
 
             // Constructor to initialize the node with just a string of the operator
             DomainFlowNode() 
                 : opType{ DomainFlowOperator::UNKNOWN }, name{ "undefined" }, 
                 operandType{}, resultValue{}, resultType{}, depth { 0 },
-				indexSpace{}, tau{} {}
+				doc{}, tau{} {}
             DomainFlowNode(const std::string& name) 
                 : opType{ DomainFlowOperator::UNKNOWN }, name{ name }, 
                 operandType{}, resultValue{}, resultType{}, depth{ 0 },
-                indexSpace{}, tau{} {}
+                doc{}, tau{} {}
             DomainFlowNode(DomainFlowOperator opType, const std::string& name) 
                 : opType{ opType }, name{ name }, 
                 operandType{}, resultValue{}, resultType{}, depth{ 0 },
-                indexSpace{}, tau{} {
+                doc{}, tau{} {
             }
 
             // Modifiers
@@ -207,7 +173,7 @@ namespace sw {
                 resultType.clear();
                 attribute.clear();
                 depth = 0;
-                indexSpace.clear();
+                doc.clear();
                 tau.clear();
             }
             // selectors
@@ -561,59 +527,21 @@ namespace sw {
                 return work;
             }
         
-            PointSet getConvexHull() const noexcept {
-                PointSet points;
-                Point origin;
-                points.add(origin);
-                switch (opType) {
-                case DomainFlowOperator::ADD:
-                case DomainFlowOperator::SUB:
-                case DomainFlowOperator::MUL:
-                    {
-                        auto tensorInfo = parseTensorType(getOperandType(0));
-                    }
-                    break;
-                case DomainFlowOperator::MATMUL:
-                    {
-                        TensorTypeInfo tensor1 = parseTensorType(getOperandType(0));
-                        TensorTypeInfo tensor2 = parseTensorType(getOperandType(1));
-                        if (tensor1.empty() || tensor2.empty()) {
-                            std::cerr << "DomainFlowNode getConvexHull: invalid matmul arguments: ignoring matmul operator" << std::endl;
-                            break;
-                        }
-
-                        shapeAnalysisResults result;
-                        if (!calculateMatmulComplexity(tensor1.shape, tensor2.shape, result)) {
-                            std::cerr << "DomainFlowNode getConvexHull: " << result.errMsg << std::endl;
-                            break;
-                        }
-
-                        float m_ = result.m - 1.0f;
-                        float k_ = result.k - 1.0f;
-                        float n_ = result.n - 1.0f;
-
-                        // computational domain is m x k x n
-                        // system( (i, j, k) : 0 <= i < m, 0 <= j < n, 0 <= l < k)
-                        // points are
-                        // (0, 0, 0)
-                        // (0, 0, k-1)
-                        // (m-1, 0, 0)
-                        // (m-1, 0, k-1)
-                        // (m-1, n-1, 0)
-                        // (m-1, n-1, k-1)
-                        // (0, n-1, 0)
-                        // (0, n-1, k-1)
-                        points.add(Point(0, 0, k_));
-                        points.add(Point(m_, 0, 0));
-                        points.add(Point(m_, 0, k_));
-                        points.add(Point(m_, n_, 0));
-                        points.add(Point(m_, n_, k_));
-                        points.add(Point(0, n_, 0));
-                        points.add(Point(0, n_, k_));
-                    }
-                    break;
-                }
-                return points;
+			// instantiate the domain of computation for the operator
+			// The Domain of Computation consists of a set of constraints that define the convex hull
+			// and the tensor confluences that associate input and output tensor slices 
+            // to specific faces of the convex hull
+			void instantiateDomain() {
+                doc.clear();
+				for (auto& op : operandType) {
+					doc.addInput(op.first, op.second);
+				}
+				for (auto& op : resultType) {
+					doc.addOutput(op.first, op.second);
+				}
+			}
+            PointSet<int> getConvexHull() const noexcept {
+                return doc.getConvexHull();
             }
 
             IndexSpace<int> elaborateIndexSpace() const noexcept {
@@ -693,9 +621,9 @@ namespace sw {
                 }
                 return IndexSpace<int>(c);
             }
-            void generateIndexSpace() noexcept {
-				indexSpace.clear();
-				indexSpace = elaborateIndexSpace();
+            void instantiateIndexSpace() noexcept {
+				doc.clear();
+				//indexSpace = elaborateIndexSpace();
             }
         };
 
