@@ -103,7 +103,7 @@ namespace sw {
             }
 			// attribute API
             std::size_t getNrAttributes() const noexcept { return attribute.size(); }
-			std::map<std::string, std::string> getAttributes() const noexcept { return attribute; }
+			const std::map<std::string, std::string>& getAttributes() const noexcept { return attribute; }
             std::string getAttribute(const std::string& name) const noexcept { 
                 auto it = attribute.find(name); 
                 if (it != attribute.end()) {
