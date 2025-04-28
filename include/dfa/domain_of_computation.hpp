@@ -199,29 +199,30 @@ namespace sw {
 					hull_.setDimension(3); // 3D convex hull
 					// left face vertex sequence
 					auto v0 = hull_.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, 0 }));
-					auto v1 = hull_.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, k_ }));
+					auto v1 = hull_.add_vertex(Point<ConstraintCoefficientType>({ m_, 0, 0 }));
 					auto v2 = hull_.add_vertex(Point<ConstraintCoefficientType>({ m_, 0, k_ }));
-					auto v3 = hull_.add_vertex(Point<ConstraintCoefficientType>({ m_, 0, 0 }));
+					auto v3 = hull_.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, k_ }));
 
 					// right face vertex sequence
-					auto v4 = hull_.add_vertex(Point<ConstraintCoefficientType>({ 0, n_, 0 }));
-					auto v5 = hull_.add_vertex(Point<ConstraintCoefficientType>({ 0, n_, k_ }));
-					auto v6 = hull_.add_vertex(Point<ConstraintCoefficientType>({ m_, n_, k_ }));
-					auto v7 = hull_.add_vertex(Point<ConstraintCoefficientType>({ m_, n_, 0 }));
+					auto v4 = hull_.add_vertex(Point<ConstraintCoefficientType>({ 0, n_, k_ }));
+					auto v5 = hull_.add_vertex(Point<ConstraintCoefficientType>({ 0, n_, 0 }));
+					auto v6 = hull_.add_vertex(Point<ConstraintCoefficientType>({ m_, n_, 0 }));
+					auto v7 = hull_.add_vertex(Point<ConstraintCoefficientType>({ m_, n_, k_ }));
 
-					// define the faces
+
+					// define the faces: right hand rule pointing out of the volume
 					// A tensor confluence
-					auto f0 = hull_.add_face({ v0, v1, v2, v3 }); // left face
+					auto f0 = hull_.add_face({ v0, v1, v2, v3 }); // left face, pointing out
 					Confluence<ConstraintCoefficientType> confluence0(getInput(0), f0);
 					// B tensor confluence
-					auto f1 = hull_.add_face({ v0, v4, v5, v1 }); // back face
+					auto f1 = hull_.add_face({ v0, v3, v4, v5 }); // back face, pointing out
 					// input C tensor confluence
-					auto f2 = hull_.add_face({ v0, v3, v7, v4 }); // bottom face
+					auto f2 = hull_.add_face({ v0, v5, v6, v1 }); // bottom face, pointing out
 					// output C tensor confluence
-					auto f3 = hull_.add_face({ v1, v2, v6, v5 }); // top face
+					auto f3 = hull_.add_face({ v3, v2, v7, v4 }); // top face, pointing out
 					// remaining faces do not have tensor confluences
-					hull_.add_face({ v2, v3, v7, v6 }); // front face
-					hull_.add_face({ v4, v5, v6, v7 }); // right face
+					hull_.add_face({ v1, v6, v7, v2 }); // front face
+					hull_.add_face({ v5, v4, v7, v6 }); // right face
 				}
 				break;
 				}
