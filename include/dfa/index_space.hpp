@@ -44,6 +44,7 @@ namespace sw {
 
 			}
 
+#ifdef LATER
             // Enumerate all integer lattice points inside the convex hull
             std::vector<std::vector<int>> enumerate_points() {
                 std::vector<std::vector<int>> points;
@@ -80,6 +81,7 @@ namespace sw {
 
                 return points;
             }
+#endif
 
             // selectors
             const std::vector<IndexPoint>& get_points() const {
