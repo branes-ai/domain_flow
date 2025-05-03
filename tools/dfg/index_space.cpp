@@ -40,6 +40,7 @@ int main(int argc, char** argv) {
         }
 
         std::cout << "Index Space\n";
+
         //auto indexSpace = node.elaborateIndexSpace();
         //for (const auto& p : indexSpace.get_ssa_points()) {
         //    std::cout << "Point: " << p << '\n';

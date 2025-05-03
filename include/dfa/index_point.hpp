@@ -8,11 +8,20 @@ namespace sw {
         struct IndexPoint {
             std::vector<int> coordinates;  // N-dimensional coordinates
             
+			// set an index point to a specific value
+			IndexPoint(int dimension, int value = 0) : coordinates(dimension, value) {}
             // Initializer list constructor
             IndexPoint(std::initializer_list<int> i) : coordinates(i) {}
             // Constructor for arbitrary dimensions
             IndexPoint(const std::vector<int>& coords) : coordinates(coords) {}
             
+			int& operator[](size_t index) {
+				return coordinates[index];
+			}
+			int operator[](size_t index) const {
+				return coordinates[index];
+			}
+
             // Comparison operators for use in containers
             inline bool operator==(const IndexPoint& other) const {
                 return coordinates == other.coordinates;

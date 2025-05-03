@@ -8,20 +8,20 @@ int main() {
     using ConstraintCoefficientType = int;
 
     ConstraintSet<ConstraintCoefficientType> constraints = {
-     {{1, 0, 0}, 0, ConstraintType::GreaterOrEqual}  // x >= 0
-    ,{{0, 1, 0}, 0, ConstraintType::GreaterOrEqual}  // y >= 0
-    ,{{0, 0, 1}, -1, ConstraintType::GreaterThan}    // z >  -1
-    ,{{1, 0, 0}, 5, ConstraintType::LessOrEqual}     // x <= 5
+    // {{1, 0, 0}, 0, ConstraintType::GreaterOrEqual}  // x >= 0
+    //,{{0, 1, 0}, 0, ConstraintType::GreaterOrEqual}  // y >= 0
+    //,{{0, 0, 1}, 0, ConstraintType::GreaterOrEqual}  // z >= 0
+    {{1, 0, 0}, 5, ConstraintType::LessOrEqual}     // x <= 5
     ,{{0, 1, 0}, 5, ConstraintType::LessOrEqual}     // y <= 5
-    ,{{0, 0, 1}, 6, ConstraintType::LessThan}        // z < 6
+    ,{{0, 0, 1}, 5, ConstraintType::LessOrEqual}     // z <= 5
+  //  ,{{0, 0, 1}, 6, ConstraintType::LessThan}        // z < 6
   //,{{1, 1, 1}, 5, ConstraintType::LessOrEqual}     // x + y + z <= 5
     };
- //   std::vector<IndexPointType> lower_bounds = {0, 0};
- //   std::vector<IndexPointType> upper_bounds = {5, 5};
 
+	// Create an index space from the constraints
     IndexSpace<ConstraintCoefficientType> index_space(constraints);
 
-    const std::vector<IndexPoint>& points = index_space.get_ssa_points();
+    const std::vector<IndexPoint>& points = index_space.get_points();
 
     for (const auto& point : points) {
         std::cout << point;
