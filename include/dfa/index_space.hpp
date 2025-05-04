@@ -21,7 +21,7 @@ namespace sw {
 				}
 				dimension = constraints[0].normal.size();
 				compute_bounding_box();
-                generate();
+                enumerate();
             }
 
             // modifiers
@@ -44,46 +44,86 @@ namespace sw {
 
 			}
 
-#ifdef LATER
-            // Enumerate all integer lattice points inside the convex hull
-            std::vector<std::vector<int>> enumerate_points() {
-                std::vector<std::vector<int>> points;
-
-                // Initialize current point to the minimum integer coordinates
-                std::vector<int> current(dimension);
-                for (int d = 0; d < dimension; ++d) {
-                    current[d] = static_cast<int>(std::floor(lower_bounds[d]));
-                }
-
-                // Iterate over all integer points in the bounding box
-                while (current[0] <= static_cast<int>(std::ceil(upper_bounds[0]))) {
-                    if (is_inside_hull(current)) {
-                        points.push_back(current);
-                    }
-
-                    // Advance to the next point (odometer-like increment)
-                    int d = dimension - 1;
-                    while (d >= 0) {
-                        current[d]++;
-                        if (current[d] <= static_cast<int>(std::ceil(upper_bounds[d]))) {
-                            break;
-                        }
-                        current[d] = static_cast<int>(std::floor(lower_bounds[d]));
-                        d--;
-                    }
-                    if (d < 0) {
-                        break; // Exhausted all points
-                    }
-                    for (int i = d + 1; i < dimension; ++i) {
-                        current[i] = static_cast<int>(std::floor(lower_bounds[i]));
-                    }
-                }
-
-                return points;
-            }
-#endif
-
             // selectors
+
+            // Compute exact bounding box using Simplex method
+            void compute_bounding_box() {
+                lower_bounds.resize(dimension, std::numeric_limits<double>::infinity());
+                upper_bounds.resize(dimension, -std::numeric_limits<double>::infinity());
+
+                TwoPhaseSimplex simplex;
+                std::vector<std::vector<double>> A(constraints.size(), std::vector<double>(dimension));
+                std::vector<double> b(constraints.size());
+
+                // Setup constraint matrix A and vector b
+                for (size_t i = 0; i < constraints.size(); ++i) {
+                    double sign = 1.0;
+                    switch (constraints[i].constraint) {
+                    case ConstraintType::GreaterOrEqual:
+                        sign = -1.0; // Flip sign for greater than or equal
+                        b[i] = sign * constraints[i].rhs;
+                        break;
+                    case ConstraintType::LessThan:
+                    case ConstraintType::GreaterThan:
+						throw std::runtime_error("Strict inequalities (LessThan, GreaterThan) are not supported");
+                        break;
+                    case ConstraintType::Equal:
+                    case ConstraintType::LessOrEqual:
+                    default:
+                        // No change needed
+                        b[i] = constraints[i].rhs;
+                        break;
+                    }
+                    for (int j = 0; j < dimension; ++j) {
+                        A[i][j] = sign * constraints[i].normal[j];
+                    }
+                }
+
+                // For each dimension, compute min and max
+                for (int d = 0; d < dimension; ++d) {
+                    // Objective function: maximize x_d (or minimize -x_d)
+                    std::vector<double> c(dimension, 0.0);
+
+                    // Maximize x_d
+                    c[d] = 1.0;
+                    try {
+                        auto solution = simplex.solve(A, b, c);
+                        upper_bounds[d] = solution[d];
+                    }
+                    catch (const std::exception& e) {
+                        // Handle unbounded or infeasible cases
+                        upper_bounds[d] = 1e10; // Large fallback value
+                    }
+
+                    // Minimize x_d (maximize -x_d)
+                    c[d] = -1.0;
+                    try {
+                        auto solution = simplex.solve(A, b, c);
+                        lower_bounds[d] = solution[d];
+                    }
+                    catch (const std::exception& e) {
+                        lower_bounds[d] = -1e10; // Large negative fallback value
+                    }
+                }
+
+                // Validate bounds
+                for (int d = 0; d < dimension; ++d) {
+                    if (lower_bounds[d] > upper_bounds[d]) {
+                        throw std::runtime_error("Invalid bounding box: no feasible points");
+                    }
+                }
+            }
+
+			// Get the bounding box
+			void get_bounds(std::vector<IndexPointType>& lower, std::vector<IndexPointType>& upper) const {
+				lower = lower_bounds;
+				upper = upper_bounds;
+			}
+
+            /// <summary>
+            /// get all the points in the index space
+            /// </summary>
+            /// <returns></returns>
             const std::vector<IndexPoint>& get_points() const {
                 return points;
             }
@@ -162,67 +202,9 @@ namespace sw {
                 }
             }
 
-            // Compute exact bounding box using Simplex method
-            void compute_bounding_box() {
-                lower_bounds.resize(dimension, std::numeric_limits<double>::infinity());
-                upper_bounds.resize(dimension, -std::numeric_limits<double>::infinity());
-
-                Simplex simplex;
-                std::vector<std::vector<double>> A(constraints.size(), std::vector<double>(dimension));
-                std::vector<double> b(constraints.size());
-
-                // Setup constraint matrix A and vector b
-                for (size_t i = 0; i < constraints.size(); ++i) {
-                    for (int j = 0; j < dimension; ++j) {
-                        A[i][j] = constraints[i].normal[j];
-                    }
-                    if (constraints[i].constraint == ConstraintType::GreaterOrEqual ||
-                        constraints[i].constraint == ConstraintType::GreaterThan) {
-                        b[i] = -constraints[i].rhs;
-                    }
-					else {
-						b[i] = constraints[i].rhs;
-					}
-                }
-
-                // For each dimension, compute min and max
-                for (int d = 0; d < dimension; ++d) {
-                    // Objective function: maximize x_d (or minimize -x_d)
-                    std::vector<double> c(dimension, 0.0);
-
-                    // Maximize x_d
-                    c[d] = 1.0;
-                    try {
-                        auto solution = simplex.solve(A, b, c);
-                        upper_bounds[d] = solution[d];
-                    }
-                    catch (const std::exception& e) {
-                        // Handle unbounded or infeasible cases
-                        upper_bounds[d] = 1e10; // Large fallback value
-                    }
-
-                    // Minimize x_d (maximize -x_d)
-                    c[d] = -1.0;
-                    try {
-                        auto solution = simplex.solve(A, b, c);
-                        lower_bounds[d] = solution[d];
-                    }
-                    catch (const std::exception& e) {
-                        lower_bounds[d] = -1e10; // Large negative fallback value
-                    }
-                }
-
-                // Validate bounds
-                for (int d = 0; d < dimension; ++d) {
-                    if (lower_bounds[d] > upper_bounds[d]) {
-                        throw std::runtime_error("Invalid bounding box: no feasible points");
-                    }
-                }
-            }
-
 			// Generate all points in the index space
 			// precondition: bounding box must be set
-            void generate() {
+            void enumerate() {
                 std::vector<IndexPointType> current_point(dimension);
                 for (size_t i = 0; i < dimension; ++i) {
                     current_point[i] = lower_bounds[i];
