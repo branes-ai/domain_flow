@@ -29,6 +29,9 @@ namespace sw {
             inline bool operator<(const IndexPoint& other) const {
                 return coordinates < other.coordinates;
             }
+
+            // selectors
+			inline size_t size() const noexcept { return coordinates.size(); }
         };
 
         inline std::ostream& operator<<(std::ostream& ostr, const IndexPoint& p) {

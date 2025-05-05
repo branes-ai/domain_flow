@@ -62,10 +62,6 @@ int main(int argc, char** argv) {
     ScheduleVector<int> tau;
     dfg.generateSchedule(tau);
 
-    // schedule the index space union
-    //dfg.schedule(schedule);
-
-
 	// The index space is a set of points that make up the domain of computation for the operator.
     // Each index point represents a computation of varying degrees. Typically, these computations
 	// represent a fine-grained operation, such as a Fused Multiply-Add (FMA) operation, an Add, or Multiply.
@@ -87,6 +83,26 @@ int main(int argc, char** argv) {
 
     // Let's first start with the linear schedule.
     dfg.applyLinearSchedule(tau);
+
+    // walk the graph, gather, and report the linear schedule for each operator
+    for (const auto& nodeId : dfg.graph.nodes()) {
+        DomainFlowNode& node = dfg.graph.node(nodeId.first);
+        if (node.isOperator()) { // focus on operators only
+             auto schedule = node.getSchedule();
+			 std::cout << "Operator: " << node.getName() << "\n";
+             std::cout << "Schedule:\n";
+             for (const auto& [time, wavefront] : schedule) {
+                 std::cout << "Time: " << time << '\n';
+				 for (const auto& activity : wavefront) {
+					 std::cout << "  " << activity << '\n';
+				 }
+             }
+
+        }
+    }
+
+    // TDB: schedule the index space union
+    //dfg.schedule(schedule);
 
     return EXIT_SUCCESS;
 }

@@ -81,7 +81,8 @@ namespace sw {
 
 				// visit all index points and apply the dot product to generate the timestep
                 for (const auto& p : doc.getIndexSpace().getPoints()) {
-                    // compute the dot product
+					int timestep = tau.dot(p);
+                    schedule.addActivity(timestep, p);
                 }
             }
 
@@ -482,7 +483,9 @@ namespace sw {
                 // Create an index space from the constraints
 				doc.instantiateIndexSpace();
             }
-			IndexSpace<ConstraintCoefficientType> getIndexSpace() const noexcept { return doc.getIndexSpace(); }
+			const IndexSpace<ConstraintCoefficientType>& getIndexSpace() const noexcept { return doc.getIndexSpace(); }
+
+			const Schedule<ConstraintCoefficientType>& getSchedule() const noexcept { return schedule; }
         };
 
 		inline bool operator==(const DomainFlowNode& lhs, const DomainFlowNode& rhs) {

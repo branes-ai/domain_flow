@@ -31,6 +31,21 @@ namespace sw {
             void assign(std::initializer_list<Scalar> init) noexcept { tau.assign(init); }
             void assign(std::vector<Scalar> init) noexcept { tau.assign(init.begin(), init.end()); }
             void assign(const ScheduleVector<Scalar>& other) noexcept { tau.assign(other.tau.begin(), other.tau.end()); }
+
+			////////////////////////////////////////////////////////////////////////
+            /// selectors
+
+			long dot(const IndexPoint& p) const noexcept {
+				if (p.size() != tau.size()) {
+					std::cerr << "index point size does not match schedule vector size\n";
+                    return -LONG_MAX;
+				}
+				long result = 0;
+				for (size_t i = 0; i < tau.size(); ++i) {
+					result += tau[i] * p[i];
+				}
+				return result;
+			}
         };
 
 
@@ -48,16 +63,16 @@ namespace sw {
             Schedule() = default;
 
             // operator[] for const access
-            const Wavefront& operator[](std::size_t index) const {
-                auto it = wavefronts.find(index);
+            const Wavefront& operator[](std::size_t timestep) const {
+                auto it = wavefronts.find(timestep);
                 if (it != wavefronts.end()) {
                     return it->second;
                 }
                 throw std::out_of_range("Index out of range");
             }
             // operator[] for non-const access
-            Wavefront& operator[](std::size_t index) {
-	            auto it = wavefronts.find(index);
+            Wavefront& operator[](std::size_t timestep) {
+	            auto it = wavefronts.find(timestep);
 	            if (it != wavefronts.end()) {
 		            return it->second;
 	            }
@@ -68,12 +83,47 @@ namespace sw {
             /// modifiers
             void clear() { wavefronts.clear(); }
 
-            void addWavefront(std::size_t index, const Wavefront& wf) {
-                wavefronts[index] = wf;
+			void addActivity(std::size_t timestep, const IndexPoint& p) {
+				auto it = wavefronts.find(timestep);
+				if (it != wavefronts.end()) {
+					it->second.addActivity(p);
+				}
+				else {
+					Wavefront wf;
+					wf.addActivity(p);
+					wavefronts[timestep] = wf;
+				}
+			}
+            void addWavefront(std::size_t timestep, const Wavefront& wf) {
+                wavefronts[timestep] = wf;
+            }
+            // Remove a wavefront at a specific time
+            bool removeWavefront(size_t timestep) {
+                return wavefronts.erase(timestep) > 0;
             }
 
             ////////////////////////////////////////////////////////////////////////
             /// selectors
+            // Get wavefront at a specific time
+            const Wavefront& getWavefront(size_t time) const noexcept {
+                auto it = wavefronts.find(time);
+                if (it != wavefronts.end()) {
+                    return &(it->second);
+                }
+				return Wavefront();  // return an empty wavefront if not found
+            }
+
+            void enumerateWavefronts() const {
+                for (const auto& [time, wavefront] : wavefronts) {
+                    std::cout << "Time: " << time << " - ";
+                    std::cout <<  wavefront << '\n';
+                }
+            }
+
+            ////////////////////////////////////////////////////////////////////////
+            // iterators Provide access to iterators for external enumeration
+            auto begin() const { return wavefronts.begin(); }
+            auto end() const { return wavefronts.end(); }
         };
 
         template<typename Scalar>

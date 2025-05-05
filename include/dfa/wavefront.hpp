@@ -21,13 +21,29 @@ namespace sw {
  
             ////////////////////////////////////////////////////////////////////////
             /// modifiers
-            void add(const IndexPoint& p) {
+			void clear() { activity.clear(); }
+            void addActivity(const IndexPoint& p) {
 				activity.push_back(p);
             }
+            auto front() { return activity.front(); }
+            auto back() { return activity.back(); }
+            auto at(std::size_t index) { return activity.at(index); }
 
             ////////////////////////////////////////////////////////////////////////
             /// selectors
-    
+            auto size() const noexcept { return activity.size(); }
+            auto empty() const noexcept { return activity.empty(); }
+            auto front() const { return activity.front(); }
+            auto back() const { return activity.back(); }
+            auto at(std::size_t index) const { return activity.at(index); }
+
+            ////////////////////////////////////////////////////////////////////////
+            /// iterators
+			auto begin() { return activity.begin(); }
+			auto end() { return activity.end(); }
+			auto begin() const { return activity.begin(); }
+			auto end() const { return activity.end(); }
+
         private:
 			// a vector of index points that represent the activities 
 			// that can be executed concurrently
