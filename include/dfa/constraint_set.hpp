@@ -64,25 +64,29 @@ namespace sw {
 				// 2D: tensor<256x256xf32>
 				// 3D: tensor<256x256x256xf32>
 				// 4D: tensor<256x256x256x256xf32>
-				// lower bound constraints
+				// As we are using a Simplex method to find the bounds of the index space, and 
+				// the Simplex method uses a standard form of Ax <= b, b>=0, we need to
+				// convert the constraints to the standard form. The tensor shapes
+				// are defined with a zero-based index space, and thus the upper bound
+				// is a less-then constraint, which we need to convert to a less-or-equal bound.
 				switch (tensorInfo.size()) {
 				case 1:
 					add(Constraint({ 1 }, 0, ConstraintType::GreaterOrEqual));
-					add(Constraint({ 1 }, tensorInfo.shape[0], ConstraintType::LessThan));
+					add(Constraint({ 1 }, tensorInfo.shape[0]-1, ConstraintType::LessOrEqual));
 					break;
 				case 2:
 					add(Constraint({ 1, 0 }, 0, ConstraintType::GreaterOrEqual));
-					add(Constraint({ 1, 0 }, tensorInfo.shape[0], ConstraintType::LessThan));
+					add(Constraint({ 1, 0 }, tensorInfo.shape[0]-1, ConstraintType::LessOrEqual));
 					add(Constraint({ 0, 1 }, 0, ConstraintType::GreaterOrEqual));
-					add(Constraint({ 0, 1 }, tensorInfo.shape[1], ConstraintType::LessThan));
+					add(Constraint({ 0, 1 }, tensorInfo.shape[1]-1, ConstraintType::LessOrEqual));
 					break;
 				case 3:
 					add(Constraint({ 1, 0, 0 }, 0, ConstraintType::GreaterOrEqual));
-					add(Constraint({ 1, 0, 0 }, tensorInfo.shape[0], ConstraintType::LessThan));
+					add(Constraint({ 1, 0, 0 }, tensorInfo.shape[0]-1, ConstraintType::LessOrEqual));
 					add(Constraint({ 0, 1, 0 }, 0, ConstraintType::GreaterOrEqual));
-					add(Constraint({ 0, 1, 0 }, tensorInfo.shape[1], ConstraintType::LessThan));
+					add(Constraint({ 0, 1, 0 }, tensorInfo.shape[1]-1, ConstraintType::LessOrEqual));
 					add(Constraint({ 0, 0, 1 }, 0, ConstraintType::GreaterOrEqual));
-					add(Constraint({ 0, 0, 1 }, tensorInfo.shape[2], ConstraintType::LessThan));
+					add(Constraint({ 0, 0, 1 }, tensorInfo.shape[2]-1, ConstraintType::LessOrEqual));
 					break;
 				case 4:
 					// the first dimension is typically the batch dimension
@@ -90,13 +94,13 @@ namespace sw {
 					// but we are going into 4D space so that we have all the options
 					// available to us to slice and dice for the right visualization
 					add(Constraint({ 1, 0, 0, 0 }, 0, ConstraintType::GreaterOrEqual));
-					add(Constraint({ 1, 0, 0, 0 }, tensorInfo.shape[0], ConstraintType::LessThan));
+					add(Constraint({ 1, 0, 0, 0 }, tensorInfo.shape[0]-1, ConstraintType::LessOrEqual));
 					add(Constraint({ 0, 1, 0, 0 }, 0, ConstraintType::GreaterOrEqual));
-					add(Constraint({ 0, 1, 0, 0 }, tensorInfo.shape[1], ConstraintType::LessThan));
+					add(Constraint({ 0, 1, 0, 0 }, tensorInfo.shape[1]-1, ConstraintType::LessOrEqual));
 					add(Constraint({ 0, 0, 1, 0 }, 0, ConstraintType::GreaterOrEqual));
-					add(Constraint({ 0, 0, 1, 0 }, tensorInfo.shape[2], ConstraintType::LessThan));
+					add(Constraint({ 0, 0, 1, 0 }, tensorInfo.shape[2]-1, ConstraintType::LessOrEqual));
 					add(Constraint({ 0, 0, 0, 1 }, 0, ConstraintType::GreaterOrEqual));
-					add(Constraint({ 0, 0, 0, 1 }, tensorInfo.shape[3], ConstraintType::LessThan));
+					add(Constraint({ 0, 0, 0, 1 }, tensorInfo.shape[3]-1, ConstraintType::LessOrEqual));
 					break;
 				default:
 					std::cerr << "error: unsupported tensor shape size: " << tensorInfo.size() << std::endl;

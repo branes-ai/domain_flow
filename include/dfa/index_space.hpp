@@ -36,18 +36,19 @@ namespace sw {
 				constraints.clear();
 				if (c.empty()) {
 					std::cerr << "IndexSpace setConstraints: at least one constraint is required\n";
+                    return;
 				}
                 constraints = c;
 				if (dimension == 0) {
 					dimension = constraints[0].normal.size();
 				}
-
 			}
-
-            // selectors
-
-            // Compute exact bounding box using Simplex method
+			// Compute exact bounding box using Simplex method, can throw exceptions
             void compute_bounding_box() {
+                if (constraints.empty()) {
+                    std::cerr << "IndexSpace compute_bounding_box requires constraints to be set\n";
+                    return;
+                }
                 lower_bounds.resize(dimension, std::numeric_limits<double>::infinity());
                 upper_bounds.resize(dimension, -std::numeric_limits<double>::infinity());
 
@@ -65,7 +66,7 @@ namespace sw {
                         break;
                     case ConstraintType::LessThan:
                     case ConstraintType::GreaterThan:
-						throw std::runtime_error("Strict inequalities (LessThan, GreaterThan) are not supported");
+                        throw std::runtime_error("Strict inequalities (LessThan, GreaterThan) are not supported");
                         break;
                     case ConstraintType::Equal:
                     case ConstraintType::LessOrEqual:
@@ -114,19 +115,30 @@ namespace sw {
                 }
             }
 
+			void instantiate() {
+				if (constraints.empty()) {
+					std::cerr << "IndexSpace instantiate requires constraints to be set\n";
+				}
+				compute_bounding_box();
+				enumerate();
+			}
+
+            // selectors
+
+ 
 			// Get the bounding box
+			const ConstraintSet<ConstraintCoefficientType>& constraintSet() const noexcept { return constraints; }
 			void get_bounds(std::vector<IndexPointType>& lower, std::vector<IndexPointType>& upper) const {
 				lower = lower_bounds;
 				upper = upper_bounds;
 			}
+			int get_dimension() const noexcept { return dimension; }
 
             /// <summary>
             /// get all the points in the index space
             /// </summary>
             /// <returns></returns>
-            const std::vector<IndexPoint>& get_points() const {
-                return points;
-            }
+            const std::vector<IndexPoint>& get_points() const noexcept { return points; }
 
         private:
             int dimension;
@@ -243,6 +255,32 @@ namespace sw {
             }
 
         };
+
+		template<typename ConstraintCoefficientType>
+        inline std::ostream& operator<<(std::ostream& os, const IndexSpace<ConstraintCoefficientType>& is) {
+            os << "IndexSpace: dimension = " << is.get_dimension() << '\n';
+            os << "  Constraints:\n";
+            for (const auto& constraint : is.constraintSet().get_constraints()) {
+                os << "    " << constraint << '\n';
+            }
+            os << "  Bounding Box:\n";
+            using IndexPointType = int;
+            std::vector<IndexPointType> lower, upper;
+			is.get_bounds(lower, upper);
+            os << "    Lower Bounds: ";
+            for (const auto& lb : lower) {
+                os << lb << " ";
+            }
+            os << "\n    Upper Bounds: ";
+            for (const auto& ub : upper) {
+                os << ub << " ";
+            }
+            os << "\n  Points:\n";
+            for (const auto& point : is.get_points()) {
+                os << "    " << point << '\n';
+            }
+            return os;
+        }
 
     }
 }

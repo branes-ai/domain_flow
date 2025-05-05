@@ -28,23 +28,28 @@ int main(int argc, char** argv) {
     DomainFlowGraph dfg(dataFileName); // Domain Flow Graph
     dfg.load(dataFileName);
 
+	// the Domain Flow Graph is the raw representation of the graph nodes and their dependencies
+	// To work with a DFG, we ask it to generate specific pieces of information.
+	// For example, we can ask it to generate the convex hull of the domain of computation
+	// for each operator in the graph. The convex hull is a set of constraints that define the
+	// domain of computation for the operator.
+	// Or we can ask for the index space of the operator, which is a set of points that
+	// make up the domain of computation for the operator.
+
+    // Here we are going to generate the index spaces the (sub)graph and report on them.
+    dfg.instantiateIndexSpaces();
+
     // walk the graph, and report on the 3D points that make up the convex hull of the domain of computation
     for (const auto& [nodeId, node] : dfg.graph.nodes()) {
         std::cout << "Node ID: " << nodeId << ", Name: " << node.getName() << " Depth: " << node.getDepth() << std::endl;
         std::cout << "  Operator: " << node.getOperator() << std::endl;
 
-        std::cout << "Convex Hull\n";
-        auto pointCloud = node.convexHullPointSet();
-        for (const auto& p : pointCloud.pointSet) {
+		// for each node, instantiate the index space
+        std::cout << "Index Space\n";
+		auto indexSpace = node.indexSpace();
+        for (const auto& p : indexSpace.get_points()) {
             std::cout << "Point: " << p << '\n';
         }
-
-        std::cout << "Index Space\n";
-
-        //auto indexSpace = node.elaborateIndexSpace();
-        //for (const auto& p : indexSpace.get_ssa_points()) {
-        //    std::cout << "Point: " << p << '\n';
-        //}
 
     }
 

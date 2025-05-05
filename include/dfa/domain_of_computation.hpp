@@ -65,33 +65,42 @@ namespace sw {
 			using Constraint = Hyperplane<ConstraintCoefficientType>;
 
 		private:
-			std::map<std::size_t, std::string> inputs_; // slotted string version of mlir::Type
-			std::map<std::size_t, std::string> outputs_; // slotted string version of mlir::Type
-			ConstraintSet<ConstraintCoefficientType> constraints_;
+			std::map<std::size_t, std::string> inputs; // slotted string version of mlir::Type
+			std::map<std::size_t, std::string> outputs; // slotted string version of mlir::Type
+			ConstraintSet<ConstraintCoefficientType> constraints;
 
-			ConvexHull<ConstraintCoefficientType> hull_;
-			ConfluenceSet<ConstraintCoefficientType> inputFaces_;
-			ConfluenceSet<ConstraintCoefficientType> outputFaces_;
+			ConvexHull<ConstraintCoefficientType> hull;
+			ConfluenceSet<ConstraintCoefficientType> inputFaces;
+			ConfluenceSet<ConstraintCoefficientType> outputFaces;
+
+			IndexSpace<ConstraintCoefficientType> indexSpace;
 
 		public:
 			// default constructor
 			DomainOfComputation() = default;
 			// constructor with initializer list
-			DomainOfComputation(std::initializer_list<Constraint> init_constraints)
-				: inputs_{}, outputs_{}, constraints_{ init_constraints }, hull_{}, inputFaces_{}, outputFaces_{}  {}
+			DomainOfComputation(const DomainFlowOperator& opType, 
+				                const std::map<std::size_t, std::string>& inputTensors,
+				                const std::map<std::size_t, std::string>& outputTensors)
+				: inputs{ inputTensors }, outputs{ outputTensors }, constraints{}, hull{}, inputFaces{}, outputFaces{}, indexSpace{} 
+			{
+				elaborateDomainOfComputation(opType);
+				elaborateConstraintSet(opType);
+				instantiateIndexSpace();
+			}
 
 
 			// modifiers
 			void clear() noexcept { 
-				constraints_.clear();
-				inputs_.clear();
-				outputs_.clear();
-				inputFaces_.clear();
+				constraints.clear();
+				inputs.clear();
+				outputs.clear();
+				inputFaces.clear();
 			}
 
-			void addInput(std::size_t slot, const std::string& typeStr) noexcept { inputs_[slot] = typeStr; }
-			void addOutput(std::size_t slot, const std::string& typeStr) noexcept { outputs_[slot] = typeStr; }
-			void addConstraint(const Constraint& c) noexcept { constraints_.push_back(c); }
+			void addInput(std::size_t slot, const std::string& typeStr) noexcept { inputs[slot] = typeStr; }
+			void addOutput(std::size_t slot, const std::string& typeStr) noexcept { outputs[slot] = typeStr; }
+			void addConstraint(const Constraint& c) noexcept { constraints.push_back(c); }
 
 			/// <summary>
 			/// elaborate the domain of computation for an operator.
@@ -131,37 +140,37 @@ namespace sw {
 					case 1:
 					{
 						// 1D line 
-						hull_.setDimension(1); // 1D convex hull
-						auto v0 = hull_.add_vertex(Point<ConstraintCoefficientType>({ 0 }));
-						auto v1 = hull_.add_vertex(Point<ConstraintCoefficientType>({ tensor0.shape[0] }));
-						auto f0 = hull_.add_face({ v0, v1 });
+						hull.setDimension(1); // 1D convex hull
+						auto v0 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0 }));
+						auto v1 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensor0.shape[0] }));
+						auto f0 = hull.add_face({ v0, v1 });
 					}
 						break;
 					case 2:
 					{
 						// 2D plane
-						hull_.setDimension(2); // 2D convex hull
-						auto v0 = hull_.add_vertex(Point<ConstraintCoefficientType>({ 0, 0 }));
-						auto v1 = hull_.add_vertex(Point<ConstraintCoefficientType>({ 0, tensor0.shape[1] }));
-						auto v2 = hull_.add_vertex(Point<ConstraintCoefficientType>({ tensor0.shape[0], tensor0.shape[1] }));
-						auto v3 = hull_.add_vertex(Point<ConstraintCoefficientType>({ tensor0.shape[0], 0 }));
-						auto f0 = hull_.add_face({ v0, v1, v2, v3 });
+						hull.setDimension(2); // 2D convex hull
+						auto v0 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0 }));
+						auto v1 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, tensor0.shape[1] }));
+						auto v2 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensor0.shape[0], tensor0.shape[1] }));
+						auto v3 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensor0.shape[0], 0 }));
+						auto f0 = hull.add_face({ v0, v1, v2, v3 });
 					}
 						break;
 					case 3:
 					{
 						// 3D volume
-						hull_.setDimension(3); // 3D convex hull
-						auto v0 = hull_.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, 0 }));
-						auto v1 = hull_.add_vertex(Point<ConstraintCoefficientType>({ 0, tensor0.shape[1], 0 }));
-						auto v2 = hull_.add_vertex(Point<ConstraintCoefficientType>({ tensor0.shape[0], tensor0.shape[1], 0 }));
-						auto v3 = hull_.add_vertex(Point<ConstraintCoefficientType>({ tensor0.shape[0], 0, 0 }));
-						auto v4 = hull_.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, tensor0.shape[2] }));
-						auto v5 = hull_.add_vertex(Point<ConstraintCoefficientType>({ 0, tensor0.shape[1], tensor0.shape[2] }));
-						auto v6 = hull_.add_vertex(Point<ConstraintCoefficientType>({ tensor0.shape[0], tensor0.shape[1], tensor0.shape[2] }));
-						auto v7 = hull_.add_vertex(Point<ConstraintCoefficientType>({ tensor0.shape[0], 0, tensor0.shape[2] }));
-						auto f0 = hull_.add_face({ v0, v1, v2, v3 }); // left face
-						auto f1 = hull_.add_face({ v4, v5, v6, v7 }); // right face
+						hull.setDimension(3); // 3D convex hull
+						auto v0 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, 0 }));
+						auto v1 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, tensor0.shape[1], 0 }));
+						auto v2 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensor0.shape[0], tensor0.shape[1], 0 }));
+						auto v3 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensor0.shape[0], 0, 0 }));
+						auto v4 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, tensor0.shape[2] }));
+						auto v5 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, tensor0.shape[1], tensor0.shape[2] }));
+						auto v6 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensor0.shape[0], tensor0.shape[1], tensor0.shape[2] }));
+						auto v7 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensor0.shape[0], 0, tensor0.shape[2] }));
+						auto f0 = hull.add_face({ v0, v1, v2, v3 }); // left face
+						auto f1 = hull.add_face({ v4, v5, v6, v7 }); // right face
 					}
 						break;
 					}
@@ -172,7 +181,7 @@ namespace sw {
 					TensorTypeInfo tensor0 = parseTensorType(getInput(0));
 					TensorTypeInfo tensor1 = parseTensorType(getInput(1));
 					TensorTypeInfo tensor2; // in case we have an input C matrix
-					if (inputs_.size() == 3) {
+					if (inputs.size() == 3) {
 						tensor2 = parseTensorType(getInput(2));
 					}
 					TensorTypeInfo tensorOut = parseTensorType(getOutput(0));
@@ -196,33 +205,33 @@ namespace sw {
 
 					// computational domain is m x k x n
 					// system( (i, j, k) : 0 <= i < m, 0 <= j < n, 0 <= l < k)
-					hull_.setDimension(3); // 3D convex hull
+					hull.setDimension(3); // 3D convex hull
 					// left face vertex sequence
-					auto v0 = hull_.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, 0 }));
-					auto v1 = hull_.add_vertex(Point<ConstraintCoefficientType>({ m_, 0, 0 }));
-					auto v2 = hull_.add_vertex(Point<ConstraintCoefficientType>({ m_, 0, k_ }));
-					auto v3 = hull_.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, k_ }));
+					auto v0 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, 0 }));
+					auto v1 = hull.add_vertex(Point<ConstraintCoefficientType>({ m_, 0, 0 }));
+					auto v2 = hull.add_vertex(Point<ConstraintCoefficientType>({ m_, 0, k_ }));
+					auto v3 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, k_ }));
 
 					// right face vertex sequence
-					auto v4 = hull_.add_vertex(Point<ConstraintCoefficientType>({ 0, n_, k_ }));
-					auto v5 = hull_.add_vertex(Point<ConstraintCoefficientType>({ 0, n_, 0 }));
-					auto v6 = hull_.add_vertex(Point<ConstraintCoefficientType>({ m_, n_, 0 }));
-					auto v7 = hull_.add_vertex(Point<ConstraintCoefficientType>({ m_, n_, k_ }));
+					auto v4 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, n_, k_ }));
+					auto v5 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, n_, 0 }));
+					auto v6 = hull.add_vertex(Point<ConstraintCoefficientType>({ m_, n_, 0 }));
+					auto v7 = hull.add_vertex(Point<ConstraintCoefficientType>({ m_, n_, k_ }));
 
 
 					// define the faces: right hand rule pointing out of the volume
 					// A tensor confluence
-					auto f0 = hull_.add_face({ v0, v1, v2, v3 }); // left face, pointing out
+					auto f0 = hull.add_face({ v0, v1, v2, v3 }); // left face, pointing out
 					Confluence<ConstraintCoefficientType> confluence0(getInput(0), f0);
 					// B tensor confluence
-					auto f1 = hull_.add_face({ v0, v3, v4, v5 }); // back face, pointing out
+					auto f1 = hull.add_face({ v0, v3, v4, v5 }); // back face, pointing out
 					// input C tensor confluence
-					auto f2 = hull_.add_face({ v0, v5, v6, v1 }); // bottom face, pointing out
+					auto f2 = hull.add_face({ v0, v5, v6, v1 }); // bottom face, pointing out
 					// output C tensor confluence
-					auto f3 = hull_.add_face({ v3, v2, v7, v4 }); // top face, pointing out
+					auto f3 = hull.add_face({ v3, v2, v7, v4 }); // top face, pointing out
 					// remaining faces do not have tensor confluences
-					hull_.add_face({ v1, v6, v7, v2 }); // front face
-					hull_.add_face({ v5, v4, v7, v6 }); // right face
+					hull.add_face({ v1, v6, v7, v2 }); // front face
+					hull.add_face({ v5, v4, v7, v6 }); // right face
 				}
 				break;
 				}
@@ -235,14 +244,14 @@ namespace sw {
 			void elaborateConstraintSet(const DomainFlowOperator& opType) noexcept 
 			{
 				// generate the constraints that define the domain of computation for the operator
-				constraints_.clear();
+				constraints.clear();
 				switch (opType) {
 				case DomainFlowOperator::CONSTANT:
 				{
 					// constant operator
 					//    %out = tosa.constant 0.000000e+00 : tensor<12x6xf32>
 					auto tensorInfo = parseTensorType(getOutput(0));
-					constraints_.shapeExtract(tensorInfo);
+					constraints.shapeExtract(tensorInfo);
 				}
 				break;
 				case DomainFlowOperator::ADD:
@@ -250,7 +259,7 @@ namespace sw {
 				case DomainFlowOperator::MUL:
 				{
 					auto tensorInfo = parseTensorType(getInput(0));
-					constraints_.shapeExtract(tensorInfo);
+					constraints.shapeExtract(tensorInfo);
 				}
 				break;
 				case DomainFlowOperator::MATMUL:
@@ -282,7 +291,7 @@ namespace sw {
 						indexSpaceShape.shape.push_back(m);
 						indexSpaceShape.shape.push_back(n);
 						indexSpaceShape.shape.push_back(k);
-						constraints_.shapeExtract(indexSpaceShape);
+						constraints.shapeExtract(indexSpaceShape);
 					}
 					// tensor<batchSize, m, k> * tensor<batchSize, k, n> -> tensor<batchSize, m, n>
 					if (tensor1.size() == 3 && tensor2.size() == 3) {
@@ -297,57 +306,64 @@ namespace sw {
 						indexSpaceShape.shape.push_back(m);
 						indexSpaceShape.shape.push_back(n);
 						indexSpaceShape.shape.push_back(k);
-						constraints_.shapeExtract(indexSpaceShape);
+						constraints.shapeExtract(indexSpaceShape);
 					}
 				}
 				break;
 				}
 
 				// report on any unprocessed nodes
-				if (constraints_.empty()) {
+				if (constraints.empty()) {
 					std::cerr << "DomainFlowNode generateConstraintSet: no constraints defined for this operator" << std::endl;
 				}
 			}
 
+			/// <summary>
+			/// Generate the index space for the domain of computation.
+			/// </summary>
+			void instantiateIndexSpace() noexcept {
+				indexSpace.setConstraints(constraints);
+				indexSpace.instantiate();
+			}
+
 			// selectors
-			bool empty() const noexcept { return constraints_.empty(); }
+			bool empty() const noexcept { return constraints.empty(); }
 
 			std::string getInput(std::size_t slot) const noexcept {
-				auto it = inputs_.find(slot);
-				if (it != inputs_.end()) {
+				auto it = inputs.find(slot);
+				if (it != inputs.end()) {
 					return it->second;
 				}
 				return std::string{};
 			}
 			std::string getOutput(std::size_t slot) const noexcept {
-				auto it = outputs_.find(slot);
-				if (it != outputs_.end()) {
+				auto it = outputs.find(slot);
+				if (it != outputs.end()) {
 					return it->second;
 				}
 				return std::string{};
 			}
-			const std::map<std::size_t, std::string>& inputs() const noexcept { return this->inputs_; }
-			const std::map<std::size_t, std::string>& outputs() const noexcept { return this->outputs_; }
-			const std::vector<Confluence<ConstraintCoefficientType>>& inputFaces() const noexcept { return this->inputFaces_; }
+			const std::map<std::size_t, std::string>& getInputs() const noexcept { return this->inputs; }
+			const std::map<std::size_t, std::string>& getOutputs() const noexcept { return this->outputs; }
+			const std::vector<Confluence<ConstraintCoefficientType>>& getInputFaces() const noexcept { return this->inputFaces; }
 			
 			// get a copy of the constraints that define the domain of computation
-			ConstraintSet<ConstraintCoefficientType> constraints() const noexcept { return this->constraints_; }
+			const ConstraintSet<ConstraintCoefficientType>& getConstraints() const noexcept { return this->constraints; }
+			const IndexSpace<ConstraintCoefficientType>& getIndexSpace() const noexcept { return this->indexSpace; }
 
+			ConvexHull<ConstraintCoefficientType> getConvexHull() const noexcept { return this->hull; }
 			// get the point set that defines the convex hull
-			ConvexHull<ConstraintCoefficientType> convexHull() const noexcept {
-				return hull_;
-			}
-			PointSet<ConstraintCoefficientType> convexHullPointSet() const noexcept {
+			PointSet<ConstraintCoefficientType> getConvexHullPointSet() const noexcept {
 				PointSet<ConstraintCoefficientType> points;
-				for (const auto& vertex : hull_.vertices()) {
+				for (const auto& vertex : hull.vertices()) {
 					points.add(vertex);
 				}
 				return points;
 			}
 			// get the confluence set that defines the tensor confluences
-			ConfluenceSet<ConstraintCoefficientType> confluences() const noexcept {
+			ConfluenceSet<ConstraintCoefficientType> getConfluences() const noexcept {
 				ConfluenceSet<ConstraintCoefficientType> confluences;
-				//for (const auto& confluence : inputFaces_) {
+				//for (const auto& confluence : inputFaces) {
 				//	confluences.add(confluence);
 				//}
 				return confluences;
@@ -356,7 +372,21 @@ namespace sw {
 		};
 
 		template<typename ConstraintCoefficientType>
-		std::ostream& operator<<(std::ostream& os, const DomainOfComputation<ConstraintCoefficientType>& doc) {
+		inline std::ostream& operator<<(std::ostream& os, const DomainOfComputation<ConstraintCoefficientType>& doc) {
+			os << "DomainOfComputation:\n";
+			os << "  Inputs:\n";
+			for (const auto& input : doc.getInputs()) {
+				os << "    " << input.first << ": " << input.second << '\n';
+			}
+			os << "  Outputs:\n";
+			for (const auto& output : doc.getOutputs()) {
+				os << "    " << output.first << ": " << output.second << '\n';
+			}
+			os << "  Constraints:\n" << doc.getConstraints() << '\n';
+			os << "  Convex Hull:\n" << doc.getConvexHull() << '\n';
+			os << "  Confluences:\n" << doc.getConfluences() << '\n';
+			os << "  Index Space:\n" << doc.getIndexSpace() << '\n';
+			return os;
 		}
     }
 }

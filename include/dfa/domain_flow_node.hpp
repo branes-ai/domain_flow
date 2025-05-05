@@ -455,15 +455,18 @@ namespace sw {
                 doc.elaborateDomainOfComputation(opType);
 
 			}
-            PointSet<ConstraintCoefficientType> convexHullPointSet() const noexcept { return doc.convexHullPointSet(); }
-            ConvexHull<ConstraintCoefficientType> convexHull() const noexcept { return doc.convexHull(); }
-			ConfluenceSet<ConstraintCoefficientType> confluences() const noexcept { return doc.confluences(); }
-			ConstraintSet<ConstraintCoefficientType> constraints() const noexcept { return doc.constraints(); }
+            PointSet<ConstraintCoefficientType> convexHullPointSet() const noexcept { return doc.getConvexHullPointSet(); }
+            ConvexHull<ConstraintCoefficientType> convexHull() const noexcept { return doc.getConvexHull(); }
+			ConfluenceSet<ConstraintCoefficientType> confluences() const noexcept { return doc.getConfluences(); }
+			ConstraintSet<ConstraintCoefficientType> constraints() const noexcept { return doc.getConstraints(); }
 
             void instantiateIndexSpace() noexcept {
                 // generate the constraints that define the domain of computation for the operator
                 doc.elaborateConstraintSet(opType);
+                // Create an index space from the constraints
+				doc.instantiateIndexSpace();
             }
+			IndexSpace<ConstraintCoefficientType> indexSpace() const noexcept { return doc.getIndexSpace(); }
         };
 
 		inline bool operator==(const DomainFlowNode& lhs, const DomainFlowNode& rhs) {
