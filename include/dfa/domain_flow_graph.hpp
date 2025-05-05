@@ -96,11 +96,14 @@ namespace sw {
 			void instantiateDomains() noexcept { graph.instantiateDomains(); }
 			void instantiateIndexSpaces() noexcept { graph.instantiateIndexSpaces(); }
 
-			// Generate the schedule for the graph
-			void generateSchedule(Schedule<int>& tau) noexcept {
-				tau.clear();
-				tau.assign({ 1, 1, 1 });
-				// TODO: analyze the index spaces that make up the pipeline and generate a valid schedule
+			void applyLinearSchedule(const ScheduleVector<int>& tau) noexcept { 
+				// walk the graph, and apply the linear schedule to each operator
+				for (const auto& nodeId : graph.nodes()) {
+					if (graph.in_degree(nodeId.first) > 0) { // filter out inputs
+						DomainFlowNode& node = graph.node(nodeId.first);
+						node.applyLinearSchedule(tau);
+					}
+				}
 			}
 
 			// Selectors
@@ -148,6 +151,14 @@ namespace sw {
 				}
 				// return an empty ConstraintSet if the node is not found
 				return ConstraintSet<ConstraintCoefficientType>();
+			}
+
+			// Generate the schedule for the graph
+			void generateSchedule(ScheduleVector<ConstraintCoefficientType>& tau) const noexcept {
+				tau.clear();
+				tau.assign({ 1, 1, 1 });
+				// TODO: analyze the index spaces that make up the pipeline and generate a valid schedule
+				std::cerr << "DomainFlowGraph::generateSchedule: not implemented yet" << std::endl;
 			}
 
 			std::map<std::string, int> operatorStats() const {

@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
         if (indexSpace.empty()) continue;
 
         std::cout << "Index Space\n";
-        for (const auto& p : indexSpace.get_points()) {
+        for (const auto& p : indexSpace.getPoints()) {
             std::cout << "Point: " << p << '\n';
         }
 

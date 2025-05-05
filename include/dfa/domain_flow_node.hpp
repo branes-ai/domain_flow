@@ -17,6 +17,7 @@ namespace sw {
 
         struct DomainFlowNode {
             using ConstraintCoefficientType = int;
+            using CCType = ConstraintCoefficientType;
 
             DomainFlowOperator opType;                      // domain flow operator type
             std::string name;                               // source dialect name
@@ -25,26 +26,27 @@ namespace sw {
             std::map<std::size_t, std::string> resultType;  // slotted string version of mlir::Type
 			std::map<std::string, std::string> attribute;   // attributes of the operation, key/value pair where the value is encoded as a string
             int depth;                                      // depth of 0 represents a data source
-			DomainOfComputation<int> doc;                   // domain of computation for the operator
-			Schedule<int> tau;                              // tau represents the execution schedule for the operator
+			DomainOfComputation<CCType> doc;                // domain of computation for the operator
+			Schedule<CCType> schedule;                      // schedule represents the execution schedule for the operator, which is an ordered set of wavefronts
 
         public:
             // Constructor to initialize the node with just a string of the operator
             DomainFlowNode() 
                 : opType{ DomainFlowOperator::UNKNOWN }, name{ "undefined" }, 
                 operandType{}, resultValue{}, resultType{}, depth { 0 },
-				doc{}, tau{} {}
+				doc{}, schedule{} {}
             DomainFlowNode(const std::string& name) 
                 : opType{ DomainFlowOperator::UNKNOWN }, name{ name }, 
                 operandType{}, resultValue{}, resultType{}, depth{ 0 },
-                doc{}, tau{} {}
+                doc{}, schedule{} {}
             DomainFlowNode(DomainFlowOperator opType, const std::string& name) 
                 : opType{ opType }, name{ name }, 
                 operandType{}, resultValue{}, resultType{}, depth{ 0 },
-                doc{}, tau{} {
+                doc{}, schedule{} {
             }
 
-            // Modifiers
+            ///////////////////////////////////////////////////////////////////////////////////
+            /// modifiers
             void clear() noexcept {
                 opType = DomainFlowOperator::UNKNOWN;
                 name.clear();
@@ -54,7 +56,7 @@ namespace sw {
                 attribute.clear();
                 depth = 0;
                 doc.clear();
-                tau.clear();
+                schedule.clear();
             }
             void setOperator(DomainFlowOperator opType, std::string name) { this->opType = opType;  this->name = name; }
             void setDepth(int d) { depth = d; }
@@ -73,7 +75,18 @@ namespace sw {
                 return *this;
             }
          
-            // selectors
+            // compute a partial order
+			void applyLinearSchedule(const ScheduleVector<CCType>& tau) noexcept {
+				schedule.clear();
+
+				// visit all index points and apply the dot product to generate the timestep
+                for (const auto& p : doc.getIndexSpace().getPoints()) {
+                    // compute the dot product
+                }
+            }
+
+            ///////////////////////////////////////////////////////////////////////////////////
+            /// selectors
             bool isOperator() const noexcept {
                 bool bIsOperator = true;
                 switch (opType) {

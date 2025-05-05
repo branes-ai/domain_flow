@@ -28,7 +28,7 @@ namespace sw {
             Hyperplane(std::initializer_list<Scalar> n, Scalar o, ConstraintType c) : normal(n), rhs(o), constraint(c) {}
 
 			template<typename VectorType>
-            bool is_satisfied(const VectorType& point) const {
+            bool isSatisfied(const VectorType& point) const {
                 double dot_product = 0;
                 for (size_t i = 0; i < normal.size(); ++i) {
                     dot_product += normal[i] * point[i];

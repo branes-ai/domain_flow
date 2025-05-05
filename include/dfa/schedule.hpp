@@ -3,59 +3,81 @@
 #include <vector>
 #include <stdexcept>
 #include <initializer_list>
+#include <dfa/wavefront.hpp>
 
 namespace sw {
     namespace dfa {
         
-        // Representing a piece-wise linear schedule
-        template<typename Scalar = int>
-        class Schedule {
+        template<typename ConstraintCoefficientType>
+        class ScheduleVector {
+			using Scalar = ConstraintCoefficientType;
         private:
-            std::vector<Scalar> data;
+            std::vector<ConstraintCoefficientType> tau;
 
         public:
-			// Constructors
-			Schedule() = default;
-            Schedule(std::initializer_list<Scalar> init) : data(init) {}
-            Schedule(std::vector<Scalar> init) : data(init) {}
-            Schedule(size_t size, Scalar value = 0) : data(size, value) {}
+            ScheduleVector() = default;
+            ScheduleVector(std::initializer_list<Scalar> init) : tau(init) {}
+            ScheduleVector(std::vector<Scalar> init) : tau(init) {}
+            ScheduleVector(size_t size, Scalar value = 0) : tau(size, value) {}
 
-            size_t size() const { return data.size(); }
+            ////////////////////////////////////////////////////////////////////////
+            /// modifiers
+            void clear() { tau.clear(); }
+            void resize(size_t newSize, Scalar value = 0) { tau.resize(newSize, value); }
+            void push_back(Scalar value) noexcept { tau.push_back(value); }
+            void pop_back() noexcept { tau.pop_back(); }
 
-            // operator[] for const access
-            const Scalar& operator[](size_t index) const {
-                if (index >= data.size()) {
-                    throw std::out_of_range("Schedule index out of range.");
-                }
-                return data[index];
-            }
-
-            // operator[] for non-const access
-            Scalar& operator[](size_t index) {
-                if (index >= data.size()) {
-                    throw std::out_of_range("Schedule index out of range.");
-                }
-                return data[index];
-            }
-
-            // modifiers
-            void clear() { data.clear(); }
-			void resize(size_t newSize, Scalar value = 0) {
-				data.resize(newSize, value);
-			}
-			void push_back(Scalar value) noexcept { data.push_back(value); }
-			void pop_back() noexcept { data.pop_back(); }
-			void assign(size_t size, Scalar value) noexcept { data.assign(size, value); }
-			void assign(std::initializer_list<Scalar> init) noexcept { data.assign(init); }
-			void assign(std::vector<Scalar> init) noexcept { data.assign(init.begin(), init.end()); }
-			void assign(const Schedule<Scalar>& other) noexcept { data.assign(other.data.begin(), other.data.end()); }
-
-            //selectors
-            std::vector<Scalar> toStdVector() const { return data; }
+            void assign(size_t size, Scalar value) noexcept { tau.assign(size, value); }
+            void assign(std::initializer_list<Scalar> init) noexcept { tau.assign(init); }
+            void assign(std::vector<Scalar> init) noexcept { tau.assign(init.begin(), init.end()); }
+            void assign(const ScheduleVector<Scalar>& other) noexcept { tau.assign(other.tau.begin(), other.tau.end()); }
         };
 
-	template<typename Scalar>
-        std::ostream& operator<<(std::ostream& os, const Schedule<Scalar>& schedule) {
+
+        // Representing a piece-wise linear schedule
+        template<typename ConstraintCoefficientType = int>
+        class Schedule {
+            using Scalar = ConstraintCoefficientType;
+        private:
+            // for each time step, we have a wavefront consisting of independent
+            // activities that can execute concurrently
+            std::map<std::size_t, Wavefront> wavefronts;
+
+        public:
+            // Constructors
+            Schedule() = default;
+
+            // operator[] for const access
+            const Wavefront& operator[](std::size_t index) const {
+                auto it = wavefronts.find(index);
+                if (it != wavefronts.end()) {
+                    return it->second;
+                }
+                throw std::out_of_range("Index out of range");
+            }
+            // operator[] for non-const access
+            Wavefront& operator[](std::size_t index) {
+	            auto it = wavefronts.find(index);
+	            if (it != wavefronts.end()) {
+		            return it->second;
+	            }
+	            throw std::out_of_range("Index out of range");
+            }
+
+            ////////////////////////////////////////////////////////////////////////
+            /// modifiers
+            void clear() { wavefronts.clear(); }
+
+            void addWavefront(std::size_t index, const Wavefront& wf) {
+                wavefronts[index] = wf;
+            }
+
+            ////////////////////////////////////////////////////////////////////////
+            /// selectors
+        };
+
+        template<typename Scalar>
+        inline std::ostream& operator<<(std::ostream& os, const Schedule<Scalar>& schedule) {
             os << "[ ";
             for (size_t i = 0; i < schedule.size(); ++i) {
                 os << schedule[i];

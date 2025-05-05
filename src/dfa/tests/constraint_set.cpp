@@ -5,8 +5,8 @@
 template<typename ConstraintCoefficientType>
 bool isInsideHull(const sw::dfa::ConstraintSet<ConstraintCoefficientType>& constraints, const sw::dfa::IndexPoint& point) {
 	bool all_satisfied = true;
-	for (const auto& constraint : constraints.get_constraints()) {
-		if (!constraint.is_satisfied(point)) {
+	for (const auto& constraint : constraints.getConstraints()) {
+		if (!constraint.isSatisfied(point)) {
 			all_satisfied = false;
 			std::cout << "Constraint: " << constraints << " is NOT satisfied by IndexPoint p = " << point << '\n';
 		}

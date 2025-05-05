@@ -112,14 +112,14 @@ namespace sw {
 			bool empty() const noexcept { return constraints.empty(); }
 			bool isInside(const IndexPoint& point) const noexcept {
 				for (const auto& constraint : constraints) {
-					if (!constraint.is_satisfied(point)) {
+					if (!constraint.isSatisfied(point)) {
 						return false;
 					}
 				}
 				return true;
 			}
 			size_t size() const noexcept { return constraints.size(); }
-			const std::vector<Constraint>& get_constraints() const noexcept { return constraints; }
+			const std::vector<Constraint>& getConstraints() const noexcept { return constraints; }
 			const Constraint& operator[](size_t index) const {
 				if (index >= constraints.size()) {
 					throw std::out_of_range("Index out of range");
@@ -140,7 +140,7 @@ namespace sw {
 		template<typename CCType>
 		inline std::ostream& operator<<(std::ostream& os, const ConstraintSet<CCType>& cs) {
 			os << "ConstraintSet:\n";
-			for (const auto& c : cs.get_constraints()) {
+			for (const auto& c : cs.getConstraints()) {
 				os << "  " << c << '\n';
 			}
 			return os;

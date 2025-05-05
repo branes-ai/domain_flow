@@ -59,11 +59,34 @@ int main(int argc, char** argv) {
     // input data.
 
     // 
-    Schedule<int> schedule;
-    dfg.generateSchedule(schedule);
+    ScheduleVector<int> tau;
+    dfg.generateSchedule(tau);
 
     // schedule the index space union
     //dfg.schedule(schedule);
+
+
+	// The index space is a set of points that make up the domain of computation for the operator.
+    // Each index point represents a computation of varying degrees. Typically, these computations
+	// represent a fine-grained operation, such as a Fused Multiply-Add (FMA) operation, an Add, or Multiply.
+    // 
+	// A schedule is a partial order of the index points in the index space that satisfies all the data 
+    // dependencies of the graph.
+
+    // Linear schedules are partial orders that organize the index points by taking a dot product between
+	// the normal vector of the plane and the index point. The dot product is a scalar value that represents the
+	// distance of the index point from the origin. The dot product is used to sort the index points in a linear
+    // order. 
+
+    // We would also like to schedule sequential processors, vector processors, SIMD processor, and their
+    // multi-core extentions.
+
+    // We would also like to schedule many-core variants like GPUs.
+
+    // What does the API for generating a schedule need to look like to support all these different approaches?
+
+    // Let's first start with the linear schedule.
+    dfg.applyLinearSchedule(tau);
 
     return EXIT_SUCCESS;
 }

@@ -131,6 +131,8 @@ namespace sw {
         /// <typeparam name="GraphType"></typeparam>
         template <typename NodeType, typename EdgeType, bool GraphType = DIRECTED_GRAPH>
         class graph {
+            using ConstraintCoefficientType = int;
+			using CCType = ConstraintCoefficientType;
         public:
             static constexpr bool graph_t = GraphType;
             using node_t = NodeType;

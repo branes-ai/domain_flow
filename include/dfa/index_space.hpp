@@ -127,18 +127,18 @@ namespace sw {
 			bool empty() const noexcept { return points.empty(); }
  
 			// Get the bounding box
-			const ConstraintSet<ConstraintCoefficientType>& constraintSet() const noexcept { return constraints; }
-			void get_bounds(std::vector<IndexPointType>& lower, std::vector<IndexPointType>& upper) const {
+			const ConstraintSet<ConstraintCoefficientType>& getConstraintSet() const noexcept { return constraints; }
+			void getBounds(std::vector<IndexPointType>& lower, std::vector<IndexPointType>& upper) const {
 				lower = lower_bounds;
 				upper = upper_bounds;
 			}
-			int get_dimension() const noexcept { return dimension; }
+			int getDimension() const noexcept { return dimension; }
 
             /// <summary>
             /// get all the points in the index space
             /// </summary>
             /// <returns></returns>
-            const std::vector<IndexPoint>& get_points() const noexcept { return points; }
+            const std::vector<IndexPoint>& getPoints() const noexcept { return points; }
 
         private:
             int dimension;
@@ -225,8 +225,8 @@ namespace sw {
                 while (true) {
                     // Check if a point satisfies all half-plane constraints
                     bool satisfies_all = true;
-                    for (const auto& constraint : constraints.get_constraints()) {
-                        if (!constraint.is_satisfied(current_point)) {
+                    for (const auto& constraint : constraints.getConstraints()) {
+                        if (!constraint.isSatisfied(current_point)) {
                             satisfies_all = false;
                             break;
                         }
@@ -258,15 +258,15 @@ namespace sw {
 
 		template<typename ConstraintCoefficientType>
         inline std::ostream& operator<<(std::ostream& os, const IndexSpace<ConstraintCoefficientType>& is) {
-            os << "IndexSpace: dimension = " << is.get_dimension() << '\n';
+            os << "IndexSpace: dimension = " << is.getDimension() << '\n';
             os << "  Constraints:\n";
-            for (const auto& constraint : is.constraintSet().get_constraints()) {
+            for (const auto& constraint : is.getConstraintSet().getConstraints()) {
                 os << "    " << constraint << '\n';
             }
             os << "  Bounding Box:\n";
             using IndexPointType = int;
             std::vector<IndexPointType> lower, upper;
-			is.get_bounds(lower, upper);
+			is.getBounds(lower, upper);
             os << "    Lower Bounds: ";
             for (const auto& lb : lower) {
                 os << lb << " ";
@@ -276,7 +276,7 @@ namespace sw {
                 os << ub << " ";
             }
             os << "\n  Points:\n";
-            for (const auto& point : is.get_points()) {
+            for (const auto& point : is.getPoints()) {
                 os << "    " << point << '\n';
             }
             return os;
