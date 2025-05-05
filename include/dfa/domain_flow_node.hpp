@@ -22,7 +22,7 @@ namespace sw {
             std::string name;                               // source dialect name
             std::map<std::size_t, std::string> operandType; // slotted string version of mlir::Type
             std::map<std::size_t, std::string> resultValue; // slotted string version of mlir::Value: typically too verbose
-            std::map<std::size_t, std::string> resultType; // slotted string version of mlir::Type
+            std::map<std::size_t, std::string> resultType;  // slotted string version of mlir::Type
 			std::map<std::string, std::string> attribute;   // attributes of the operation, key/value pair where the value is encoded as a string
             int depth;                                      // depth of 0 represents a data source
 			DomainOfComputation<int> doc;                   // domain of computation for the operator
@@ -135,6 +135,9 @@ namespace sw {
             }
             std::string getResultType(std::size_t slot) const noexcept { auto it = resultType.find(slot); if (it != resultType.end()) return it->second; else return "n/a"; }
         
+            bool isInside(const IndexPoint& p) const noexcept {
+                return doc.isInside(p);
+            }
             // Functional operators
             std::vector<std::tuple<std::string, std::string, std::uint64_t>> getArithmeticComplexity() const noexcept {
                 std::vector<std::tuple<std::string, std::string, std::uint64_t>> work;
@@ -455,10 +458,10 @@ namespace sw {
                 doc.elaborateDomainOfComputation(opType);
 
 			}
-            PointSet<ConstraintCoefficientType> convexHullPointSet() const noexcept { return doc.getConvexHullPointSet(); }
-            ConvexHull<ConstraintCoefficientType> convexHull() const noexcept { return doc.getConvexHull(); }
-			ConfluenceSet<ConstraintCoefficientType> confluences() const noexcept { return doc.getConfluences(); }
-			ConstraintSet<ConstraintCoefficientType> constraints() const noexcept { return doc.getConstraints(); }
+            PointSet<ConstraintCoefficientType> getConvexHullPointSet() const noexcept { return doc.getConvexHullPointSet(); }
+            ConvexHull<ConstraintCoefficientType> getConvexHull() const noexcept { return doc.getConvexHull(); }
+			ConfluenceSet<ConstraintCoefficientType> getConfluences() const noexcept { return doc.getConfluences(); }
+			ConstraintSet<ConstraintCoefficientType> getConstraints() const noexcept { return doc.getConstraints(); }
 
             void instantiateIndexSpace() noexcept {
                 // generate the constraints that define the domain of computation for the operator
@@ -466,7 +469,7 @@ namespace sw {
                 // Create an index space from the constraints
 				doc.instantiateIndexSpace();
             }
-			IndexSpace<ConstraintCoefficientType> indexSpace() const noexcept { return doc.getIndexSpace(); }
+			IndexSpace<ConstraintCoefficientType> getIndexSpace() const noexcept { return doc.getIndexSpace(); }
         };
 
 		inline bool operator==(const DomainFlowNode& lhs, const DomainFlowNode& rhs) {

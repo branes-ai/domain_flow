@@ -328,7 +328,9 @@ namespace sw {
 
 			// selectors
 			bool empty() const noexcept { return constraints.empty(); }
-
+			bool isInside(const IndexPoint& p) const noexcept {
+				return constraints.isInside(p);
+			}
 			std::string getInput(std::size_t slot) const noexcept {
 				auto it = inputs.find(slot);
 				if (it != inputs.end()) {

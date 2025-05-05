@@ -109,41 +109,41 @@ namespace sw {
 			std::size_t getNrEdges() const noexcept { return graph.nrEdges(); }
 
 			// get the convex hull of a node
-			ConvexHull<ConstraintCoefficientType> convexHull(sw::graph::nodeId_t nodeId) const noexcept {
+			ConvexHull<ConstraintCoefficientType> getConvexHull(sw::graph::nodeId_t nodeId) const noexcept {
 				ConvexHull<ConstraintCoefficientType> hull;
 				for (const auto& node : graph.nodes()) {
 					if (node.first == nodeId) {
-						hull = node.second.convexHull();
+						hull = node.second.getConvexHull();
 					}
 				}
 				// return an empty PointSet if the node is not found
 				return hull;
 			}
-			PointSet<ConstraintCoefficientType> convexHullPointSet(sw::graph::nodeId_t nodeId) const noexcept {
+			PointSet<ConstraintCoefficientType> getConvexHullPointSet(sw::graph::nodeId_t nodeId) const noexcept {
 				PointSet<ConstraintCoefficientType> pointSet;
 				for (const auto& node : graph.nodes()) {
 					if (node.first == nodeId) {
-						pointSet = node.second.convexHullPointSet();
+						pointSet = node.second.getConvexHullPointSet();
 					}
 				}
 				// return an empty PointSet if the node is not found
 				return pointSet;
 			}
 			// get the tensor confluences for a node
-			ConfluenceSet<ConstraintCoefficientType> confluences(sw::graph::nodeId_t nodeId) const noexcept {
+			ConfluenceSet<ConstraintCoefficientType> getConfluences(sw::graph::nodeId_t nodeId) const noexcept {
 				ConfluenceSet<ConstraintCoefficientType> confluenceSet;
 				for (const auto& node : graph.nodes()) {
 					if (node.first == nodeId) {
-						confluenceSet = node.second.confluences();
+						confluenceSet = node.second.getConfluences();
 					}
 				}
 				return confluenceSet;
 			}
 			// get the constraint set of a node
-			ConstraintSet<ConstraintCoefficientType> constraints(sw::graph::nodeId_t nodeId) const noexcept {
+			ConstraintSet<ConstraintCoefficientType> getConstraints(sw::graph::nodeId_t nodeId) const noexcept {
 				for (const auto& node : graph.nodes()) {
 					if (node.first == nodeId) {
-						return node.second.constraints();
+						return node.second.getConstraints();
 					}
 				}
 				// return an empty ConstraintSet if the node is not found

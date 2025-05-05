@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
 
 		// for each operator node, report the index space
 
-		auto indexSpace = node.indexSpace();
+		auto indexSpace = node.getIndexSpace();
         if (indexSpace.empty()) continue;
 
         std::cout << "Index Space\n";

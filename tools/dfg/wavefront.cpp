@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
     dfg.load(dataFileName);
 
     // generate the index space for the complete graph
-	//dfg.generateIndexSpace();
+	dfg.instantiateIndexSpaces();
 
 	// analyze the index space and gather valid schedules
 
