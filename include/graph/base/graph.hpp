@@ -593,7 +593,7 @@ namespace sw {
                     if (in_degree(nodeId) > 0) { // filter out inputs
                         std::cout << "Node ID: " << nodeId << ", Name: " << node.getName() << " Depth: " << node.getDepth() << std::endl;
                         std::cout << "  Operator: " << node.getOperator() << std::endl;
-
+						node.instantiateDomain();
                         node.instantiateIndexSpace();
                     }
                 }

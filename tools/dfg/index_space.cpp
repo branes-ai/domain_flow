@@ -44,9 +44,12 @@ int main(int argc, char** argv) {
         std::cout << "Node ID: " << nodeId << ", Name: " << node.getName() << " Depth: " << node.getDepth() << std::endl;
         std::cout << "  Operator: " << node.getOperator() << std::endl;
 
-		// for each node, instantiate the index space
-        std::cout << "Index Space\n";
+		// for each operator node, report the index space
+
 		auto indexSpace = node.indexSpace();
+        if (indexSpace.empty()) continue;
+
+        std::cout << "Index Space\n";
         for (const auto& p : indexSpace.get_points()) {
             std::cout << "Point: " << p << '\n';
         }

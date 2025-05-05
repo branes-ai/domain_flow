@@ -124,7 +124,7 @@ namespace sw {
 			}
 
             // selectors
-
+			bool empty() const noexcept { return points.empty(); }
  
 			// Get the bounding box
 			const ConstraintSet<ConstraintCoefficientType>& constraintSet() const noexcept { return constraints; }
