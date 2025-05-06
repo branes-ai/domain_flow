@@ -105,12 +105,12 @@ namespace sw {
             ////////////////////////////////////////////////////////////////////////
             /// selectors
             // Get wavefront at a specific time
-            const Wavefront& getWavefront(size_t time) const noexcept {
+            const Wavefront* getWavefront(size_t time) const noexcept {
                 auto it = wavefronts.find(time);
                 if (it != wavefronts.end()) {
                     return &(it->second);
                 }
-				return Wavefront();  // return an empty wavefront if not found
+                return nullptr;
             }
 
             void enumerateWavefronts() const {

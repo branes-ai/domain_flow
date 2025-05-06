@@ -4,6 +4,19 @@
 #include <dfa/dfa.hpp>
 #include <util/data_file.hpp>
 
+namespace sw {
+    namespace dfa {
+
+        void reportWavefront(size_t timestep, const Wavefront* wavefront) {
+            std::cout << "Wavefront: " << timestep << "\n";
+            for (const auto& activity : *wavefront) {
+                std::cout << "  " << activity << '\n';
+            }
+        }
+    }
+}
+
+
 /*
  * Generating wavefronts
  *
@@ -92,14 +105,37 @@ int main(int argc, char** argv) {
 			 std::cout << "Operator: " << node.getName() << "\n";
              std::cout << "Schedule:\n";
              for (const auto& [time, wavefront] : schedule) {
-                 std::cout << "Time: " << time << '\n';
-				 for (const auto& activity : wavefront) {
-					 std::cout << "  " << activity << '\n';
-				 }
+                 std::cout << "Time: " << time << " : nr of activities: " << wavefront.size() << '\n'; 
              }
-
         }
     }
+
+
+    // API to get a specific wavefront in time
+	// first we need to find a node that has a schedule, just pick the first one
+    const DomainFlowNode* targetNode = nullptr;
+    for (const auto& nodeId : dfg.graph.nodes()) {
+        const DomainFlowNode& node = dfg.graph.node(nodeId.first);
+        if (node.isOperator()) { // focus on operators only
+			targetNode = &node;
+            break;
+        }
+    }
+    if (targetNode != nullptr) {
+        // Use *targetNode to access the node's data
+        // Example: auto value = targetNode->getValue();
+        auto schedule = targetNode->getSchedule();
+		std::cout << "Operator: " << targetNode->getName() << "\n";
+		auto wavefrontRef = schedule[0]; // Get the wavefront at time 0
+		reportWavefront(0, &wavefrontRef);
+		auto wavefrontPtr = schedule.getWavefront(3); // Get the wavefront at time 3
+		reportWavefront(3, wavefrontPtr);
+    }
+    else {
+        // Handle case where no matching node was found
+		std::cerr << "No operator node found in the graph.\n";
+    }
+
 
     // TDB: schedule the index space union
     //dfg.schedule(schedule);
