@@ -50,7 +50,7 @@ Let’s formalize the problem to guide the solution:
 ---
 
 ### 2. Generalized Mechanism for Schedule Modulation
-To modulate the schedule of a dependent operator (e.g., ogni ReLU) based on the availability of results from a supplying operator (e.g., matmul), I propose a **dependency-driven scheduling framework** that propagates constraints through the DFG. The mechanism uses polyhedral analysis to model inter-operator dependencies and compute feasible schedules, accounting for the fine-grained SURE dependencies and the 3D embedding. Here’s the approach:
+To modulate the schedule of a dependent operator (e.g., ReLU) based on the availability of results from a supplying operator (e.g., matmul), I propose a **dependency-driven scheduling framework** that propagates constraints through the DFG. The mechanism uses polyhedral analysis to model inter-operator dependencies and compute feasible schedules, accounting for the fine-grained SURE dependencies and the 3D embedding. Here’s the approach:
 
 #### Step 1: Model Inter-Operator Dependencies
 - **Dependency Edges**: For each edge in the DFG (e.g., matmul → ReLU), define the data dependency at the index space level.
@@ -141,13 +141,15 @@ To account for the matmul’s schedule determining output availability:
     - Collect all intra-operator constraints (from each operator’s SURE).
     - Collect all inter-operator constraints (from dependency maps).
     - Solve for all ${ \mathbf{s_i} }$ (one per operator) simultaneously:
-      $$\eqalign{
+
+  $$\eqalign{
       \text{minimize } \sum_i w_i \cdot \mathbf{s_i} \text{ subject to }
       \begin{cases}
         \text{intra-operator constraints for } O_i \\
         \mathbf{s_2} \cdot \mathbf{p_2} \geq \mathbf{s_1} \cdot \mathbf{p_1} + 1 \text{ for } (\mathbf{p_1}, \mathbf{p_2}) \in M_{12}
       \end{cases}
-      }$$
+  }$$
+
       where ${ w_i }$ are weights to prioritize certain operators (e.g., to optimize latency or throughput).
   - **Dynamic Adjustment**: If ${ \mathbf{s_m} }$ is fixed (e.g., precomputed), compute ${ \mathbf{s_r} }$ as a function of ${ \mathbf{s_m} }$:
     - Use the dependency map to project ${ \mathbf{s_m} }$’s constraints onto ${ \mathbf{s_r} }$.
