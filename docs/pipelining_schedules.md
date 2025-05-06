@@ -42,10 +42,8 @@ Let’s formalize the problem to guide the solution:
   - Index space: Same as matmul’s output, ${ \{[b, i, j] : 0 \leq b < \text{batchSize}, 0 \leq i < m, 0 \leq j < n\} }$.
   - Schedule: ${ \mathbf{s_r} \cdot [b, i, j] }$, where ${ \mathbf{s_r} = [s_{r1}, s_{r2}, s_{r3}] }$.
   - Dependency: ${ D[b, i, j] }$ requires ${ C[b, i, j] }$, so:
-  $$\eqalign{
-  $$\eqalign{
+    $$\eqalign{
     \mathbf{s_r} \cdot [b, i, j] > \mathbf{s_m} \cdot [b, i, j]
-    \]
     }$$
 - **Issue**: The matmul’s schedule ${ \mathbf{s_m} }$ dictates when ${ C[b, i, j] }$ is available. For example, if ${ \mathbf{s_m} = [0, 1, 0] }$, computations are ordered by ${ i }$, so ${ C[b, i, :] }$ is available before ${ C[b, i+1, :] }$. The ReLU’s schedule ${ \mathbf{s_r} }$ must ensure ${ D[b, i, j] }$ is computed after ${ C[b, i, j] }$, but we want a general mechanism to propagate this constraint across arbitrary operators and schedules.
 
@@ -57,20 +55,17 @@ To modulate the schedule of a dependent operator (e.g., ogni ReLU) based on the 
 #### Step 1: Model Inter-Operator Dependencies
 - **Dependency Edges**: For each edge in the DFG (e.g., matmul → ReLU), define the data dependency at the index space level.
   - Example: For matmul → ReLU, the dependency is:
-  $$\eqalign{
+    $$\eqalign{
     D[b, i, j] \text{ depends on } C[b, i, j]
-    \]
     }$$
     In polyhedral terms, this is a dependency map:
-  $$\eqalign{
+    $$\eqalign{
     \{ [b, i, j] \rightarrow [b, i, j] : 0 \leq b < \text{batchSize}, 0 \leq i < m, 0 \leq j < n \}
-    \]
     }$$
     This map indicates that each index point in ReLU’s index space depends on the corresponding point in matmul’s output.
 - **General Form**: For any edge from operator ${ O_1 }$ (supplying) to ${ O_2 }$ (dependent), define a dependency map:
   $$\eqalign{
   M_{12} : D_1 \rightarrow D_2
-  \]
   }$$
   where ${ D_1 }$ is ${ O_1 }$’s output index space, and ${ D_2 }$ is ${ O_2 }$’s input index space. The map ${ M_{12} }$ specifies which output points of ${ O_1 }$ are needed for each input point of ${ O_2 }$.
   - For matmul → ReLU, ${ M_{12} }$ is an identity map (1:1 correspondence).
@@ -85,9 +80,8 @@ To modulate the schedule of a dependent operator (e.g., ogni ReLU) based on the 
     };
     ```
   - Derive ${ M_{12} }$ from the SUREs of ${ O_1 }$ and ${ O_2 }$. For ReLU, the SURE is pointwise:
-  $$\eqalign{
+    $$\eqalign{
     D[b, i, j] = \max(0, C[b, i, j])
-    \]
     }$$
     For matmul, it’s a reduction (as discussed in your previous question), but the output ${ C[b, i, j] }$ is the final result at each index point.
 
@@ -100,32 +94,27 @@ To modulate the schedule of a dependent operator (e.g., ogni ReLU) based on the 
     - No internal dependencies (pointwise operation), so any ${ \mathbf{s_r} }$ is valid internally.
 - **Inter-Operator Constraints**: For each dependency edge ${ O_1 \rightarrow O_2 }$, add scheduling constraints based on the dependency map ${ M_{12} }$.
   - For each pair ${ (\mathbf{p_1}, \mathbf{p_2}) \in M_{12} }$, where ${ \mathbf{p_1} \in D_1 }$ (output of ${ O_1 }$) and ${ \mathbf{p_2} \in D_2 }$ (input of ${ O_2 }$), ensure:
-  $$\eqalign{
+    $$\eqalign{
     \mathbf{s_2} \cdot \mathbf{p_2} > \mathbf{s_1} \cdot \mathbf{p_1}
-    \]
     }$$
     - For matmul → ReLU, since ${ M_{12} = \{ [b, i, j] \rightarrow [b, i, j] \} }$:
-  $$\eqalign{
-      \mathbf{s_r} \cdot [b, i, j] > \mathbf{s_m} \cdot [b, i, j]
-      \]
-      }$$
+    $$\eqalign{
+    \mathbf{s_r} \cdot [b, i, j] > \mathbf{s_m} \cdot [b, i, j]
+    }$$
       Simplifying for all ${ [b, i, j] }$:
-  $$\eqalign{
-      \mathbf{s_r} \cdot [b, i, j] \geq \mathbf{s_m} \cdot [b, i, j] + 1
-      \]
-      }$$
+    $$\eqalign{
+    \mathbf{s_r} \cdot [b, i, j] \geq \mathbf{s_m} \cdot [b, i, j] + 1
+    }$$
       This ensures ReLU at ${ [b, i, j] }$ is scheduled after matmul produces ${ C[b, i, j] }$.
 
 - **3D Embedding**: Since schedules are embedded in 3D space, ${ \mathbf{s_1}, \mathbf{s_2} }$ are 3D vectors (e.g., ${ [s_x, s_y, s_z] }$). The constraints remain the same but are solved in the 3D subspace.
   - Example constraint for matmul → ReLU:
-  $$\eqalign{
+    $$\eqalign{
     (s_{r1} b + s_{r2} i + s_{r3} j) \geq (s_{m1} b + s_{m2} i + s_{m3} j) + 1
-    \]
     }$$
     For all ${ b, i, j }$, this implies:
-  $$\eqalign{
+    $$\eqalign{
     s_{r1} \geq s_{m1}, \quad s_{r2} \geq s_{m2}, \quad s_{r3} \geq s_{m3}
-    \]
     }$$
     with at least one strict inequality to ensure progress.
 
@@ -152,13 +141,12 @@ To account for the matmul’s schedule determining output availability:
     - Collect all intra-operator constraints (from each operator’s SURE).
     - Collect all inter-operator constraints (from dependency maps).
     - Solve for all ${ \mathbf{s_i} }$ (one per operator) simultaneously:
-  $$\eqalign{
+      $$\eqalign{
       \text{minimize } \sum_i w_i \cdot \mathbf{s_i} \text{ subject to }
       \begin{cases}
         \text{intra-operator constraints for } O_i \\
         \mathbf{s_2} \cdot \mathbf{p_2} \geq \mathbf{s_1} \cdot \mathbf{p_1} + 1 \text{ for } (\mathbf{p_1}, \mathbf{p_2}) \in M_{12}
       \end{cases}
-      \]
       }$$
       where ${ w_i }$ are weights to prioritize certain operators (e.g., to optimize latency or throughput).
   - **Dynamic Adjustment**: If ${ \mathbf{s_m} }$ is fixed (e.g., precomputed), compute ${ \mathbf{s_r} }$ as a function of ${ \mathbf{s_m} }$:
