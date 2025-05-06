@@ -142,13 +142,13 @@ To account for the matmul’s schedule determining output availability:
     - Collect all inter-operator constraints (from dependency maps).
     - Solve for all ${ \mathbf{s_i} }$ (one per operator) simultaneously:
 
-  $$\eqalign{
-      \text{minimize } \sum_i w_i \cdot \mathbf{s_i} \text{ subject to }
-      \begin{cases}
-        \text{intra-operator constraints for } O_i \\
-        \mathbf{s_2} \cdot \mathbf{p_2} \geq \mathbf{s_1} \cdot \mathbf{p_1} + 1 \text{ for } (\mathbf{p_1}, \mathbf{p_2}) \in M_{12}
-      \end{cases}
-  }$$
+$$\eqalign{
+\text{minimize } \sum_i w_i \cdot \mathbf{s_i} \text{ subject to }
+\begin{cases}
+\text{intra-operator constraints for } O_i \\
+\mathbf{s_2} \cdot \mathbf{p_2} \geq \mathbf{s_1} \cdot \mathbf{p_1} + 1 \text{ for } (\mathbf{p_1}, \mathbf{p_2}) \in M_{12}
+\end{cases}
+}$$
 
       where ${ w_i }$ are weights to prioritize certain operators (e.g., to optimize latency or throughput).
   - **Dynamic Adjustment**: If ${ \mathbf{s_m} }$ is fixed (e.g., precomputed), compute ${ \mathbf{s_r} }$ as a function of ${ \mathbf{s_m} }$:
