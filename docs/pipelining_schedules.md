@@ -10,13 +10,13 @@ Below, I propose a generalized mechanism to modulate the schedules of dependent 
 Let’s formalize the problem to guide the solution:
 
 - **Domain Flow Graph (DFG)**: A directed graph where nodes are operators (e.g., matmul, ReLU) with associated index spaces and SUREs, and edges represent data dependencies (e.g., matmul’s output feeds into ReLU’s input).
-- **Index Space**: Each operator computes over a multidimensional index space (e.g., `{[b, i, j] : 0 ≤ b < batchSize, 0 ≤ i < m, 0 ≤ j < n}` for a batched matmul).
+- **Index Space**: Each operator computes over a multidimensional index space (e.g., ${[b, i, j] : 0 ≤ b < batchSize, 0 ≤ i < m, 0 ≤ j < n}$ for a batched matmul).
 - **SURE**: Defines the fine-grained computation as uniform recurrences (or reductions, like matmul). For example, a batched matmul’s SURE might be:
-  \[
-  C[b, i, j] = \sum_{p} A[b, i, p] \cdot B[b, p, j]
-  \]
-  with dependencies from \( A[b, i, p] \) and \( B[b, p, j] \) to \( C[b, i, j] \).
-- **Linear Schedules**: Each operator’s computation at index point \( \mathbf{p} = [p_1, p_2, \dots] \) is assigned a time via a scheduling vector \( \mathbf{s} \):
+  $$\eqalign{
+  C[b, i, j] = \sum_{k} A[b, i, k] \cdot B[b, k, j]
+  }$$
+  with dependencies from ${ A[b, i, k] }$ and ${ B[b, k, j] }$ to ${ C[b, i, j] }$.
+- **Linear Schedules**: Each operator’s computation at index point ${ \mathbf{p} = [p_1, p_2, \dots] }$ is assigned a time via a scheduling vector \( \mathbf{s} \):
   \[
   \text{schedule}(\mathbf{p}) = \mathbf{s} \cdot \mathbf{p} = s_1 p_1 + s_2 p_2 + \dots
   \]
