@@ -27,6 +27,7 @@ namespace sw {
 			std::map<std::string, std::string> attribute;   // attributes of the operation, key/value pair where the value is encoded as a string
             int depth;                                      // depth of 0 represents a data source
 			DomainOfComputation<CCType> doc;                // domain of computation for the operator
+			ScheduleVector<CCType> tau;                     // tau is the schedule vector for the operator
 			Schedule<CCType> schedule;                      // schedule represents the execution schedule for the operator, which is an ordered set of wavefronts
 
         public:
@@ -34,15 +35,15 @@ namespace sw {
             DomainFlowNode() 
                 : opType{ DomainFlowOperator::UNKNOWN }, name{ "undefined" }, 
                 operandType{}, resultValue{}, resultType{}, depth { 0 },
-				doc{}, schedule{} {}
+                doc{}, tau{}, schedule {} {}
             DomainFlowNode(const std::string& name) 
                 : opType{ DomainFlowOperator::UNKNOWN }, name{ name }, 
                 operandType{}, resultValue{}, resultType{}, depth{ 0 },
-                doc{}, schedule{} {}
+                doc{}, tau{}, schedule{} {}
             DomainFlowNode(DomainFlowOperator opType, const std::string& name) 
                 : opType{ opType }, name{ name }, 
                 operandType{}, resultValue{}, resultType{}, depth{ 0 },
-                doc{}, schedule{} {
+                doc{}, tau{}, schedule{} {
             }
 
             ///////////////////////////////////////////////////////////////////////////////////
@@ -75,6 +76,10 @@ namespace sw {
                 return *this;
             }
          
+            void generateSchedule() noexcept {
+				tau.clear();
+                tau = { 1, 1, 1 };
+            }
             // compute a partial order
 			void applyLinearSchedule(const ScheduleVector<CCType>& tau) noexcept {
 				schedule.clear();

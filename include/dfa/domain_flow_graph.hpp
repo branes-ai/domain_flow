@@ -50,7 +50,7 @@ namespace sw {
 			sw::graph::nodeId_t addNode(const DomainFlowNode& node) {
 				return graph.add_node(node);
 			}
-
+			node_t& node(sw::graph::nodeId_t node_id) { return graph.node(node_id); }
 			void addEdge(sw::graph::nodeId_t src, std::size_t outputSlot, sw::graph::nodeId_t dest, std::size_t inputSlot, const DomainFlowEdge& edge) {
 				DomainFlowEdge edgeCopy = edge;
 				edgeCopy.srcSlot = outputSlot;
@@ -99,34 +99,73 @@ namespace sw {
 				return subgraph;
 			}
 
-			void instantiateDomains() noexcept { 
+
+
+			//////////////////////////////////////////////////////////////////////////////////////////////////////
+			// The Domain Flow Methology API
+
+			void instantiateDomains() noexcept {
 				// walk the graph, and generate the DoC for each operator
-				for (const auto& nodeId : graph.nodes()) {
-					if (graph.in_degree(nodeId.first) > 0) { // filter out inputs
-						DomainFlowNode& node = graph.node(nodeId.first);
+				for (const auto& [nodeId, _] : nodes()) {
+					if (graph.in_degree(nodeId) > 0) { // filter out inputs
+						DomainFlowNode& node = graph.node(nodeId);
 						node.instantiateDomain();
 					}
 				}
 			}
 
-			void instantiateIndexSpaces() noexcept { 
+			void generateSchedules() noexcept {
+				// walk the graph, and generate the schedule for each operator
+				for (const auto& [nodeId, _] : nodes()) {
+					DomainFlowNode& node = graph.node(nodeId);
+					node.generateSchedule();
+				}
+			}
+
+			void instantiateIndexSpaces() noexcept {
 				// walk the graph, and generate the DoC and IndesSpace for each operator
-				for (const auto& nodeId : graph.nodes()) {
-					if (graph.in_degree(nodeId.first) > 0) { // filter out inputs
-						DomainFlowNode& node = graph.node(nodeId.first);
+				for (const auto& [nodeId, _] : nodes()) {
+					if (graph.in_degree(nodeId) > 0) { // filter out inputs
+						DomainFlowNode& node = graph.node(nodeId);
 						node.instantiateDomain();
 						node.instantiateIndexSpace();
 					}
 				}
 			}
 
-			void applyLinearSchedule(const ScheduleVector<int>& tau) noexcept { 
+			void applyLinearSchedule(const ScheduleVector<int>& tau) noexcept {
 				// walk the graph, and apply the linear schedule to each operator
-				for (const auto& nodeId : graph.nodes()) {
-					if (graph.in_degree(nodeId.first) > 0) { // filter out inputs
-						DomainFlowNode& node = graph.node(nodeId.first);
+				for (const auto& [nodeId, _] : nodes()) {
+					if (graph.in_degree(nodeId) > 0) { // filter out inputs
+						DomainFlowNode& node = graph.node(nodeId);
 						node.applyLinearSchedule(tau);
 					}
+				}
+			}
+
+			void alignDomainFlow() noexcept {
+				// walk the graph, and align the domain flow for each operator
+				for (const auto& [nodeId, _] : nodes()) {
+
+				}
+			}
+			
+			void generateSpeedOfLight() noexcept {
+				// walk the graph, and generate the speed of light for each operator
+				for (const auto& [nodeId, _] : nodes()) {
+
+				}
+			}
+
+			void generateFabric() noexcept {
+				// walk the graph, and generate the fabric for each operator
+				for (const auto& [nodeId, _] : graph.nodes()) {
+				}
+			}
+
+			void generatePareto() noexcept {
+				// walk the graph, and generate the pareto for each operator
+				for (const auto& [nodeId, _] : graph.nodes()) {
 				}
 			}
 

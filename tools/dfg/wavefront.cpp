@@ -109,7 +109,6 @@ int main(int argc, char** argv) {
         }
     }
 
-
     // API to get a specific wavefront in time
 	// first we need to find a node that has a schedule, just pick the first one
     typename sw::graph::nodeId_t targetNodeId = 0;
