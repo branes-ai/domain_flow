@@ -13,7 +13,7 @@
 namespace sw {
     namespace dfa {
 
-		// Represents a point in nD space (1D to 6D)
+		// Represents a point in N-dimensional space (1D to 6D)
 		template<typename ConstraintCoefficientType>
 		struct Point {
 			std::vector<ConstraintCoefficientType> coords; // Coordinates in arbitrary dimension
@@ -22,6 +22,13 @@ namespace sw {
 
 			// Dimension of the point
 			size_t dimension() const { return coords.size(); }
+
+			ConstraintCoefficientType operator[](size_t index) const {
+				if (index >= coords.size()) {
+					throw std::out_of_range("Point index out of range");
+				}
+				return coords[index];
+			}
 
 			friend std::ostream& operator<<(std::ostream& os, const Point& p) {
 				os << "(";
@@ -204,6 +211,60 @@ namespace sw {
 			}
 
 			return os;
+		}
+
+
+
+		template<typename ConstraintCoefficientType = int>
+		inline ConvexHull<ConstraintCoefficientType> make3DBox(size_t x, size_t y, size_t z) {
+			// computational domain is m x k x n
+			// system( (i, j, k) : 0 <= i < m, 0 <= j < n, 0 <= l < k)
+
+			int m = x - 1;
+			int n = y - 1;
+			int k = z - 1;
+			ConvexHull<ConstraintCoefficientType> hull;
+			hull.setDimension(3); // 3D convex hull
+			//
+			//        v3 +--------------+ v4
+			//          /|             /|                k
+			//         / |            / |                ^
+			//        /  |        v7 /  |                |
+			//    v2 +--------------+   |                |
+			//       |   +----------|---+ v5             +-------> n
+			//       |  / v0        |  /                /
+			//       | /            | /                /
+			//       |/             |/                m
+			//       +--------------+
+			//     v1             v6 
+			// 
+			// left face vertex sequence
+			auto v0 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, 0 }));
+			auto v1 = hull.add_vertex(Point<ConstraintCoefficientType>({ m, 0, 0 }));
+			auto v2 = hull.add_vertex(Point<ConstraintCoefficientType>({ m, 0, k }));
+			auto v3 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, k }));
+
+			// right face vertex sequence
+			auto v4 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, n, k }));
+			auto v5 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, n, 0 }));
+			auto v6 = hull.add_vertex(Point<ConstraintCoefficientType>({ m, n, 0 }));
+			auto v7 = hull.add_vertex(Point<ConstraintCoefficientType>({ m, n, k }));
+
+			// define the faces: right hand rule pointing out of the volume
+			// A tensor confluence
+			auto f0 = hull.add_face({ v0, v1, v2, v3 }); // left face, pointing out
+			//Confluence<ConstraintCoefficientType> confluence0(getInput(0), f0);
+			// B tensor confluence
+			auto f1 = hull.add_face({ v0, v3, v4, v5 }); // back face, pointing out
+			// input C tensor confluence
+			auto f2 = hull.add_face({ v0, v5, v6, v1 }); // bottom face, pointing out
+			// output C tensor confluence
+			auto f3 = hull.add_face({ v3, v2, v7, v4 }); // top face, pointing out
+			// remaining faces do not have tensor confluences
+			auto f4 = hull.add_face({ v1, v6, v7, v2 }); // front face
+			auto f5 = hull.add_face({ v5, v4, v7, v6 }); // right face
+
+			return hull;
 		}
     }
 }

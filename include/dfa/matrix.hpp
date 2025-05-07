@@ -103,7 +103,7 @@ namespace sw {
         };
  
         template<typename _T>
-        std::ostream& operator<<(std::ostream& ostr, const Matrix<_T>& M) {
+        inline std::ostream& operator<<(std::ostream& ostr, const Matrix<_T>& M) {
             ostr << "{\n";
             for (int i = 0; i < M.rows(); ++i) {
                 ostr << " { ";
@@ -115,5 +115,82 @@ namespace sw {
             }
             return ostr << "}\n";
         }
+
+
+        struct Matrix3d {
+            std::vector<std::vector<double>> data;
+            Matrix3d() : data(3, std::vector<double>(3, 0)) {}
+
+            // Identity matrix
+            static Matrix3d identity() {
+                Matrix3d m;
+                m.data[0][0] = m.data[1][1] = m.data[2][2] = 1.0;
+                return m;
+            }
+
+            // operator[][] for const access
+            const std::vector<double>& operator[](size_t row) const {
+                if (row >= data.size()) {
+                    throw std::out_of_range("Matrix row index out of range.");
+                }
+                return data[row];
+            }
+
+            // Matrix-vector multiplication
+            Vector3d operator*(const Vector3d& v) const {
+                return Vector3d(
+                    data[0][0] * v.x + data[0][1] * v.y + data[0][2] * v.z,
+                    data[1][0] * v.x + data[1][1] * v.y + data[1][2] * v.z,
+                    data[2][0] * v.x + data[2][1] * v.y + data[2][2] * v.z
+                );
+            }
+
+            // Matrix multiplication
+            Matrix3d operator*(const Matrix3d& other) const {
+                Matrix3d result;
+                for (int i = 0; i < 3; ++i) {
+                    for (int j = 0; j < 3; ++j) {
+                        result.data[i][j] = 0;
+                        for (int k = 0; k < 3; ++k) {
+                            result.data[i][j] += data[i][k] * other.data[k][j];
+                        }
+                    }
+                }
+                return result;
+			}
+			// Transpose
+			Matrix3d transpose() const {
+				Matrix3d result;
+				for (int i = 0; i < 3; ++i) {
+					for (int j = 0; j < 3; ++j) {
+						result.data[i][j] = data[j][i];
+					}
+				}
+				return result;
+			}
+			// Print the matrix
+            void print() const {
+                for (const auto& row : data) {
+                    for (const auto& val : row) {
+                        std::cout << val << " ";
+                    }
+                    std::cout << "\n";
+                }
+            }
+        };
+
+        inline std::ostream& operator<<(std::ostream& ostr, const Matrix3d& M) {
+            ostr << "{\n";
+            for (int i = 0; i < 3; ++i) {
+                ostr << " { ";
+                for (int j = 0; j < 3; ++j) {
+                    ostr << M[i][j];
+                    if (j < 2) ostr << ", ";
+                }
+                if (i < 2) ostr << "},\n"; else ostr << "}\n";
+            }
+            return ostr << "}\n";
+        }
+
     }
 }

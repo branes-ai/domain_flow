@@ -82,6 +82,7 @@ int main(int argc, char** argv) {
     // step 6: report on the performance metrics of the data path/processor fabric realization
     dfg.generatePareto();
 
+	ConvexHull hull;
 
     return EXIT_SUCCESS;
 }

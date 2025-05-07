@@ -1,5 +1,6 @@
 #pragma once
 
+// core linear algebra abstractions for dealing with vector spaces
 #include <dfa/vector.hpp>
 #include <dfa/matrix.hpp>
 
@@ -18,3 +19,6 @@
 #include <dfa/domain_flow_edge.hpp>    // definition of the edge
 #include <dfa/domain_flow_node.hpp>    // definition of the node
 #include <dfa/domain_flow_graph.hpp>   // definition of the graph
+
+// unifying space of aligned domains of computation, domain flow, and wavefronts
+#include <dfa/domain_flow.hpp>
