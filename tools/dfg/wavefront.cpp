@@ -98,8 +98,7 @@ int main(int argc, char** argv) {
     dfg.applyLinearSchedule(tau);
 
     // walk the graph, gather, and report the linear schedule for each operator
-    for (const auto& nodeId : dfg.graph.nodes()) {
-        DomainFlowNode& node = dfg.graph.node(nodeId.first);
+    for (const auto& [nodeId, node] : dfg.nodes()) {
         if (node.isOperator()) { // focus on operators only
              auto schedule = node.getSchedule();
 			 std::cout << "Operator: " << node.getName() << "\n";
@@ -113,19 +112,18 @@ int main(int argc, char** argv) {
 
     // API to get a specific wavefront in time
 	// first we need to find a node that has a schedule, just pick the first one
-    const DomainFlowNode* targetNode = nullptr;
-    for (const auto& nodeId : dfg.graph.nodes()) {
-        const DomainFlowNode& node = dfg.graph.node(nodeId.first);
+    typename sw::graph::nodeId_t targetNodeId = 0;
+	bool found = false;
+    for (const auto& [nodeId, node] : dfg.nodes()) {
         if (node.isOperator()) { // focus on operators only
-			targetNode = &node;
+			targetNodeId = nodeId;
             break;
         }
     }
-    if (targetNode != nullptr) {
-        // Use *targetNode to access the node's data
-        // Example: auto value = targetNode->getValue();
-        auto schedule = targetNode->getSchedule();
-		std::cout << "Operator: " << targetNode->getName() << "\n";
+    if (found) {
+		const DomainFlowNode& targetNode = dfg.graph.node(targetNodeId);
+        auto schedule = targetNode.getSchedule();
+		std::cout << "Operator: " << targetNode.getName() << "\n";
 		auto wavefrontRef = schedule[0]; // Get the wavefront at time 0
 		reportWavefront(0, &wavefrontRef);
 		auto wavefrontPtr = schedule.getWavefront(3); // Get the wavefront at time 3

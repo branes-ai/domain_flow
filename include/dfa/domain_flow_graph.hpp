@@ -13,6 +13,11 @@ namespace sw {
 
         // Definition of the Domain Flow graph
 		struct DomainFlowGraph {
+			// lifting the base graph types into the DomainFlowGraph
+			using nodeId_to_node_t = typename sw::graph::graph<DomainFlowNode, DomainFlowEdge, sw::graph::DIRECTED_GRAPH>::nodeId_to_node_t;
+			using edgeId_to_edge_t = typename sw::graph::graph<DomainFlowNode, DomainFlowEdge, sw::graph::DIRECTED_GRAPH>::edgeId_to_edge_t;
+			using node_t           = typename sw::graph::graph<DomainFlowNode, DomainFlowEdge, sw::graph::DIRECTED_GRAPH>::node_t;
+			using edge_t           = typename sw::graph::graph<DomainFlowNode, DomainFlowEdge, sw::graph::DIRECTED_GRAPH>::edge_t;
 			using ConstraintCoefficientType = int;
 
 			std::string name;
@@ -28,7 +33,8 @@ namespace sw {
 			}
 			~DomainFlowGraph() {}
 
-			// Modifiers
+			//////////////////////////////////////////////////////////////////////////////////////////////////////
+			// modifiers
 			void clear() { graph.clear(); source.clear(); sink.clear(); name.clear(); }
 			void setName(const std::string& name) { this->name = name; }
 			void setSchedule(const Schedule<int>& tau) { /*graph.setSchedule(tau);*/ }
@@ -94,8 +100,7 @@ namespace sw {
 			}
 
 			void instantiateDomains() noexcept { 
-//				graph.instantiateDomains(); 
-				// walk the graph, and apply the linear schedule to each operator
+				// walk the graph, and generate the DoC for each operator
 				for (const auto& nodeId : graph.nodes()) {
 					if (graph.in_degree(nodeId.first) > 0) { // filter out inputs
 						DomainFlowNode& node = graph.node(nodeId.first);
@@ -105,8 +110,7 @@ namespace sw {
 			}
 
 			void instantiateIndexSpaces() noexcept { 
-				// graph.instantiateIndexSpaces();
-				// walk the graph, and apply the linear schedule to each operator
+				// walk the graph, and generate the DoC and IndesSpace for each operator
 				for (const auto& nodeId : graph.nodes()) {
 					if (graph.in_degree(nodeId.first) > 0) { // filter out inputs
 						DomainFlowNode& node = graph.node(nodeId.first);
@@ -126,10 +130,18 @@ namespace sw {
 				}
 			}
 
-			// Selectors
+			//////////////////////////////////////////////////////////////////////////////////////////////////////
+			// selectors
 			std::string getName() const noexcept { return name; }
 			std::size_t getNrNodes() const noexcept { return graph.nrNodes(); }
 			std::size_t getNrEdges() const noexcept { return graph.nrEdges(); }
+			bool has_node(sw::graph::nodeId_t node_id) const noexcept { return graph.has_node(node_id); }
+			bool has_edge(sw::graph::nodeId_t node_id_lhs, sw::graph::nodeId_t node_id_rhs) const noexcept { return graph.has_edge(node_id_lhs, node_id_rhs); }
+			const nodeId_to_node_t& nodes() const noexcept { return graph.nodes(); }
+			const edgeId_to_edge_t& edges() const noexcept { return graph.edges(); }
+			const node_t& node(sw::graph::nodeId_t node_id) const { return graph.node(node_id); }
+			const edge_t& edge(sw::graph::nodeId_t lhs, sw::graph::nodeId_t rhs) const { return graph.edge(lhs, rhs); }
+			const edge_t& edge(const sw::graph::edgeId_t& edge_id) const { return graph.edge(edge_id); }
 
 			// get the convex hull of a node
 			ConvexHull<ConstraintCoefficientType> getConvexHull(sw::graph::nodeId_t nodeId) const noexcept {

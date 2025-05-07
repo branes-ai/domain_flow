@@ -470,7 +470,6 @@ namespace sw {
 				}
 				// interpret the DomainFlowOperator and select a parallel algorithm
                 doc.elaborateDomainOfComputation(opType);
-
 			}
             PointSet<ConstraintCoefficientType> getConvexHullPointSet() const noexcept { return doc.getConvexHullPointSet(); }
             ConvexHull<ConstraintCoefficientType> getConvexHull() const noexcept { return doc.getConvexHull(); }

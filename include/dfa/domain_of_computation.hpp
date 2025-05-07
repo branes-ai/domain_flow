@@ -201,11 +201,24 @@ namespace sw {
 					ConstraintCoefficientType k_ = result.k - 1;
 					ConstraintCoefficientType n_ = result.n - 1;
 
-					// TBD: Do we check the result tensor shape?
+					// TBD: Do we need to check the Cin tensor shape and the result Cout tensor shape?
 
 					// computational domain is m x k x n
 					// system( (i, j, k) : 0 <= i < m, 0 <= j < n, 0 <= l < k)
 					hull.setDimension(3); // 3D convex hull
+					//
+					//        v3 +--------------+ v4
+					//          /|             /|                k
+					//         / |            / |                ^
+					//        /  |        v7 /  |                |
+					//    v2 +--------------+   |                |
+					//       |   +----------|---+ v5             +-------> n
+					//       |  / v0        |  /                /
+					//       | /            | /                /
+					//       |/             |/                m
+					//       +--------------+
+					//     v1             v6 
+					// 
 					// left face vertex sequence
 					auto v0 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, 0 }));
 					auto v1 = hull.add_vertex(Point<ConstraintCoefficientType>({ m_, 0, 0 }));
