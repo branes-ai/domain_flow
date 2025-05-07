@@ -93,8 +93,28 @@ namespace sw {
 				return subgraph;
 			}
 
-			void instantiateDomains() noexcept { graph.instantiateDomains(); }
-			void instantiateIndexSpaces() noexcept { graph.instantiateIndexSpaces(); }
+			void instantiateDomains() noexcept { 
+//				graph.instantiateDomains(); 
+				// walk the graph, and apply the linear schedule to each operator
+				for (const auto& nodeId : graph.nodes()) {
+					if (graph.in_degree(nodeId.first) > 0) { // filter out inputs
+						DomainFlowNode& node = graph.node(nodeId.first);
+						node.instantiateDomain();
+					}
+				}
+			}
+
+			void instantiateIndexSpaces() noexcept { 
+				// graph.instantiateIndexSpaces();
+				// walk the graph, and apply the linear schedule to each operator
+				for (const auto& nodeId : graph.nodes()) {
+					if (graph.in_degree(nodeId.first) > 0) { // filter out inputs
+						DomainFlowNode& node = graph.node(nodeId.first);
+						node.instantiateDomain();
+						node.instantiateIndexSpace();
+					}
+				}
+			}
 
 			void applyLinearSchedule(const ScheduleVector<int>& tau) noexcept { 
 				// walk the graph, and apply the linear schedule to each operator

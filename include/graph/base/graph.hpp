@@ -578,29 +578,6 @@ namespace sw {
                 return sub;
             }
 
-			// instantiate the domains of computation for the graph
-			void instantiateDomains() {
-				// walk the graph, and generate the domain of computation for each operator
-				for (auto& [nodeId, node] : m_nodes) {
-					if (in_degree(nodeId) > 0) { // filter out inputs
-						//std::cout << "Node ID: " << nodeId << ", Name: " << node.getName() << " Depth: " << node.getDepth() << std::endl;
-						//std::cout << "  Operator: " << node.getOperator() << std::endl;
-						node.instantiateDomain();
-					}
-				}
-			}
-            void instantiateIndexSpaces() {
-                // walk the graph, and generate the index space for each operator
-                for (auto& [nodeId, node] : m_nodes) {
-                    if (in_degree(nodeId) > 0) { // filter out inputs
-                        std::cout << "Node ID: " << nodeId << ", Name: " << node.getName() << " Depth: " << node.getDepth() << std::endl;
-                        std::cout << "  Operator: " << node.getOperator() << std::endl;
-						node.instantiateDomain();
-                        node.instantiateIndexSpace();
-                    }
-                }
-            }
-
         private:
             size_t m_runningNodeId{ 0 };
 
