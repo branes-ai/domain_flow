@@ -3,6 +3,7 @@
 #include <vector>
 #include <stdexcept>
 #include <initializer_list>
+#include <cmath>
 
 namespace sw {
     namespace dfa {
