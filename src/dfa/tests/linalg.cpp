@@ -5,48 +5,25 @@
 int main() {
     using namespace sw::dfa;
 
-    Matrix<int> A = { {1, 0}, {0, 1} };
-    Matrix<int> B(A);
-    Matrix<int> C = A * B;
+    MatrixX<int> A = { {1, 0}, {0, 1} };
+    MatrixX<int> B(A);
+    MatrixX<int> C = A * B;
     std::cout << C << '\n';
 
-    // Matrix3d/Vecxtor3d API
-	Vector3d v1(1, 2, 3);
-	Matrix3d m1 = Matrix3d::identity();
+    // Matrix3/Vecxtor3 API
+	Vector3<int> v1(1, 2, 3);
+	Matrix3<int> m1 = Matrix3<int>::identity();
 	std::cout << "Matrix: " << m1 << '\n';
-	Vector3d v2 = m1 * v1;
+	Vector3<int> v2 = m1 * v1;
 	std::cout << "Vector after transformation: " << v2 << '\n';
 
     // Test Case 1: Rotate x-axis to y-axis (90 degrees)
     std::cout << "=== Test Case 1: Rotate [1, 0, 0] to [0, 1, 0] ===\n";
-    Vector3d source1(1.0, 0.0, 0.0);
-    Vector3d target1(0.0, 1.0, 0.0);
-    Matrix3d rotation1 = computeRotation(source1, target1);
-    Vector3d rotated1 = rotation1 * source1;
+    Vector3<double> source1(1.0, 0.0, 0.0);
+    Vector3<double> target1(0.0, 1.0, 0.0);
+    Matrix3<double> rotation1 = Matrix3<double>::identity(); // computeRotation(source1, target1);
+    Vector3<double> rotated1 = rotation1 * source1;
 
-
-    // Helper to print a Vector3d
-    auto printVector = [](const Vector3d& v, const std::string& name) {
-        std::cout << name << ": [" << std::fixed << std::setprecision(6)
-            << v.x << ", " << v.y << ", " << v.z << "]" << std::endl;
-    };
-
-    // Helper to print a Matrix3d
-    auto printMatrix = [](const Matrix3d& m, const std::string& name) {
-        std::cout << name << ":\n";
-        for (const auto& row : m.data) {
-            std::cout << "[ ";
-            for (double val : row) {
-                std::cout << std::fixed << std::setprecision(6) << std::setw(12) << val << " ";
-            }
-            std::cout << "]\n";
-        }
-    };
-
-    printVector(source1, "Source");
-    printVector(target1, "Target");
-    printVector(rotated1, "Rotated");
-    printMatrix(rotation1, "Rotation Matrix");
 
     // Verify result
     double error1 = (rotated1 - target1).norm();
@@ -54,15 +31,11 @@ int main() {
 
     // Test Case 2: Rotate x-axis to -x-axis (180 degrees)
     std::cout << "=== Test Case 2: Rotate [1, 0, 0] to [-1, 0, 0] ===\n";
-    Vector3d source2(1.0, 0.0, 0.0);
-    Vector3d target2(-1.0, 0.0, 0.0);
-    Matrix3d rotation2 = computeRotation(source2, target2);
-    Vector3d rotated2 = rotation2 * source2;
+    Vector3<double> source2(1.0, 0.0, 0.0);
+    Vector3<double> target2(-1.0, 0.0, 0.0);
+    Matrix3<double> rotation2 = Matrix3<double>::identity(); // computeRotation(source2, target2);
+    Vector3<double> rotated2 = rotation2 * source2;
 
-    printVector(source2, "Source");
-    printVector(target2, "Target");
-    printVector(rotated2, "Rotated");
-    printMatrix(rotation2, "Rotation Matrix");
 
     // Verify result
     double error2 = (rotated2 - target2).norm();

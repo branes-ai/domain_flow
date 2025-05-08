@@ -18,10 +18,10 @@ int main() {
 
 	
 	// create a reduced dependency graph for matrix multiplication
-	Matrix<int> Eye = { {1, 0, 0}, {0, 1, 0}, {0, 0, 1} };
-	Vector<int> i = { 1, 0, 0 };
-	Vector<int> j = { 0, 1, 0 };
-	Vector<int> k = { 0, 0, 1 };
+	MatrixX<int> Eye = { {1, 0, 0}, {0, 1, 0}, {0, 0, 1} };
+	VectorX<int> i = { 1, 0, 0 };
+	VectorX<int> j = { 0, 1, 0 };
+	VectorX<int> k = { 0, 0, 1 };
 	AffineMap<int> iDirection(Eye, i), jDirection(Eye, j), kDirection(Eye, k);
 	
 	auto mlpRDG = DependencyGraph::create()

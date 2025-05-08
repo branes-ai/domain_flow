@@ -3,17 +3,22 @@
 #include <vector>
 #include <stdexcept>
 #include <initializer_list>
+#include <dfa/vector.hpp>
 
 namespace sw {
     namespace dfa {
 
+        // forward definition
+        template<typename Scalar> class VectorX;
+		template<typename Scalar> class Matrix3;
+
         template<typename Scalar>
-        class Matrix {
+        class MatrixX {
         private:
-            std::vector<std::vector<Scalar>> data;
+            std::vector<VectorX<Scalar>> data;
 
         public:
-            Matrix(std::initializer_list<std::initializer_list<Scalar>> init) {
+            MatrixX(std::initializer_list<std::initializer_list<Scalar>> init) {
                 if (init.size() == 0) {
                     throw std::invalid_argument("Matrix cannot be empty.");
                 }
@@ -39,18 +44,42 @@ namespace sw {
                     }
                 }
             }
-            Matrix(std::vector<std::vector<Scalar>> init) : data(init) {}
-            Matrix(size_t rows, size_t cols, Scalar value = 0) {
+            MatrixX(std::vector<std::vector<Scalar>> init) : data(init) {}
+            MatrixX(size_t rows, size_t cols, Scalar value = 0) {
                 data.resize(rows);
                 for (size_t i = 0; i < rows; ++i) {
                     data[i].resize(cols, value);
                 }
             }
+
+            /////////////////////////////////////////////////////////////////////////////
+            // selectors
+
             size_t rows() const { return data.size(); }
             size_t cols() const { return data[0].size(); }
 
+			VectorX<Scalar> row(size_t row) const {
+				if (row >= data.size()) {
+					throw std::out_of_range("Matrix row index out of range.");
+				}
+				return VectorX<Scalar>(data[row]);
+			}
+			VectorX<Scalar> col(size_t col) const {
+				if (col >= data[0].size()) {
+					throw std::out_of_range("Matrix column index out of range.");
+				}
+				VectorX<Scalar> result(rows());
+				for (size_t i = 0; i < rows(); ++i) {
+					result[i] = data[i][col];
+				}
+				return result;
+			}
+
+            /////////////////////////////////////////////////////////////////////////////
+            // operators
+            
             // operator[][] for const access
-            const std::vector<Scalar>& operator[](size_t row) const {
+            const VectorX<Scalar>& operator[](size_t row) const {
                 if (row >= data.size()) {
                     throw std::out_of_range("Matrix row index out of range.");
                 }
@@ -58,19 +87,23 @@ namespace sw {
             }
 
             // operator[][] for non-const access
-            std::vector<Scalar>& operator[](size_t row) {
+            VectorX<Scalar>& operator[](size_t row) {
                 if (row >= data.size()) {
                     throw std::out_of_range("Matrix row index out of range.");
                 }
                 return data[row];
             }
 
-            Matrix operator*(const Matrix& other) const {
+            Scalar operator()(int i, int j) const { return data[i][j]; }
+            Scalar& operator()(int i, int j) { return data[i][j]; }
+
+            // Matrix-matrix multiplication
+            MatrixX operator*(const MatrixX& other) const {
                 if (cols() != other.rows()) {
                     throw std::invalid_argument("Matrices cannot be multiplied.");
                 }
 
-                Matrix result(rows(), other.cols(), 0); // Initialize an zero result matrix
+                MatrixX result(rows(), other.cols(), 0); // Initialize an zero result matrix
                 //result.data.resize(rows());
                 for (size_t i = 0; i < rows(); ++i) {
                    // result.data[i].resize(other.cols());
@@ -86,6 +119,17 @@ namespace sw {
                 return result;
             }
 
+			// Specialization for 3x3 matrix multiplication
+            MatrixX operator*(const Matrix3<Scalar>& m) const {
+                if (cols() != 3) throw std::runtime_error("MatrixX must have 3 columns");
+                MatrixX result(rows(), cols());
+                for (int i = 0; i < rows(); ++i)
+                    for (int j = 0; j < cols(); ++j)
+                        result(i, j) = row(i).dot(m.row(j));
+                return result;
+            }
+
+			// Matrix-vector multiplication
             std::vector<Scalar> operator*(const std::vector<Scalar>& vec) const {
                 if (cols() != vec.size()) {
                     throw std::invalid_argument("Matrix and vector dimensions do not match for multiplication.");
@@ -103,7 +147,7 @@ namespace sw {
         };
  
         template<typename _T>
-        inline std::ostream& operator<<(std::ostream& ostr, const Matrix<_T>& M) {
+        inline std::ostream& operator<<(std::ostream& ostr, const MatrixX<_T>& M) {
             ostr << "{\n";
             for (int i = 0; i < M.rows(); ++i) {
                 ostr << " { ";
@@ -116,70 +160,101 @@ namespace sw {
             return ostr << "}\n";
         }
 
+        // forward reference
+		template<typename Scalar> class Vector3;
 
-        struct Matrix3d {
-            std::vector<std::vector<double>> data;
-            Matrix3d() : data(3, std::vector<double>(3, 0)) {}
-
-            // Identity matrix
-            static Matrix3d identity() {
-                Matrix3d m;
-                m.data[0][0] = m.data[1][1] = m.data[2][2] = 1.0;
-                return m;
+        // Specialized 3x3 Matrix class
+        template<typename Scalar = float>
+        class Matrix3 {
+        public:
+            Matrix3() {
+                for (int i = 0; i < 3; ++i)
+                    for (int j = 0; j < 3; ++j)
+                        data[i][j] = (i == j) ? 1.0 : 0.0;
             }
 
-            // operator[][] for const access
-            const std::vector<double>& operator[](size_t row) const {
-                if (row >= data.size()) {
-                    throw std::out_of_range("Matrix row index out of range.");
-                }
-                return data[row];
+            Matrix3(const std::vector<std::vector<Scalar>>& dataIn) {
+                if (data.size() != 3 || data[0].size() != 3)
+                    throw std::invalid_argument("Invalid matrix dimensions");
+                for (int i = 0; i < 3; ++i)
+                    for (int j = 0; j < 3; ++j)
+                        data[i][j] = dataIn[i][j];
             }
 
-            // Matrix-vector multiplication
-            Vector3d operator*(const Vector3d& v) const {
-                return Vector3d(
-                    data[0][0] * v.x + data[0][1] * v.y + data[0][2] * v.z,
-                    data[1][0] * v.x + data[1][1] * v.y + data[1][2] * v.z,
-                    data[2][0] * v.x + data[2][1] * v.y + data[2][2] * v.z
-                );
+            Scalar operator()(int i, int j) const { return data[i][j]; }
+            Scalar& operator()(int i, int j) { return data[i][j]; }
+
+			// operator[][] for const access
+			const Scalar* operator[](size_t row) const {
+				if (row >= 3) {
+					throw std::out_of_range("Matrix row index out of range.");
+				}
+				return data[row];
+			}
+
+			// operator[][] for non-const access
+			Scalar* operator[](size_t row) {
+				if (row >= 3) {
+					throw std::out_of_range("Matrix row index out of range.");
+				}
+				return data[row];
+			}
+
+            Matrix3 operator-(const Matrix3& other) const {
+                Matrix3 result;
+                for (int i = 0; i < 3; ++i)
+                    for (int j = 0; j < 3; ++j)
+                        result(i, j) = data[i][j] - other(i, j);
+                return result;
             }
 
-            // Matrix multiplication
-            Matrix3d operator*(const Matrix3d& other) const {
-                Matrix3d result;
+            Vector3<Scalar> operator*(const Vector3<Scalar>& v) const {
+                Vector3<Scalar> result;
                 for (int i = 0; i < 3; ++i) {
-                    for (int j = 0; j < 3; ++j) {
-                        result.data[i][j] = 0;
-                        for (int k = 0; k < 3; ++k) {
-                            result.data[i][j] += data[i][k] * other.data[k][j];
-                        }
-                    }
+                    result[i] = 0;
+                    for (int j = 0; j < 3; ++j)
+                        result[i] += data[i][j] * v[j];
                 }
                 return result;
-			}
-			// Transpose
-			Matrix3d transpose() const {
-				Matrix3d result;
-				for (int i = 0; i < 3; ++i) {
-					for (int j = 0; j < 3; ++j) {
-						result.data[i][j] = data[j][i];
-					}
-				}
-				return result;
-			}
-			// Print the matrix
-            void print() const {
-                for (const auto& row : data) {
-                    for (const auto& val : row) {
-                        std::cout << val << " ";
-                    }
-                    std::cout << "\n";
-                }
             }
+
+            Matrix3 operator*(const Matrix3& other) const {
+                Matrix3 result;
+                for (int i = 0; i < 3; ++i)
+                    for (int j = 0; j < 3; ++j) {
+                        result(i, j) = 0;
+                        for (int k = 0; k < 3; ++k)
+                            result(i, j) += data[i][k] * other(k, j);
+                    }
+                return result;
+            }
+
+            static Matrix3 identity() {
+				Matrix3 result;
+				for (int i = 0; i < 3; ++i)
+					for (int j = 0; j < 3; ++j)
+						result(i, j) = (i == j) ? 1.0 : 0.0;
+				return result;
+            }
+
+           Matrix3 transpose() const {
+                Matrix3 result;
+                for (int i = 0; i < 3; ++i)
+                    for (int j = 0; j < 3; ++j)
+                        result(i, j) = data[j][i];
+                return result;
+            }
+
+            Vector3<Scalar> row(int i) const {
+                return { data[i][0], data[i][1], data[i][2] };
+            }
+
+        private:
+            Scalar data[3][3];
         };
 
-        inline std::ostream& operator<<(std::ostream& ostr, const Matrix3d& M) {
+        template<typename _T>
+        inline std::ostream& operator<<(std::ostream& ostr, const Matrix3<_T>& M) {
             ostr << "{\n";
             for (int i = 0; i < 3; ++i) {
                 ostr << " { ";
@@ -187,7 +262,7 @@ namespace sw {
                     ostr << M[i][j];
                     if (j < 2) ostr << ", ";
                 }
-                if (i < 2) ostr << "},\n"; else ostr << "}\n";
+                if (i <2) ostr << "},\n"; else ostr << "}\n";
             }
             return ostr << "}\n";
         }

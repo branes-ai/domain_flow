@@ -34,7 +34,7 @@ namespace sw {
         class AffineMap {
         public:
             // Constructor
-            AffineMap(const Matrix<Scalar>& coeffs, const Vector<Scalar>& consts)
+            AffineMap(const MatrixX<Scalar>& coeffs, const VectorX<Scalar>& consts)
                 : coefficients(coeffs), constants(consts) {
                 inputDimension = coefficients.cols();
                 outputDimension = coefficients.rows();
@@ -59,8 +59,8 @@ namespace sw {
                 }
 
                 // Initialize result matrices
-                Matrix<Scalar> resultCoeffs(other.inputDimension, outputDimension, 0);
-                Vector<Scalar> resultConsts(outputDimension, 0);
+                MatrixX<Scalar> resultCoeffs(other.inputDimension, outputDimension, 0);
+                VectorX<Scalar> resultConsts(outputDimension, 0);
 
                 // Compute CA (matrix multiplication)
                 for (int i = 0; i < outputDimension; i++) {
@@ -86,7 +86,7 @@ namespace sw {
             }
 
             // Apply the affine transformation to a point
-            Vector<Scalar> apply(const Vector<Scalar>& point) const {
+            VectorX<Scalar> apply(const VectorX<Scalar>& point) const {
                 // Validate input dimension
                 if (point.size() != inputDimension) {
                     throw std::invalid_argument(
@@ -97,7 +97,7 @@ namespace sw {
                 }
 
                 // Initialize result vector
-                Vector<Scalar> result(outputDimension);
+                VectorX<Scalar> result(outputDimension);
 
                 // Compute Ax + b
                 for (int i = 0; i < outputDimension; i++) {
@@ -141,13 +141,13 @@ namespace sw {
             // Getters
             int getInputDimension() const { return inputDimension; }
             int getOutputDimension() const { return outputDimension; }
-            const Matrix<Scalar>& getCoefficients() const { return coefficients; }
-            const Vector<Scalar>& getConstants() const { return constants; }
+            const MatrixX<Scalar>& getCoefficients() const { return coefficients; }
+            const VectorX<Scalar>& getConstants() const { return constants; }
 
             // Create identity map
             static AffineMap identity(int dimension) {
-                Matrix<Scalar> coeffs(dimension, dimension, 0);
-                Vector<Scalar> consts(dimension, 0);
+                MatrixX<Scalar> coeffs(dimension, dimension, 0);
+                VectorX<Scalar> consts(dimension, 0);
 
                 // Set diagonal elements to 1
                 for (int i = 0; i < dimension; i++) {
@@ -160,8 +160,8 @@ namespace sw {
             // Create translation map
             static AffineMap translation(const std::vector<int>& translation) {
                 size_t dim = translation.size();
-                Matrix<Scalar> coeffs(dim, dim, 0);
-                Vector<Scalar> consts(translation);
+                MatrixX<Scalar> coeffs(dim, dim, 0);
+                VectorX<Scalar> consts(translation);
 
                 // Set diagonal elements to 1
                 for (int i = 0; i < dim; i++) {
@@ -172,8 +172,8 @@ namespace sw {
             }
 
         private:
-            Matrix<Scalar> coefficients;  // Linear coefficients stored in row-major order
-            Vector<Scalar> constants;     // Translation vector
+            MatrixX<Scalar> coefficients;  // Linear coefficients stored in row-major order
+            VectorX<Scalar> constants;     // Translation vector
             size_t inputDimension;        // Dimension of input space
             size_t outputDimension;       // Dimension of output space
 

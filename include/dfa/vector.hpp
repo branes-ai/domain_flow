@@ -8,17 +8,23 @@
 namespace sw {
     namespace dfa {
         
+		// forward definition
+        template<typename Scalar> class Vector3;
+
         template<typename Scalar>
-        class Vector {
+        class VectorX {
         private:
             std::vector<Scalar> data;
 
         public:
-            Vector(std::initializer_list<Scalar> init) : data(init) {}
-            Vector(std::vector<Scalar> init) : data(init) {}
-            Vector(size_t size, Scalar value = 0) : data(size, value) {}
+			VectorX() = default;
+            VectorX(std::initializer_list<Scalar> init) : data(init) {}
+            VectorX(const std::vector<Scalar>& init) : data(init) {}
+            VectorX(size_t size, Scalar value = 0) : data(size, value) {}
 
             size_t size() const { return data.size(); }
+            void resize(size_t newSize) { data.resize(newSize); }
+			void resize(size_t newSize, Scalar value) { data.resize(newSize, value); }
 
             // operator[] for const access
             const Scalar& operator[](size_t index) const {
@@ -36,11 +42,38 @@ namespace sw {
                 return data[index];
             }
 
+            Scalar operator()(int i) const { return data[i]; }
+            Scalar& operator()(int i) { return data[i]; }
+
+            // dot product
+			Scalar dot(const VectorX& other) const {
+				if (size() != other.size()) {
+					throw std::invalid_argument("Vectors must be of the same size for dot product.");
+				}
+				Scalar result = 0;
+				for (size_t i = 0; i < size(); ++i) {
+					result += data[i] * other[i];
+				}
+				return result;
+			}
+
+            // specialized dot product
+            Scalar dot(const Vector3<Scalar>& other) const {
+                if (size() != 3) {
+                    throw std::invalid_argument("Vector must be 3D.");
+                }
+                Scalar result = 0;
+                for (size_t i = 0; i < size(); ++i) {
+                    result += data[i] * other[i];
+                }
+                return result;
+            }
+
             std::vector<Scalar> toStdVector() const { return data; }
         };
 
 		template<typename Scalar>
-        inline std::ostream& operator<<(std::ostream& os, const Vector<Scalar>& vec) {
+        inline std::ostream& operator<<(std::ostream& os, const VectorX<Scalar>& vec) {
             os << "[ ";
             for (size_t i = 0; i < vec.size(); ++i) {
                 os << vec[i];
@@ -52,85 +85,60 @@ namespace sw {
         }
 
 
-        struct Vector3d {
-            double x, y, z;
-            Vector3d(double x_ = 0, double y_ = 0, double z_ = 0) : x(x_), y(y_), z(z_) {}
+        // Specialized 3D Vector class
+        template<typename Scalar = float>
+        class Vector3 {
+        public:
+            Vector3(Scalar x = 0, Scalar y = 0, Scalar z = 0) : data{ x, y, z } {}
 
-			double operator[](size_t index) const {
-				if (index == 0) return x;
-				else if (index == 1) return y;
-				else if (index == 2) return z;
-				throw std::out_of_range("Index out of range for Vector3d");
-			}
-            double& operator[](size_t index) {
-                if (index == 0) return x;
-                else if (index == 1) return y;
-                else if (index == 2) return z;
-                throw std::out_of_range("Index out of range for Vector3d");
+            Scalar operator[](int i) const { return data[i]; }
+            Scalar& operator[](int i) { return data[i]; }
+
+            double operator()(int i) const { return data[i]; }
+            double& operator()(int i) { return data[i]; }
+
+            Vector3 operator+(const Vector3& other) const {
+                return { data[0] + other[0], data[1] + other[1], data[2] + other[2] };
             }
 
-            // Vector addition
-            Vector3d operator+(const Vector3d& other) const {
-                return Vector3d(x + other.x, y + other.y, z + other.z);
+            Vector3 operator-(const Vector3& other) const {
+                return { data[0] - other[0], data[1] - other[1], data[2] - other[2] };
             }
 
-            // Vector subtraction
-            Vector3d operator-(const Vector3d& other) const {
-                return Vector3d(x - other.x, y - other.y, z - other.z);
+            Vector3 operator*(Scalar scalar) const {
+                return { data[0] * scalar, data[1] * scalar, data[2] * scalar };
             }
 
-            // Scalar multiplication
-            Vector3d operator*(double scalar) const {
-                return Vector3d(x * scalar, y * scalar, z * scalar);
+            double dot(const Vector3& other) const {
+                return data[0] * other[0] + data[1] * other[1] + data[2] * other[2];
             }
 
-            // Dot product
-            double dot(const Vector3d& other) const {
-                return x * other.x + y * other.y + z * other.z;
+            Vector3 cross(const Vector3& other) const {
+                return {
+                    data[1] * other[2] - data[2] * other[1],
+                    data[2] * other[0] - data[0] * other[2],
+                    data[0] * other[1] - data[1] * other[0]
+                };
             }
 
-            // Cross product
-            Vector3d cross(const Vector3d& other) const {
-                return Vector3d(
-                    y * other.z - z * other.y,
-                    z * other.x - x * other.z,
-                    x * other.y - y * other.x
-                );
-            }
-
-            // Norm (magnitude)
             double norm() const {
-                return std::sqrt(x * x + y * y + z * z);
+                return std::sqrt(dot(*this));
             }
 
-            // Normalize
-            Vector3d normalized() const {
+            Vector3 normalized() const {
                 double n = norm();
-                if (n < 1e-6) throw std::runtime_error("Cannot normalize zero vector");
-                return Vector3d(x / n, y / n, z / n);
+                if (n < 1e-10) throw std::runtime_error("Cannot normalize zero vector");
+                return *this * (1.0 / n);
             }
-		};
 
-        inline Vector3d cross(const Vector3d& a, const Vector3d& b) {
-            return {
-                a[1] * b[2] - a[2] * b[1],
-                a[2] * b[0] - a[0] * b[2],
-                a[0] * b[1] - a[1] * b[0]
-            };
+        private:
+            Scalar data[3];
+        };
+
+        template<typename Scalar>
+        inline std::ostream& operator<<(std::ostream& os, const Vector3<Scalar>& vec) {
+            return os << "[ " << vec[0] << ", " << vec[1] << ", " << vec[2] << " ]";
         }
-        inline double dot(const Vector3d& a, const Vector3d& b) {
-            return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-        }
-        inline Vector3d normalize(const Vector3d& v) {
-            double mag = std::sqrt(dot(v, v));
-            if (mag == 0) {
-                throw std::runtime_error("Cannot normalize zero vector");
-            }
-            return { v[0] / mag, v[1] / mag, v[2] / mag };
-        }
-        inline std::ostream& operator<<(std::ostream& os, const Vector3d& vec) {
-            os << "(" << vec.x << ", " << vec.y << ", " << vec.z << ")";
-            return os;
-        }
+
     }
 }

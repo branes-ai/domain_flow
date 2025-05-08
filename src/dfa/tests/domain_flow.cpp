@@ -4,8 +4,8 @@
 int main() {
     using namespace sw::dfa;
 
-	Vector<int> v{ 1, 2, 3 };
-	Matrix<int> m{ 2, 3 };
+	VectorX<int> v{ 1, 2, 3 };
+	MatrixX<int> m{ 2, 3 };
 
 
 	ConvexHull<int> mm1DoC = make3DBox(8, 32, 4);  // tensor<8x32xf32> * tensor<32x4xf32> -> tensor<8x4xf32>
