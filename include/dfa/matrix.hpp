@@ -12,6 +12,8 @@ namespace sw {
         template<typename Scalar> class VectorX;
 		template<typename Scalar> class Matrix3;
 
+        ////////////////////////////////////////////////////////////////////////////////
+		// generalized matrix class for 2D arrays (matrix of vectors)
         template<typename Scalar>
         class MatrixX {
         private:
@@ -160,6 +162,10 @@ namespace sw {
             return ostr << "}\n";
         }
 
+
+        ////////////////////////////////////////////////////////////////////////////////
+		// Specialized 3x3 Matrix class for 3D transformations
+        
         // forward reference
 		template<typename Scalar> class Vector3;
 
@@ -267,5 +273,40 @@ namespace sw {
             return ostr << "}\n";
         }
 
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // Specialized Matrix4 class for 4x4 Homogeneous Transformations
+		template<typename Scalar = float>
+        class Matrix4 {
+        public:
+            Matrix4() {
+                for (int i = 0; i < 4; ++i)
+                    for (int j = 0; j < 4; ++j)
+                        data[i][j] = (i == j) ? 1.0 : 0.0;
+            }
+
+            Matrix4(const std::vector<std::vector<Scalar>>& dataIn) {
+                if (dataIn.size() != 4 || dataIn[0].size() != 4)
+                    throw std::invalid_argument("Invalid matrix dimensions");
+                for (int i = 0; i < 4; ++i)
+                    for (int j = 0; j < 4; ++j)
+                        data[i][j] = dataIn[i][j];
+            }
+
+            Scalar operator()(int i, int j) const { return data[i][j]; }
+            Scalar& operator()(int i, int j) { return data[i][j]; }
+
+            Vector3<Scalar> transformPoint(const Vector3<Scalar>& v) const {
+                Scalar x = data[0][0] * v[0] + data[0][1] * v[1] + data[0][2] * v[2] + data[0][3];
+                Scalar y = data[1][0] * v[0] + data[1][1] * v[1] + data[1][2] * v[2] + data[1][3];
+                Scalar z = data[2][0] * v[0] + data[2][1] * v[1] + data[2][2] * v[2] + data[2][3];
+                Scalar w = data[3][0] * v[0] + data[3][1] * v[1] + data[3][2] * v[2] + data[3][3];
+                if (std::abs(w) < 1e-10) throw std::runtime_error("Invalid homogeneous coordinate");
+                return Vector3<Scalar>(x / w, y / w, z / w);
+            }
+
+        private:
+            Scalar data[4][4];
+        };
     }
 }

@@ -1,0 +1,48 @@
+I have a convex hull defined by a set of constraints. The constraints are defined in the object's native reference frame. My task is to reorient the convex hull, and with it the constraints that define it, to a new global space. This will involve a rotation and a translation, so clearly a homogeneous coordinate system to express this transformation is preferred. The reorientation is going to be determined by a directional vector that will come from a different subsystem, and we will need to align a particular face of the convex hull along this directional vector, that is, the normal of the face will need to align. 
+
+As example, and test case, we take the task of aligning two 3D rectangular prisms in a global coordinate space. The prisms are defined by the following vertex coordinates:
+
+v0: (0 0 0)
+v1: (m 0 0)
+v2: (m 0 k)
+v3: (0 0 k)
+
+v4: (0 n k)
+v5: (0 n k)
+v6: (m n 0)
+v7: (m n k)
+
+These are the vertices of a Convex Hull defined by the constraints Ax <= b
+-x <= -1
+x <= m
+-y <= -1
+y <= n
+-z <= -1
+z <= k
+
+This convex hull represents the domain of computation of a tensor product A(mxk) * B(kxn) = C(mxn).
+The face at z = k, represents the output tensor Cout. This face, defined by the vertices 2, 3, 4, and 7
+has a normal [ 0 0 1] in a right handed reference frame rooted in vertex 3, with vertex 2 and 4 providing
+the reference vertices to define the right handed coordinate system.
+
+This face needs to be aligned to another prism, with the same dimensions, in a left to right flow in the
+global coordinate space. Left to right is the defined as the incremental progression in the y direction.
+Thus the face representing Cout, that is z = k and normal [ 0 0 1 ] in the first prism, need to be reoriented
+to a face that is at y = k with normal [ 0 1 0 ] in the global coordinate space.
+
+The transformed vertices of the realigned prism would be
+
+v0': (0 0 n)
+v1': (m 0 n)
+v2': (m k n)
+v3': (0 k n)
+
+v4': (0 k 0)
+v5': (0 0 0)
+v6': (m 0 0)
+v7': (m k 0)
+
+The second prism would need to be reoriented in the same way, but then placed in the global coordinate system
+to the right of the first transformed prism with a 1 grid point spacer.
+
+Can you give me a program that accomplished this transformation?

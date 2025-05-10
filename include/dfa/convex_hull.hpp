@@ -76,7 +76,7 @@ namespace sw {
 			using VertexId = size_t;
 			using FaceId = size_t;
 		private:
-			size_t dimension_; // Dimension of the convex hull (1D to 6D)
+			size_t dimension_ = 0; // Dimension of the convex hull (1D to 6D)
 			std::vector<Point<ConstraintCoefficientType>> vertices_; // List of vertex coordinates
 			std::vector<Face> faces_;     // List of faces (tensor slices)
 			std::unordered_map<VertexId, std::unordered_set<FaceId>> vertex_to_faces_; // Vertex-to-face adjacency
