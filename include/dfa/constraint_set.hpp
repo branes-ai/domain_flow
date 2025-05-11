@@ -1,6 +1,7 @@
 #pragma once
 #include <stdexcept>
 #include <dfa/tensor_spec_parser.hpp>
+#include <dfa/hyperplane.hpp>
 
 namespace sw {
     namespace dfa {

@@ -3,6 +3,7 @@
 // core linear algebra abstractions for dealing with vector spaces
 #include <dfa/vector.hpp>
 #include <dfa/matrix.hpp>
+#include <dfa/transformation.hpp>
 
 // core dependency graph abstractions
 #include <dfa/affine_map.hpp>

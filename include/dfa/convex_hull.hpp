@@ -7,8 +7,8 @@
 #include <sstream>
 #include <dfa/shape_analysis.hpp>
 #include <dfa/tensor_spec_parser.hpp>
-#include <dfa/convex_hull.hpp>
 #include <dfa/constraint_set.hpp>
+#include <dfa/convex_hull.hpp>
 
 namespace sw {
     namespace dfa {
@@ -71,19 +71,84 @@ namespace sw {
 			const std::vector<size_t>& vertices() const { return vertex_ids; }
 		};
 
-		template<typename ConstraintCoefficientType = int>
+
+		// forward declaration of ConvexHull<T>
+		template<typename ConstraintCoefficientType> class ConvexHull;
+
+
+		template<typename ConstraintCoefficientType>
+		inline void make3DBox(ConstraintCoefficientType m, ConstraintCoefficientType n, ConstraintCoefficientType k, ConvexHull<ConstraintCoefficientType>& hull) {
+			// computational domain is m x k x n
+			// system( (i, j, k) : 0 <= i <= m, 0 <= j <= n, 0 <= l <= k)
+
+			hull.setDimension(3); // 3D convex hull
+			//
+			//        v3 +--------------+ v4
+			//          /|             /|                k
+			//         / |            / |                ^
+			//        /  |        v7 /  |                |
+			//    v2 +--------------+   |                |
+			//       |   +----------|---+ v5             +-------> n
+			//       |  / v0        |  /                /
+			//       | /            | /                /
+			//       |/             |/                m
+			//       +--------------+
+			//     v1             v6 
+			// 
+			// left face vertex sequence
+			auto v0 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, 0 }));
+			auto v1 = hull.add_vertex(Point<ConstraintCoefficientType>({ m, 0, 0 }));
+			auto v2 = hull.add_vertex(Point<ConstraintCoefficientType>({ m, 0, k }));
+			auto v3 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, k }));
+
+			// right face vertex sequence
+			auto v4 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, n, k }));
+			auto v5 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, n, 0 }));
+			auto v6 = hull.add_vertex(Point<ConstraintCoefficientType>({ m, n, 0 }));
+			auto v7 = hull.add_vertex(Point<ConstraintCoefficientType>({ m, n, k }));
+
+			// define the faces: right hand rule pointing out of the volume
+			// A tensor confluence
+			auto f0 = hull.add_face({ v0, v1, v2, v3 }); // left face, pointing out
+			// B tensor confluence
+			auto f1 = hull.add_face({ v0, v3, v4, v5 }); // back face, pointing out
+			// input C tensor confluence
+			auto f2 = hull.add_face({ v0, v5, v6, v1 }); // bottom face, pointing out
+			// output C tensor confluence
+			auto f3 = hull.add_face({ v3, v2, v7, v4 }); // top face, pointing out
+			// remaining faces do not have tensor confluences
+			auto f4 = hull.add_face({ v1, v6, v7, v2 }); // front face
+			auto f5 = hull.add_face({ v5, v4, v7, v6 }); // right face
+		}
+
+		template<typename ConstraintCoefficientType = float>
 		class ConvexHull {
+			using CCType = ConstraintCoefficientType;
+			using MatX = MatrixX<CCType>;
+			using VecX = VectorX<CCType>;
+			using Mat3 = Matrix3<CCType>;
+			using Vec3 = Vector3<CCType>;
+			using Mat4 = Matrix4<CCType>;
 			using VertexId = size_t;
 			using FaceId = size_t;
 		private:
 			size_t dimension_ = 0; // Dimension of the convex hull (1D to 6D)
-			std::vector<Point<ConstraintCoefficientType>> vertices_; // List of vertex coordinates
+			std::vector<Point<CCType>> vertices_; // List of vertex coordinates
 			std::vector<Face> faces_;     // List of faces (tensor slices)
 			std::unordered_map<VertexId, std::unordered_set<FaceId>> vertex_to_faces_; // Vertex-to-face adjacency
 
+			// constraints
+			MatX A_;
+			VecX b_;
+
 		public:
 			ConvexHull() = default;
-
+			ConvexHull(const MatX& A, const VecX& b)
+				: A_(A), b_(b) {
+				if (A_.rows() != b_.size() || A_.cols() != 3)
+					throw std::invalid_argument("Invalid constraint dimensions");
+				generateConvexHull();
+			}
 			// modifiers
 
 			void clear() noexcept {
@@ -98,6 +163,19 @@ namespace sw {
 				dimension_ = dimension;
 			}
 
+			void generateConvexHull() {
+				// TBD: Implement convex hull generation algorithm
+				// This is a placeholder for the actual convex hull generation logic
+				// For now, assume we have a prism of m x n x k 
+				// First, gather the m, n, and k values from the constraints
+				std::vector<ConstraintCoefficientType> shape;
+				for (int i = 0; i < b_.size(); ++i) {
+					if (b_(i) > 0) {
+						shape.push_back(b_(i));
+					}
+				}
+				make3DBox(shape[0], shape[1], shape[2], *this);
+			}
 			// Add a vertex and return its ID
 			VertexId add_vertex(const Point<ConstraintCoefficientType>& point) {
 				if (point.dimension() != dimension_) {
@@ -139,9 +217,10 @@ namespace sw {
 			}
 
 			// selectors
-
 			const std::vector<Point<ConstraintCoefficientType>>& vertices() const { return vertices_; }
 			const std::vector<Face>& faces() const { return faces_; }
+			const MatX& constraints() const { return A_; }
+			const VecX& rightHandSide() const { return b_; }
 
 			// Access face by ID
 			const Face& face(FaceId face_id) const {
@@ -184,6 +263,30 @@ namespace sw {
 			size_t num_vertices() const { return vertices_.size(); }
 			size_t num_faces() const { return faces_.size(); }
 
+			ConvexHull transform(const Mat3& R, const Vec3& t) const {
+				MatX A_new = A_ * R.transpose();
+				VecX b_new(b_.size());
+				for (int i = 0; i < b_.size(); ++i)
+					b_new(i) = b_(i) - A_.row(i).dot(t);
+				return ConvexHull(A_new, b_new);
+			}
+
+			std::vector<Vec3> getOriginalVertices() const {
+				std::vector<Vec3> original;
+				for (const auto& v : vertices_) {
+					Vec3 p(v.coords[0], v.coords[1], v.coords[2]);
+					original.push_back(p);
+				}
+				return original;
+			}
+			std::vector<Vec3> getTransformedVertices(const Mat4& T) const {
+				std::vector<Vec3> transformed;
+				for (const auto& v : vertices_) {
+					Vec3 p(v.coords[0], v.coords[1], v.coords[2]);
+					transformed.push_back(T.transformPoint(p));
+				}
+				return transformed;
+			}
 		};
 
 		// ostream operator for ConvexHull
@@ -214,57 +317,5 @@ namespace sw {
 		}
 
 
-
-		template<typename ConstraintCoefficientType = int>
-		inline ConvexHull<ConstraintCoefficientType> make3DBox(size_t x, size_t y, size_t z) {
-			// computational domain is m x k x n
-			// system( (i, j, k) : 0 <= i < m, 0 <= j < n, 0 <= l < k)
-
-			int m = x - 1;
-			int n = y - 1;
-			int k = z - 1;
-			ConvexHull<ConstraintCoefficientType> hull;
-			hull.setDimension(3); // 3D convex hull
-			//
-			//        v3 +--------------+ v4
-			//          /|             /|                k
-			//         / |            / |                ^
-			//        /  |        v7 /  |                |
-			//    v2 +--------------+   |                |
-			//       |   +----------|---+ v5             +-------> n
-			//       |  / v0        |  /                /
-			//       | /            | /                /
-			//       |/             |/                m
-			//       +--------------+
-			//     v1             v6 
-			// 
-			// left face vertex sequence
-			auto v0 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, 0 }));
-			auto v1 = hull.add_vertex(Point<ConstraintCoefficientType>({ m, 0, 0 }));
-			auto v2 = hull.add_vertex(Point<ConstraintCoefficientType>({ m, 0, k }));
-			auto v3 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, k }));
-
-			// right face vertex sequence
-			auto v4 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, n, k }));
-			auto v5 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, n, 0 }));
-			auto v6 = hull.add_vertex(Point<ConstraintCoefficientType>({ m, n, 0 }));
-			auto v7 = hull.add_vertex(Point<ConstraintCoefficientType>({ m, n, k }));
-
-			// define the faces: right hand rule pointing out of the volume
-			// A tensor confluence
-			auto f0 = hull.add_face({ v0, v1, v2, v3 }); // left face, pointing out
-			//Confluence<ConstraintCoefficientType> confluence0(getInput(0), f0);
-			// B tensor confluence
-			auto f1 = hull.add_face({ v0, v3, v4, v5 }); // back face, pointing out
-			// input C tensor confluence
-			auto f2 = hull.add_face({ v0, v5, v6, v1 }); // bottom face, pointing out
-			// output C tensor confluence
-			auto f3 = hull.add_face({ v3, v2, v7, v4 }); // top face, pointing out
-			// remaining faces do not have tensor confluences
-			auto f4 = hull.add_face({ v1, v6, v7, v2 }); // front face
-			auto f5 = hull.add_face({ v5, v4, v7, v6 }); // right face
-
-			return hull;
-		}
     }
 }
