@@ -20,6 +20,7 @@ namespace sw {
             std::vector<VectorX<Scalar>> data;
 
         public:
+			MatrixX() = default;
             MatrixX(std::initializer_list<std::initializer_list<Scalar>> init) {
                 if (init.size() == 0) {
                     throw std::invalid_argument("Matrix cannot be empty.");
@@ -279,6 +280,7 @@ namespace sw {
 		template<typename Scalar = float>
         class Matrix4 {
         public:
+			// default constructor initializes to identity matrix
             Matrix4() {
                 for (int i = 0; i < 4; ++i)
                     for (int j = 0; j < 4; ++j)
@@ -295,6 +297,14 @@ namespace sw {
 
             Scalar operator()(int i, int j) const { return data[i][j]; }
             Scalar& operator()(int i, int j) { return data[i][j]; }
+
+			static Matrix4 identity() {
+				Matrix4 result;
+				for (int i = 0; i < 4; ++i)
+					for (int j = 0; j < 4; ++j)
+						result(i, j) = (i == j) ? 1.0 : 0.0;
+				return result;
+			}
 
             Vector3<Scalar> transformPoint(const Vector3<Scalar>& v) const {
                 Scalar x = data[0][0] * v[0] + data[0][1] * v[1] + data[0][2] * v[2] + data[0][3];

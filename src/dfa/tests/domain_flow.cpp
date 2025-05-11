@@ -8,9 +8,12 @@ int main() {
 	MatrixX<int> m{ 2, 3 };
 
 
-	ConvexHull<int> mm1DoC = make3DBox(8, 32, 4);  // tensor<8x32xf32> * tensor<32x4xf32> -> tensor<8x4xf32>
-	ConvexHull<int> mm2DoC = make3DBox(8, 12, 4);  // tensor<8x22xf32> * tensor<22x4xf32> -> tensor<8x4xf32>
-	ConvexHull<int> mm3DoC = make3DBox(8, 16, 4);  // tensor<8x16xf32> * tensor<16x4xf32> -> tensor<8x4xf32>
+	ConvexHull<int> mm1DoC;
+	make3DBox(8, 32, 4, mm1DoC);  // tensor<8x32xf32> * tensor<32x4xf32> -> tensor<8x4xf32>
+	ConvexHull<int> mm2DoC;
+	make3DBox(8, 12, 4, mm2DoC);  // tensor<8x22xf32> * tensor<22x4xf32> -> tensor<8x4xf32>
+	ConvexHull<int> mm3DoC;
+	make3DBox(8, 16, 4, mm3DoC);  // tensor<8x16xf32> * tensor<16x4xf32> -> tensor<8x4xf32>
 
 
 	// chained matmul mm1 + mm2 = E => A*B + C*D = E
