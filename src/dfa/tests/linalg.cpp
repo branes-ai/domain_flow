@@ -19,30 +19,50 @@ int main() {
 
     std::cout << '\n';
 
-    // Test Case 1: Rotate x-axis to y-axis (90 degrees)
-    std::cout << "=== Test Case 1: Rotate [1, 0, 0] to [0, 1, 0] ===\n";
-    Vector3<double> source1(1.0, 0.0, 0.0);
-    Vector3<double> target1(0.0, 1.0, 0.0);
-    Matrix3<double> rotation1 = computeRotationFromTwoVectors(source1, target1);
-	std::cout << "Rotation matrix:\n" << rotation1 << "\n";
-    Vector3<double> rotated1 = rotation1 * source1;
+    {
+        // Test Case 1: Rotate x-axis to y-axis (90 degrees)
+        std::cout << "=== Test Case 1: Rotate [1, 0, 0] to [0, 1, 0] ===\n";
+        Vector3<double> src(1.0, 0.0, 0.0);
+        Vector3<double> tgt(0.0, 1.0, 0.0);
+        Matrix3<double> rotate = computeRotationFromTwoVectors(src, tgt);
+        std::cout << "Rotation matrix:\n" << rotate << "\n";
+        Vector3<double> rotated = rotate * src;
+        std::cout << "Rotated vector: " << rotated << "\n";
 
-    // Verify result
-    double error1 = (rotated1 - target1).norm();
-    std::cout << "Error norm: " << error1 << (error1 < 1e-6 ? " (PASS)" : " (FAIL)") << "\n\n";
+        // Verify result
+        double error = (rotated - tgt).norm();
+        std::cout << "Error norm: " << error << (error < 1e-6 ? " (PASS)" : " (FAIL)") << "\n\n";
+    }
 
-    // Test Case 2: Rotate x-axis to -x-axis (180 degrees)
-    std::cout << "=== Test Case 2: Rotate [1, 0, 0] to [-1, 0, 0] ===\n";
-    Vector3<double> source2(1.0, 0.0, 0.0);
-    Vector3<double> target2(-1.0, 0.0, 0.0);
-    Matrix3<double> rotation2 = computeRotationFromTwoVectors(source2, target2);
-    std::cout << "Rotation matrix:\n" << rotation1 << "\n";
-    Vector3<double> rotated2 = rotation2 * source2;
+    {
+        // Test Case 2: Rotate z-axis to y-axis (90 degrees)
+        std::cout << "=== Test Case 1: Rotate [0, 0, 1] to [0, 1, 0] ===\n";
+        Vector3<double> src(0.0, 0.0, 1.0);
+        Vector3<double> tgt(0.0, 1.0, 0.0);
+        Matrix3<double> rotate = computeRotationFromTwoVectors(src, tgt);
+        std::cout << "Rotation matrix:\n" << rotate << "\n";
+        Vector3<double> rotated = rotate * src;
+		std::cout << "Rotated vector: " << rotated << "\n";
 
+        // Verify result
+        double error = (rotated - tgt).norm();
+        std::cout << "Error norm: " << error << (error < 1e-6 ? " (PASS)" : " (FAIL)") << "\n\n";
+    }
 
-    // Verify result
-    double error2 = (rotated2 - target2).norm();
-    std::cout << "Error norm: " << error2 << (error2 < 1e-6 ? " (PASS)" : " (FAIL)") << "\n";
+    {
+        // Test Case 3: Rotate x-axis to -x-axis (180 degrees)
+        std::cout << "=== Test Case 2: Rotate [1, 0, 0] to [-1, 0, 0] ===\n";
+        Vector3<double> src(1.0, 0.0, 0.0);
+        Vector3<double> tgt(-1.0, 0.0, 0.0);
+        Matrix3<double> rotate = computeRotationFromTwoVectors(src, tgt);
+        std::cout << "Rotation matrix:\n" << rotate << "\n";
+        Vector3<double> rotated = rotate * src;
+        std::cout << "Rotated vector: " << rotated << "\n";
+
+        // Verify result
+        double error = (rotated - tgt).norm();
+        std::cout << "Error norm: " << error << (error < 1e-6 ? " (PASS)" : " (FAIL)") << "\n";
+    }
 
     return EXIT_SUCCESS;
 }

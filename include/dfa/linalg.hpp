@@ -64,13 +64,13 @@ namespace sw {
 					// Rodrigues' rotation formula for 180 degrees
 					// https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
 					Scalar Rxx = 1.0 - 2.0 * y * y - 2.0 * z * z;
-					Scalar Rxy = 2.0 * x * y + 2.0 * z;
-					Scalar Rxz = 2.0 * x * z - 2.0 * y;
-					Scalar Ryx = 2.0 * x * y - 2.0 * z;
+					Scalar Rxy = 2.0 * x * y;
+					Scalar Rxz = 2.0 * x * z;
+					Scalar Ryx = 2.0 * x * y;
 					Scalar Ryy = 1.0 - 2.0f * x * x - 2.0 * z * z;
-					Scalar Ryz = 2.0 * y * z + 2.0 * x;
-					Scalar Rzx = 2.0 * x * z + 2.0 * y;
-					Scalar Rzy = 2.0 * y * z - 2.0 * x;
+					Scalar Ryz = 2.0 * y * z;
+					Scalar Rzx = 2.0 * x * z;
+					Scalar Rzy = 2.0 * y * z;
 					Scalar Rzz = 1.0 - 2.0 * x * x - 2.0 * y * y;
 					// Construct the rotation matrix
 					return { {Rxx, Rxy, Rxz},
@@ -80,24 +80,25 @@ namespace sw {
                 return identity;
             }
 
+            //// Rodrigues' rotation formula
             // Construct the skew-symmetric cross-product matrix [v]x
-            Matrix3<Scalar> vx = { 
-                                    { Scalar(0.0),       -v[2],        v[1]},
-                                    {        v[2], Scalar(0.0),       -v[0]},
-                                    {       -v[1],        v[0], Scalar(0.0)}
-                                 };
+            //Matrix3<Scalar> vx = { 
+            //                        { Scalar(0.0),       -v[2],        v[1]},
+            //                        {        v[2], Scalar(0.0),       -v[0]},
+            //                        {       -v[1],        v[0], Scalar(0.0)}
+            //                     };
 
-            Matrix3<Scalar> vx_sq;
-            for (int i = 0; i < 3; ++i) {
-                for (int j = 0; j < 3; ++j) {
-                    for (int k = 0; k < 3; ++k) {
-                        vx_sq[i][j] += vx[i][k] * vx[k][j];
-                    }
-                }
-            }
+            //Matrix3<Scalar> vx_sq;
+            //for (int i = 0; i < 3; ++i) {
+            //    for (int j = 0; j < 3; ++j) {
+            //        for (int k = 0; k < 3; ++k) {
+            //            vx_sq[i][j] += vx[i][k] * vx[k][j];
+            //        }
+            //    }
+            //}
 
             //Matrix3<Scalar> identity;
-            //// Rodrigues' rotation formula
+
             //Matrix3<Scalar> rotationMatrix;
             //for (int i = 0; i < 3; ++i) {
             //    for (int j = 0; j < 3; ++j) {
