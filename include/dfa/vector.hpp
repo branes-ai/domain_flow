@@ -94,8 +94,8 @@ namespace sw {
             Scalar operator[](int i) const { return data[i]; }
             Scalar& operator[](int i) { return data[i]; }
 
-            double operator()(int i) const { return data[i]; }
-            double& operator()(int i) { return data[i]; }
+            Scalar operator()(int i) const { return data[i]; }
+            Scalar& operator()(int i) { return data[i]; }
 
             Vector3 operator+(const Vector3& other) const {
                 return { data[0] + other[0], data[1] + other[1], data[2] + other[2] };
@@ -109,7 +109,7 @@ namespace sw {
                 return { data[0] * scalar, data[1] * scalar, data[2] * scalar };
             }
 
-            double dot(const Vector3& other) const {
+            Scalar dot(const Vector3& other) const {
                 return data[0] * other[0] + data[1] * other[1] + data[2] * other[2];
             }
 

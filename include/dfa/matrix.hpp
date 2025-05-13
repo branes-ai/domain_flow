@@ -179,7 +179,28 @@ namespace sw {
                     for (int j = 0; j < 3; ++j)
                         data[i][j] = (i == j) ? 1.0 : 0.0;
             }
+            Matrix3(std::initializer_list<std::initializer_list<Scalar>> init) {
+                if (init.size() == 0) {
+                    throw std::invalid_argument("Matrix cannot be empty.");
+                }
 
+                size_t rows = init.size();
+                size_t cols = 0;
+                for (const auto& row : init) {
+                    cols = row.size();
+                    if (rows != 3 || cols != 3) {
+                        throw std::invalid_argument("Matrix must be 3x3.");
+                    }
+                    break;
+                }
+
+                for (size_t i = 0; i < rows; ++i) {
+                    size_t j = 0;
+                    for (Scalar val : init.begin()[i]) {
+                        data[i][j++] = val;
+                    }
+                }
+            }
             Matrix3(const std::vector<std::vector<Scalar>>& dataIn) {
                 if (data.size() != 3 || data[0].size() != 3)
                     throw std::invalid_argument("Invalid matrix dimensions");
