@@ -69,6 +69,7 @@ option(DOMAINFLOW_BUILD_TESTS "Switch to turn off test generation when using CPM
 option(DOMAINFLOW_LOCAL_DEVELOPMENT "Enable/disable local development." OFF)
 option(DOMAINFLOW_TOOLS "Enable/disable domain flow tools." OFF)
 option(DOMAINFLOW_MLIR_TOOLS "Enable/disable MLIR tools." OFF)
+option(DOMAINFLOW_DSE "Enable/disable design space exploration tools." OFF)
 option(DOMAINFLOW_MATPLOT_TOOLS "Enable/disable MATPLOT tools." OFF)
 option(DOMAINFLOW_DATABASE_TOOLS "Enable/disable Database tools." OFF)
 option(DOMAINFLOW_VISUALIZATION "Enable/disable visualization tools." OFF)
@@ -138,13 +139,22 @@ if(DOMAINFLOW_DATABASE_TOOLS)
 add_subdirectory(databases)
 endif()
 if(DOMAINFLOW_TOOLS)
-    # dfg tools
-add_subdirectory(tools)
+# dfg tools
+add_subdirectory(tools/rdg)
+add_subdirectory(tools/dfg)
 endif()
 if(DOMAINFLOW_MLIR_TOOLS)
     # the MLIR tools
 add_subdirectory(tools/opt)
 add_subdirectory(tools/import)
+endif()
+if(DOMAINFLOW_VISUALIZATION)
+# visualization tools
+add_subdirectory(tools/viz)
+endif()
+if(DOMAINFLOW_DSE)
+# design space exploration tools
+add_subdirectory(tools/dse)
 endif()
 
 # Install rules (for packaging)
