@@ -17,13 +17,15 @@ int main() {
 	Vector3<int> v2 = m1 * v1;
 	std::cout << "Vector after transformation: " << v2 << '\n';
 
+    std::cout << '\n';
+
     // Test Case 1: Rotate x-axis to y-axis (90 degrees)
     std::cout << "=== Test Case 1: Rotate [1, 0, 0] to [0, 1, 0] ===\n";
     Vector3<double> source1(1.0, 0.0, 0.0);
     Vector3<double> target1(0.0, 1.0, 0.0);
-    Matrix3<double> rotation1 = Matrix3<double>::identity(); // computeRotation(source1, target1);
+    Matrix3<double> rotation1 = computeRotationFromTwoVectors(source1, target1);
+	std::cout << "Rotation matrix:\n" << rotation1 << "\n";
     Vector3<double> rotated1 = rotation1 * source1;
-
 
     // Verify result
     double error1 = (rotated1 - target1).norm();
@@ -33,7 +35,8 @@ int main() {
     std::cout << "=== Test Case 2: Rotate [1, 0, 0] to [-1, 0, 0] ===\n";
     Vector3<double> source2(1.0, 0.0, 0.0);
     Vector3<double> target2(-1.0, 0.0, 0.0);
-    Matrix3<double> rotation2 = Matrix3<double>::identity(); // computeRotation(source2, target2);
+    Matrix3<double> rotation2 = computeRotationFromTwoVectors(source2, target2);
+    std::cout << "Rotation matrix:\n" << rotation1 << "\n";
     Vector3<double> rotated2 = rotation2 * source2;
 
 
