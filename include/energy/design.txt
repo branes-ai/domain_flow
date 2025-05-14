@@ -1,0 +1,35 @@
+
+	/*
+	 * To estimate the energy consumption of a domain flow operator,
+	 * we enumerate a set of events that represent state transitions
+	 * in a circuit. Examples are ALU operators, L1 reads and writes
+	 * broadcasts/reductions, and other network operations.
+	 *
+	 * By keeping track of these core operations, we can estimate 
+	 * energy consumption of an execution by combining event counts with
+	 * an empirical energy measurement for each event for a specific
+	 * technology implementation.
+	 *
+	 * This class defines the event database.
+	 */
+
+	/*
+	 * Energy of an arithmetic circuit has many variations that are 
+	 * not easily generalized to an energy per bit. So we are enumerating
+	 * each arithmetic operator as a separate event.
+	 *
+	 * However, busses, registers, and memory accesses are proportional
+	 * to the number of bits and thus we can record that as an event
+	 * with a width. The energy database can be recorded in terms of 
+	 * energy per bit for these operations and the evaluator can expand
+	 * the energy to the width of the event.
+	 */
+
+	/*
+	 * ALU integer addition of 4/8/16/32/64 bits.
+	 * Register read of 8/16/32/64/128/256 bits wide
+	 * L1 cacheline read and write of 128/256/512/1024 bits wide.
+	 * DRAM reads and writes of 8 bursts of 64bits.
+	 */
+
+
