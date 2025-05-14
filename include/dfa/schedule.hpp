@@ -120,6 +120,16 @@ namespace sw {
                 }
             }
 
+            std::uint64_t calculateLatency() const {
+				std::uint64_t start = std::numeric_limits<std::uint64_t>::max();
+				std::uint64_t end = 0;
+                for (const auto& [time, _] : wavefronts) {
+                    if (start > time) start = time;
+                    if (end < time) end = time;
+                }
+				return end - start + 1;
+            }
+
             ////////////////////////////////////////////////////////////////////////
             // iterators Provide access to iterators for external enumeration
             auto begin() const { return wavefronts.begin(); }
