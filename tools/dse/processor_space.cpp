@@ -5,7 +5,7 @@
 #include <util/data_file.hpp>
 
 /*
- * Design Space Exploration
+ * Evaluating different processor fabrics: this is KPU accelerator design exploration
  *
  * Each operator has a SURE at its core. The SURE represents a graph embedding in N-dimensional space
  * with a Euclidian distance metric. The inputs and outputs of the SURE are thus projected into that
@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
     // step 1: generate the domains of computation so that we have the information to reason
     // about orientation in the global unified index space.
     // This consists of the Convex Hull of each operator and the faces that need to communicate.
-    dfg.instantiateIndexSpaces();
+    dfg.instantiateDomains();
 
     // step 2: generate the schedule for each operator so that we know what the orientation is
     // of the concurrency.
@@ -75,26 +75,13 @@ int main(int argc, char** argv) {
     // estimate of the energy consumption of data movement and computation.
     dfg.generateSpeedOfLight();
 
-    // find the operator node(s) in the graph
-    DataPoint speedOfLight;
-    for (const auto& [nodeId, node] : dfg.nodes()) {
-        if (node.isOperator()) {
-            DataPoint speedOfLight = node.getSpeedOfLight();
-            std::cout << "Operator node: " << nodeId << std::endl;
-            std::cout << "  Type: " << node.getOperatorType() << std::endl;
-            std::cout << "  Latency: " << speedOfLight.first << std::endl;
-            std::cout << "  Energy: " << speedOfLight.second << std::endl;
-        }
-    }
-    // Generate the speed of light and minimum energy
-    auto minLatency = speedOfLight.first;
-    auto minEnergy = speedOfLight.second;
 
-    // first data point
-	std::vector<DataPoint> dataPoints;
-	dataPoints.push_back({ minLatency, minEnergy });
+    // step 5: apply a spatial reduction that is consistent with the global domain flow
+    dfg.generateFabric();
 
-	// enumerate a set of CPU and memory configurations
+    // step 6: report on the performance metrics of the data path/processor fabric realization
+    dfg.generatePareto();
+
 
     return EXIT_SUCCESS;
 }

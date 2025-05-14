@@ -97,14 +97,19 @@ namespace sw {
             }
 
             DataPoint generateSpeedOfLight() {
-				speedOfLight = DataPoint{ calculateMinimumLatency(), generateMinimumEnergy() };
+				speedOfLight = DataPoint{ calculateMinimumLatency(), calculateMinimumEnergy() };
                 return speedOfLight;
             }
 
             double calculateMinimumLatency() const {
                 return schedule.calculateLatency();
             }
-            double generateMinimumEnergy() const {
+            double calculateMinimumEnergy() const {
+                // The output of this method is a database of energy events
+                // This needs to be combined with a technology spec that associates
+				// an energy cost with each event type.
+                
+                // all input tensors are coming from memory and thus represent a DRAM access event
                 return 1.0;
             }
 
