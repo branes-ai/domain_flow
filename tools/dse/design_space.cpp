@@ -51,10 +51,11 @@ int main(int argc, char** argv) {
     // This consists of the Convex Hull of each operator and the faces that need to communicate.
     dfg.instantiateDomains();
 
-
     // step 2: generate the schedule for each operator so that we know what the orientation is
     // of the concurrency.
-    dfg.generateSchedules();
+    ScheduleVector<int> tau;
+    dfg.generateSchedule(tau);
+    dfg.applyLinearSchedule(tau);
 
     // step 3: align faces and wavefronts
     dfg.alignDomainFlow();
@@ -65,11 +66,10 @@ int main(int argc, char** argv) {
     // The alignment is a transformation into a global index space.
     // The end result being a space that we can visualize
 
-    // If we can apply this alignment transformation on the Domain Of Computation constraints
-    // then we can generate the index spaces for visualization from that transformed DoC spec,
-    // instead of transforming the potentially thousands of points representing the original index space.
+    // We can apply this alignment transformation to the Domain Of Computation constraints
+    // enabling generation of the index spaces for visualization from that transformed DoC spec,
+    // Alternatively, we can instead transform the potentially thousands of points representing the original index space.
     
-
     // step 4: report on speed of light results
     // The alignment in a global space allows us to generate a latency in steps, and an 
     // estimate of the energy consumption of data movement and computation.

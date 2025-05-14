@@ -26,6 +26,7 @@ namespace sw {
 			std::vector<sw::graph::nodeId_t> source;
 			std::vector<sw::graph::nodeId_t> sink;
 
+			// constructor and destructor
 			DomainFlowGraph(std::string name) : name{ name } {}
 			DomainFlowGraph(std::string name, sw::graph::directed_graph<DomainFlowNode, DomainFlowEdge> graph,
 				std::vector<sw::graph::nodeId_t> source, std::vector<sw::graph::nodeId_t> sink) :
@@ -107,10 +108,7 @@ namespace sw {
 			void instantiateDomains() noexcept {
 				// walk the graph, and generate the DoC for each operator
 				for (const auto& [nodeId, _] : nodes()) {
-					if (graph.in_degree(nodeId) > 0) { // filter out inputs
-						DomainFlowNode& node = graph.node(nodeId);
-						node.instantiateDomain();
-					}
+					graph.node(nodeId).instantiateDomain();
 				}
 			}
 
@@ -124,36 +122,36 @@ namespace sw {
 
 			void instantiateIndexSpaces() noexcept {
 				// walk the graph, and generate the DoC and IndesSpace for each operator
-				for (const auto& [nodeId, _] : nodes()) {
-					if (graph.in_degree(nodeId) > 0) { // filter out inputs
-						DomainFlowNode& node = graph.node(nodeId);
-						node.instantiateDomain();
-						node.instantiateIndexSpace();
+				for (const auto& [nodeId, node] : nodes()) {
+					if (node.isOperator()) {
+						graph.node(nodeId).instantiateDomain();
+						graph.node(nodeId).instantiateIndexSpace();
 					}
 				}
 			}
 
 			void applyLinearSchedule(const ScheduleVector<int>& tau) noexcept {
 				// walk the graph, and apply the linear schedule to each operator
-				for (const auto& [nodeId, _] : nodes()) {
-					if (graph.in_degree(nodeId) > 0) { // filter out inputs
-						DomainFlowNode& node = graph.node(nodeId);
-						node.applyLinearSchedule(tau);
+				for (const auto& [nodeId, node] : nodes()) {
+					if (node.isOperator()) {
+						graph.node(nodeId).applyLinearSchedule(tau);
 					}
 				}
 			}
 
 			void alignDomainFlow() noexcept {
 				// walk the graph, and align the domain flow for each operator
-				for (const auto& [nodeId, _] : nodes()) {
+				for (auto& [nodeId, node] : graph.nodes()) {
 
 				}
 			}
 			
 			void generateSpeedOfLight() noexcept {
 				// walk the graph, and generate the speed of light for each operator
-				for (const auto& [nodeId, _] : nodes()) {
-
+				for (const auto& [nodeId, node] : graph.nodes()) {
+					if (node.isOperator()) {
+						graph.node(nodeId).generateSpeedOfLight();
+					}
 				}
 			}
 

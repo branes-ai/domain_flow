@@ -13,8 +13,10 @@
 namespace sw {
     namespace dfa {
 
-        // the Domain Flow Graph node type
+		using DataPoint = std::pair<double, double>; // data point, typically used for latency and energy
 
+
+        // the Domain Flow Graph node type
         struct DomainFlowNode {
             using ConstraintCoefficientType = int;
             using CCType = ConstraintCoefficientType;
@@ -29,22 +31,25 @@ namespace sw {
 			DomainOfComputation<CCType> doc;                // domain of computation for the operator
 			ScheduleVector<CCType> tau;                     // tau is the schedule vector for the operator
 			Schedule<CCType> schedule;                      // schedule represents the execution schedule for the operator, which is an ordered set of wavefronts
+			DataPoint speedOfLight;                         // speed of light for the operator, typically used for latency and energy
 
         public:
             // Constructor to initialize the node with just a string of the operator
             DomainFlowNode() 
                 : opType{ DomainFlowOperator::UNKNOWN }, name{ "undefined" }, 
                 operandType{}, resultValue{}, resultType{}, depth { 0 },
-                doc{}, tau{}, schedule {} {}
+                doc{}, tau{}, schedule{},
+                speedOfLight{} {}
             DomainFlowNode(const std::string& name) 
                 : opType{ DomainFlowOperator::UNKNOWN }, name{ name }, 
                 operandType{}, resultValue{}, resultType{}, depth{ 0 },
-                doc{}, tau{}, schedule{} {}
+                doc{}, tau{}, schedule{},
+                speedOfLight{} {}
             DomainFlowNode(DomainFlowOperator opType, const std::string& name) 
                 : opType{ opType }, name{ name }, 
                 operandType{}, resultValue{}, resultType{}, depth{ 0 },
-                doc{}, tau{}, schedule{} {
-            }
+                doc{}, tau{}, schedule{},
+                speedOfLight{} {}
 
             ///////////////////////////////////////////////////////////////////////////////////
             /// modifiers
@@ -89,6 +94,18 @@ namespace sw {
 					int timestep = tau.dot(p);
                     schedule.addActivity(timestep, p);
                 }
+            }
+
+            DataPoint generateSpeedOfLight() {
+				speedOfLight = DataPoint{ calculateMinimumLatency(), generateMinimumEnergy() };
+                return speedOfLight;
+            }
+
+            double calculateMinimumLatency() const {
+                return schedule.calculateLatency();
+            }
+            double generateMinimumEnergy() const {
+                return 1.0;
             }
 
             ///////////////////////////////////////////////////////////////////////////////////
@@ -153,7 +170,10 @@ namespace sw {
                 }
             }
             std::string getResultType(std::size_t slot) const noexcept { auto it = resultType.find(slot); if (it != resultType.end()) return it->second; else return "n/a"; }
-        
+            // accessors
+			DomainFlowOperator getOperatorType() const noexcept { return opType; }
+			DataPoint getSpeedOfLight() const noexcept { return speedOfLight; }
+
             bool isInside(const IndexPoint& p) const noexcept {
                 return doc.isInside(p);
             }

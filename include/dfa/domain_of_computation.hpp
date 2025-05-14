@@ -122,15 +122,15 @@ namespace sw {
 					TensorTypeInfo tensor1 = parseTensorType(getInput(1));
 					TensorTypeInfo result = parseTensorType(getOutput(0));
 					if (tensor0.empty() || tensor1.empty()) {
-						std::cerr << "DomainOfComputation createDomainOfComputation: invalid add/sub/mul arguments: ignoring operator" << std::endl;
+						std::cerr << "DomainOfComputation elaborateDomainOfComputation: invalid add/sub/mul arguments: ignoring operator" << std::endl;
 						break;
 					}
 					if (tensor0.shape != tensor1.shape) {
-						std::cerr << "DomainOfComputation createDomainOfComputation: tensor shapes do not match: ignoring operator" << std::endl;
+						std::cerr << "DomainOfComputation elaborateDomainOfComputation: tensor shapes do not match: ignoring operator" << std::endl;
 						break;
 					}
 					if (tensor0.shape != result.shape) {
-						std::cerr << "DomainOfComputation createDomainOfComputation: tensor shapes do not match: ignoring operator" << std::endl;
+						std::cerr << "DomainOfComputation elaborateDomainOfComputation: tensor shapes do not match: ignoring operator" << std::endl;
 						break;
 					}
 
@@ -247,6 +247,55 @@ namespace sw {
 					hull.add_face({ v5, v4, v7, v6 }); // right face
 				}
 				break;
+				case DomainFlowOperator::FUNCTION_RETURN:
+				{
+					TensorTypeInfo tensorIn = parseTensorType(getInput(0));
+					TensorTypeInfo tensorOut = parseTensorType(getOutput(0));
+					if (tensorIn.shape != tensorOut.shape) {
+						std::cerr << "DomainOfComputation elaborateDomainOfComputation: tensor shapes do not match: ignoring operator" << std::endl;
+						break;
+					}
+					// construct the convex hull of the domain of computation
+					switch (tensorOut.size()) {
+					case 1:
+					{
+						// 1D line 
+						hull.setDimension(1); // 1D convex hull
+						auto v0 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0 }));
+						auto v1 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensorOut.shape[0] }));
+						auto f0 = hull.add_face({ v0, v1 });
+					}
+					break;
+					case 2:
+					{
+						// 2D plane
+						hull.setDimension(2); // 2D convex hull
+						auto v0 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0 }));
+						auto v1 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, tensorOut.shape[1] }));
+						auto v2 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensorOut.shape[0], tensorOut.shape[1] }));
+						auto v3 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensorOut.shape[0], 0 }));
+						auto f0 = hull.add_face({ v0, v1, v2, v3 });
+					}
+					break;
+					case 3:
+					{
+						// 3D volume
+						hull.setDimension(3); // 3D convex hull
+						auto v0 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, 0 }));
+						auto v1 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, tensorOut.shape[1], 0 }));
+						auto v2 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensorOut.shape[0], tensorOut.shape[1], 0 }));
+						auto v3 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensorOut.shape[0], 0, 0 }));
+						auto v4 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, tensorOut.shape[2] }));
+						auto v5 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, tensorOut.shape[1], tensorOut.shape[2] }));
+						auto v6 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensorOut.shape[0], tensorOut.shape[1], tensorOut.shape[2] }));
+						auto v7 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensorOut.shape[0], 0, tensorOut.shape[2] }));
+						auto f0 = hull.add_face({ v0, v1, v2, v3 }); // left face
+						auto f1 = hull.add_face({ v4, v5, v6, v7 }); // right face
+					}
+					break;
+					}
+				}
+				break;
 				}
 			}
 
@@ -280,11 +329,11 @@ namespace sw {
 					TensorTypeInfo tensor1 = parseTensorType(getInput(0));
 					TensorTypeInfo tensor2 = parseTensorType(getInput(1));
 					if (tensor1.empty() || tensor2.empty()) {
-						std::cerr << "DomainFlowNode generateConstraintSet: invalid matmul arguments: ignoring matmul operator" << std::endl;
+						std::cerr << "DomainFlowNode elaborateConstraintSet: invalid matmul arguments: ignoring matmul operator" << std::endl;
 						break;
 					}
 					if (tensor1.size() != 2 || tensor2.size() != 2) {
-						std::cerr << "DomainFlowNode generateConstraintSet: invalid matmul arguments: ignoring matmul operator" << std::endl;
+						std::cerr << "DomainFlowNode elaborateConstraintSet: invalid matmul arguments: ignoring matmul operator" << std::endl;
 						break;
 					}
 					TensorTypeInfo indexSpaceShape;
@@ -298,7 +347,7 @@ namespace sw {
 						int k1 = tensor2.shape[0];
 						int n = tensor2.shape[1];
 						if (k != k1) {
-							std::cerr << "DomainFlowNode generateConstraintSet: tensor are incorrect shape: ignoring matmul operator" << std::endl;
+							std::cerr << "DomainFlowNode elaborateConstraintSet: tensor are incorrect shape: ignoring matmul operator" << std::endl;
 							break;
 						}
 						indexSpaceShape.shape.push_back(m);
@@ -313,7 +362,7 @@ namespace sw {
 						int k1 = tensor2.shape[0];
 						int n = tensor2.shape[1];
 						if (k != k1) {
-							std::cerr << "DomainFlowNode generateConstraintSet: tensor are incorrect shape: ignoring matmul operator" << std::endl;
+							std::cerr << "DomainFlowNode elaborateConstraintSet: tensor are incorrect shape: ignoring matmul operator" << std::endl;
 							break;
 						}
 						indexSpaceShape.shape.push_back(m);
@@ -321,6 +370,17 @@ namespace sw {
 						indexSpaceShape.shape.push_back(k);
 						constraints.shapeExtract(indexSpaceShape);
 					}
+				}
+				break;
+				case DomainFlowOperator::FUNCTION_RETURN:
+				{
+					TensorTypeInfo tensorIn = parseTensorType(getInput(0));
+					TensorTypeInfo tensorOut = parseTensorType(getOutput(0));
+					if (tensorIn.shape != tensorOut.shape) {
+						std::cerr << "DomainOfComputation elaborateDomainOfComputation: tensor shapes do not match: ignoring operator" << std::endl;
+						break;
+					}
+					constraints.shapeExtract(tensorOut);
 				}
 				break;
 				}
