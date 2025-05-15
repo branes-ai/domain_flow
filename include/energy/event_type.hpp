@@ -6,17 +6,18 @@
 namespace sw::energy {
 
     enum class EventType {
-        ALU_ADD,
-        ALU_SUB,
-        ALU_MUL,
-        ALU_DIV,
-        ALU_MOD,
+        ALU_IADD,
+        ALU_ISUB,
+        ALU_IMUL,
+        ALU_IDIV,
+        ALU_IMOD,
+        ALU_ISFU,
         ALU_FADD,
         ALU_FSUB,
         ALU_FMUL,
         ALU_FDIV,
         ALU_FMA,
-        ALU_SFU,
+        ALU_FSFU,
         RF_READ,
         RF_WRITE,
         VRF_READ,
@@ -45,17 +46,18 @@ namespace sw::energy {
 
     std::ostream& operator<<(std::ostream& os, EventType type) {
         switch (type) {
-        case EventType::ALU_ADD: os << "ALU_ADD"; break;
-        case EventType::ALU_SUB: os << "ALU_SUB"; break;
-        case EventType::ALU_MUL: os << "ALU_MUL"; break;
-        case EventType::ALU_DIV: os << "ALU_DIV"; break;
-        case EventType::ALU_MOD: os << "ALU_MOD"; break;
+        case EventType::ALU_IADD: os << "ALU_IADD"; break;
+        case EventType::ALU_ISUB: os << "ALU_ISUB"; break;
+        case EventType::ALU_IMUL: os << "ALU_IMUL"; break;
+        case EventType::ALU_IDIV: os << "ALU_IDIV"; break;
+        case EventType::ALU_IMOD: os << "ALU_IMOD"; break;
+        case EventType::ALU_ISFU: os << "ALU_ISFU"; break;
         case EventType::ALU_FADD: os << "ALU_FADD"; break;
         case EventType::ALU_FSUB: os << "ALU_FSUB"; break;
         case EventType::ALU_FMUL: os << "ALU_FMUL"; break;
         case EventType::ALU_FDIV: os << "ALU_FDIV"; break;
         case EventType::ALU_FMA: os << "ALU_FMA"; break;
-        case EventType::ALU_SFU: os << "ALU_SFU"; break;
+        case EventType::ALU_FSFU: os << "ALU_FSFU"; break;
         case EventType::RF_READ: os << "RF_READ"; break;
         case EventType::RF_WRITE: os << "RF_WRITE"; break;
         case EventType::VRF_READ: os << "VRF_READ"; break;
@@ -83,6 +85,123 @@ namespace sw::energy {
         default: os << static_cast<int>(type); break;
         }
         return os;
+    }
+
+    inline std::istream& operator>>(std::istream& is, EventType& type) {
+        std::string typeStr;
+        is >> typeStr;
+        if (typeStr == "ALU_IADD") {
+            type = EventType::ALU_IADD;
+        }
+        else if (typeStr == "ALU_ISUB") {
+            type = EventType::ALU_ISUB;
+        }
+        else if (typeStr == "ALUI_MUL") {
+            type = EventType::ALU_IMUL;
+        }
+        else if (typeStr == "ALU_IDIV") {
+            type = EventType::ALU_IDIV;
+        }
+        else if (typeStr == "ALU_IMOD") {
+            type = EventType::ALU_IMOD;
+        }
+        else if (typeStr == "ALU_ISFU") {
+            type = EventType::ALU_ISFU;
+        }
+        else if (typeStr == "ALU_FADD") {
+            type = EventType::ALU_FADD;
+        }
+        else if (typeStr == "ALU_FSUB") {
+            type = EventType::ALU_FSUB;
+        }
+        else if (typeStr == "ALU_FMUL") {
+            type = EventType::ALU_FMUL;
+        }
+        else if (typeStr == "ALU_FDIV") {
+            type = EventType::ALU_FDIV;
+        }
+        else if (typeStr == "ALU_FMA") {
+            type = EventType::ALU_FMA;
+        }
+        else if (typeStr == "ALU_FSFU") {
+            type = EventType::ALU_FSFU;
+        }
+        else if (typeStr == "RF_READ") {
+            type = EventType::RF_READ;
+        }
+        else if (typeStr == "RF_WRITE") {
+            type = EventType::RF_WRITE;
+        }
+        else if (typeStr == "VRF_READ") {
+            type = EventType::VRF_READ;
+        }
+        else if (typeStr == "VRF_WRITE") {
+            type = EventType::VRF_WRITE;
+        }
+        else if (typeStr == "L1_CACHE_READ") {
+            type = EventType::L1_CACHE_READ;
+        }
+        else if (typeStr == "L1_CACHE_WRITE") {
+            type = EventType::L1_CACHE_WRITE;
+        }
+        else if (typeStr == "L2_CACHE_READ") {
+            type = EventType::L2_CACHE_READ;
+        }
+        else if (typeStr == "L2_CACHE_WRITE") {
+            type = EventType::L2_CACHE_WRITE;
+        }
+        else if (typeStr == "L3_CACHE_READ") {
+            type = EventType::L3_CACHE_READ;
+        }
+        else if (typeStr == "L3_CACHE_WRITE") {
+            type = EventType::L3_CACHE_WRITE;
+        }
+        else if (typeStr == "DRAM_READ") {
+            type = EventType::DRAM_READ;
+        }
+        else if (typeStr == "DRAM_WRITE") {
+            type = EventType::DRAM_WRITE;
+        }
+        else if (typeStr == "BUS_READ") {
+            type = EventType::BUS_READ;
+        }
+        else if (typeStr == "BUS_WRITE") {
+            type = EventType::BUS_WRITE;
+        }
+        else if (typeStr == "NETWORK_READ") {
+            type = EventType::NETWORK_READ;
+        }
+        else if (typeStr == "NETWORK_WRITE") {
+            type = EventType::NETWORK_WRITE;
+        }
+        else if (typeStr == "L1_CAM_READ") {
+            type = EventType::L1_CAM_READ;
+        }
+        else if (typeStr == "L1_CAM_WRITE") {
+            type = EventType::L1_CAM_WRITE;
+        }
+        else if (typeStr == "L2_CAM_READ") {
+            type = EventType::L2_CAM_READ;
+        }
+        else if (typeStr == "L2_CAM_WRITE") {
+            type = EventType::L2_CAM_WRITE;
+        }
+        else if (typeStr == "TLB_READ") {
+            type = EventType::TLB_READ;
+        }
+        else if (typeStr == "TLB_WRITE") {
+            type = EventType::TLB_WRITE;
+        }
+        else if (typeStr == "DIRECTORY_READ") {
+            type = EventType::DIRECTORY_READ;
+        }
+        else if (typeStr == "DIRECTORY_WRITE") {
+            type = EventType::DIRECTORY_WRITE;
+        }
+        else {
+            is.setstate(std::ios::failbit); // Indicate that the input was not a valid EventType
+        }
+        return is;
     }
 
     enum class AccessType { READ, WRITE };
