@@ -6,29 +6,63 @@
 namespace sw::energy {
 
     enum class EventType {
-        ALU_INTEGER_ADD,
-        REGISTER_READ,
-        CACHE_ACCESS,
-        DRAM_ACCESS,
-        BUS_ACCESS
+        ALU_ADD,
+        ALU_SUB,
+        ALU_MUL,
+        ALU_DIV,
+        ALU_MOD,
+        ALU_FADD,
+        ALU_FSUB,
+        ALU_FMUL,
+        ALU_FDIV,
+        ALU_FMA,
+        ALU_SFU,
+        RF_READ,
+        RF_WRITE,
+        VRF_READ,
+        VRF_WRITE,
+        L1_CACHE_READ,
+        L1_CACHE_WRITE,
+        L2_CACHE_READ,
+        L2_CACHE_WRITE,
+        L3_CACHE_READ,
+        L3_CACHE_WRITE,
+        DRAM_READ,
+        DRAM_WRITE,
+        BUS_READ,
+        BUS_WRITE,
+        NETWORK_READ,
+        NETWORK_WRITE,
+        L1_CAM_READ,
+        L1_CAM_WRITE,
+        L2_CAM_READ,
+        L2_CAM_WRITE,
+        TLB_READ,
+        TLB_WRITE,
+        DIRECTORY_READ,
+        DIRECTORY_WRITE
     };
 
-    enum class IntegerSizeType { BITS_4, BITS_8, BITS_16, BITS_32, BITS_64 };
-    enum class RegisterSizeType { BITS_8, BITS_16, BITS_32, BITS_64, BITS_128, BITS_256 };
-    enum class CacheSizeType { BITS_128, BITS_256, BITS_512, BITS_1024 };
+    enum class AccessType { READ, WRITE };
 
-    struct ALUIntegerAddEvent { IntegerSizeType size; /* ... other ALU details */ };
-    struct RegisterReadEvent { RegisterSizeType size; unsigned int address; /* ... */ };
-    struct CacheAccessEvent { enum class AccessType { READ, WRITE }; AccessType type; CacheSizeType size; unsigned int address; /* ... */ };
-    struct DRAMAccessEvent { enum class AccessType { READ, WRITE }; AccessType type; int burstCount; /* ... */ };
-    struct BusAccessEvent { enum class AccessType { READ, WRITE }; AccessType type; std::string busType; int burstLength; /* ... */ };
+    // Compute events are arithmetic/logic/function transformations
+    struct ComputeEvent { 
+        EventType op;
+        uint8_t width;
+    };
 
-    using EventData = std::variant<
-        ALUIntegerAddEvent,
-        RegisterReadEvent,
-        CacheAccessEvent,
-        DRAMAccessEvent,
-        BusAccessEvent
-    >;
+    // Memory events are reads/writes to register files, caches, and dram
+    struct MemoryEvent { 
+        EventType op; 
+        uint8_t width;
+        uint8_t burstLength; // N/A if there are no bursts
+    };
+
+    // Network events are packet reads/writes on a bus or hop/forward network infrastructure
+    struct NetworkEvent {
+        EventType op; 
+        uint8_t width;
+        uint8_t burstLength; // N/A if there are no bursts
+    };
 
 }
