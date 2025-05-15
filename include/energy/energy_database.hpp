@@ -13,20 +13,75 @@ namespace sw::energy {
         // ... other technologies
     };
 
+    inline std::ostream& operator<<(std::ostream& ostr, const Technology& tech) {
+        switch (tech) {
+        case Technology::TSMC_5NM:
+            ostr << "Technology::TSMC_5NM";
+            break;
+        case Technology::INTEL_18A:
+            ostr << "Technology::INTEL_18A";
+            break;
+        default:
+            ostr << "Technology::unknown";
+        }
+        return ostr;
+    }
     struct PerBitEnergy { double joulesPerBit; };
     struct PerBurstEnergy { double joulesPerBurst; };
     struct FixedEnergy { double joules; };
 
     using EnergyValue = std::variant<PerBitEnergy, PerBurstEnergy, FixedEnergy>;
 
+    std::ostream& operator<<(std::ostream& os, const PerBitEnergy& energy) {
+        os << "PerBit(" << energy.joulesPerBit << " J/bit)";
+        return os;
+    }
+
+    std::ostream& operator<<(std::ostream& os, const PerBurstEnergy& energy) {
+        os << "PerBurst(" << energy.joulesPerBurst << " J/burst)";
+        return os;
+    }
+
+    std::ostream& operator<<(std::ostream& os, const FixedEnergy& energy) {
+        os << "Fixed(" << energy.joules << " J)";
+        return os;
+    }
+
+    std::ostream& operator<<(std::ostream& os, const EnergyValue& ev) {
+        std::visit([&](const auto& value) {
+            os << value;
+            }, ev);
+        return os;
+    }
+
+    using EventVariant = std::variant<uint32_t, std::string>;
+
     struct TechnologyEnergyData {
         Technology technology;
-        std::map<EventType, std::map<std::variant<uint8_t, std::string>, EnergyValue>> energyMap;
+        std::map<EventType, std::map<EventVariant, EnergyValue>> energyMap;
     };
+
+    std::ostream& operator<<(std::ostream& os, const TechnologyEnergyData& data) {
+        os << "Technology: " << data.technology << "\n";
+        os << "Energy Map:\n";
+        for (const auto& eventPair : data.energyMap) {
+            os << "  Event Type: " << eventPair.first << "\n";
+            os << "    Parameters:\n";
+            for (const auto& paramPair : eventPair.second) {
+                os << "      ";
+                std::visit([&](const auto& param) {
+                    os << param;
+                    }, paramPair.first);
+                os << ": " << paramPair.second << "\n";
+            }
+        }
+        return os;
+    }
 
     class EnergyDatabase {
     private:
         std::map<Technology, TechnologyEnergyData> technologyEnergies;
+        friend std::ostream& operator<<(std::ostream&, const EnergyDatabase&);
 
     public:
         void addTechnologyData(const TechnologyEnergyData& data) {
@@ -41,7 +96,7 @@ namespace sw::energy {
             return nullptr;
         }
 
-        std::optional<EnergyValue> getEnergyValue(Technology technology, EventType eventType, const std::variant<uint8_t, std::string>& parameter) const {
+        std::optional<EnergyValue> getEnergyValue(Technology technology, EventType eventType, const EventVariant& parameter) const {
             auto techData = getTechnologyData(technology);
             if (techData) {
                 auto eventIt = techData->energyMap.find(eventType);
@@ -61,7 +116,7 @@ namespace sw::energy {
             if (techData) {
                 auto eventIt = techData->energyMap.find(key.op);
                 if (eventIt != techData->energyMap.end()) {
-                    auto paramIt = eventIt->second.find(key.size);
+                    auto paramIt = eventIt->second.find(key.width);
                     if (paramIt != eventIt->second.end()) {
                         return paramIt->second;
                     }
@@ -113,5 +168,12 @@ namespace sw::energy {
             return std::nullopt;
         }
     };
+
+    inline std::ostream& operator<<(std::ostream& ostr, const EnergyDatabase& db) {
+        for (auto const& [key, value] : db.technologyEnergies) {
+            ostr << key << " : " << value << '\n';
+        }
+        return ostr;
+    }
 
 }

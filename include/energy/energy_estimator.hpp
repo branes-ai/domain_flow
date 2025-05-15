@@ -17,7 +17,7 @@ namespace sw::energy {
             if (energyValueOpt.has_value()) {
                 double eventEnergy = 0.0;
                 if (std::holds_alternative<PerBitEnergy>(energyValueOpt.value())) {
-                    eventEnergy = std::get<PerBitEnergy>(energyValueOpt.value()).joulesPerBit * key.size * count;
+                    eventEnergy = std::get<PerBitEnergy>(energyValueOpt.value()).joulesPerBit * key.width * count;
                 }
                 else if (std::holds_alternative<FixedEnergy>(energyValueOpt.value())) {
                     eventEnergy = std::get<FixedEnergy>(energyValueOpt.value()).joules * count;
@@ -25,7 +25,7 @@ namespace sw::energy {
                 totalEnergy += eventEnergy;
             }
             else {
-                std::cerr << "Warning: Energy data not found for Compute Event: op=" << static_cast<int>(key.op) << ", size=" << static_cast<int>(key.size) << std::endl;
+                std::cerr << "Warning: Energy data not found for Compute Event: op=" << static_cast<int>(key.op) << ", size=" << static_cast<int>(key.width) << std::endl;
             }
         }
 
