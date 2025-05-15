@@ -9,17 +9,17 @@ namespace sw::energy {
     // Compute events are arithmetic/logic/function transformations
     struct ComputeEventKey {
         EventType op;
-        uint8_t size;
+        uint32_t width;
 
         bool operator<(const ComputeEventKey& other) const {
-            return std::tie(op, size) < std::tie(other.op, other.size);
+            return std::tie(op, width) < std::tie(other.op, other.width);
         }
     };
 
     // Memory events are reads/writes to register files, caches, and dram
     struct MemoryEventKey {
         EventType op;
-        uint8_t width;
+        uint32_t width;
         uint8_t burstLength;
 
         bool operator<(const MemoryEventKey& other) const {
@@ -30,7 +30,7 @@ namespace sw::energy {
     // Network events are packet reads/writes on a bus or hop/forward network infrastructure
     struct NetworkEventKey {
         EventType op;
-        uint8_t width;
+        uint32_t width;
         uint8_t burstLength;
 
         bool operator<(const NetworkEventKey& other) const {
