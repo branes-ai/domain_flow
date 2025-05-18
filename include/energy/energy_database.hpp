@@ -83,46 +83,46 @@ namespace sw::energy {
     inline std::istream& operator>>(std::istream& istr, Technology& tech) {
         std::string techStr;
         istr >> techStr;
-        if (techStr == "TSMC_28NM") {
+        if (techStr == "Technology::TSMC_28NM") {
             tech = Technology::TSMC_28NM;
         }
-        else if (techStr == "TSMC_22NM") {
+        else if (techStr == "Technology::TSMC_22NM") {
             tech = Technology::TSMC_22NM;
         }
-        else if (techStr == "TSMC_16NM") {
+        else if (techStr == "Technology::TSMC_16NM") {
             tech = Technology::TSMC_16NM;
         }
-        else if (techStr == "TSMC_14NM") {
+        else if (techStr == "Technology::TSMC_14NM") {
             tech = Technology::TSMC_14NM;
         }
-        else if (techStr == "TSMC_12NM") {
+        else if (techStr == "Technology::TSMC_12NM") {
             tech = Technology::TSMC_12NM;
         }
-        else if (techStr == "TSMC_7NM") {
+        else if (techStr == "Technology::TSMC_7NM") {
             tech = Technology::TSMC_7NM;
         }
-        else if (techStr == "TSMC_6NM") {
+        else if (techStr == "Technology::TSMC_6NM") {
             tech = Technology::TSMC_6NM;
         }
-        else if (techStr == "TSMC_5NM") {
+        else if (techStr == "Technology::TSMC_5NM") {
             tech = Technology::TSMC_5NM;
         }
-        else if (techStr == "TSMC_4NM") {
+        else if (techStr == "Technology::TSMC_4NM") {
             tech = Technology::TSMC_4NM;
         }
-        else if (techStr == "TSMC_3NM") {
+        else if (techStr == "Technology::TSMC_3NM") {
             tech = Technology::TSMC_5NM;
         }
-        else if (techStr == "TSMC_2NM") {
+        else if (techStr == "Technology::TSMC_2NM") {
             tech = Technology::TSMC_5NM;
         }
-        else if (techStr == "GF_12NM") {
+        else if (techStr == "Technology::GF_12NM") {
             tech = Technology::GF_12NM;
         }
-        else if (techStr == "SAMSUNG_14NM") {
+        else if (techStr == "Technology::SAMSUNG_14NM") {
             tech = Technology::SAMSUNG_14NM;
         }
-        else if (techStr == "INTEL_18A") {
+        else if (techStr == "Technology::INTEL_18A") {
             tech = Technology::INTEL_18A;
         }
         else {
@@ -148,17 +148,17 @@ namespace sw::energy {
 
     inline std::ostream& operator<<(std::ostream& os, DesignType type) {
         switch (type) {
-        case DesignType::HIGHEND_CPU: os << "HIGHEND_CPU"; break;
-        case DesignType::DESKTOP_CPU: os << "DESKTOP_CPU"; break;
-        case DesignType::MOBILE_CPU: os << "MOBILE_CPU"; break;
-        case DesignType::STANDARD_CELL_CPU: os << "STANDARD_CELL_CPU"; break;
-        case DesignType::HIGHEND_GPU: os << "HIGHEND_GPU"; break;
-        case DesignType::MOBILE_GPU: os << "MOBILE_GPU"; break;
-        case DesignType::STANDARD_CELL_GPU: os << "STANDARD_CELL_GPU"; break;
-        case DesignType::HIGHEND_FPGA: os << "HIGHEND_FPGA"; break;
-        case DesignType::LOWEND_FPGA: os << "LOWEND_FPGA"; break;
-        case DesignType::HIGHEND_STANDARD_CELL: os << "HIGHEND_STANDARD_CELL"; break;
-        case DesignType::LOWPOWER_STANDARD_CELL: os << "LOWPOWER_STANDARD_CELL"; break;
+        case DesignType::HIGHEND_CPU:            os << "DesignType::HIGHEND_CPU"; break;
+        case DesignType::DESKTOP_CPU:            os << "DesignType::DESKTOP_CPU"; break;
+        case DesignType::MOBILE_CPU:             os << "DesignType::MOBILE_CPU"; break;
+        case DesignType::STANDARD_CELL_CPU:      os << "DesignType::STANDARD_CELL_CPU"; break;
+        case DesignType::HIGHEND_GPU:            os << "DesignType::HIGHEND_GPU"; break;
+        case DesignType::MOBILE_GPU:             os << "DesignType::MOBILE_GPU"; break;
+        case DesignType::STANDARD_CELL_GPU:      os << "DesignType::STANDARD_CELL_GPU"; break;
+        case DesignType::HIGHEND_FPGA:           os << "DesignType::HIGHEND_FPGA"; break;
+        case DesignType::LOWEND_FPGA:            os << "DesignType::LOWEND_FPGA"; break;
+        case DesignType::HIGHEND_STANDARD_CELL:  os << "DesignType::HIGHEND_STANDARD_CELL"; break;
+        case DesignType::LOWPOWER_STANDARD_CELL: os << "DesignType::LOWPOWER_STANDARD_CELL"; break;
         case DesignType::UNKNOWN: 
         default: 
             os << "UNKNOWN";
@@ -170,37 +170,37 @@ namespace sw::energy {
     inline std::istream& operator>>(std::istream& is, DesignType& type) {
         std::string typeStr;
         is >> typeStr;
-        if (typeStr == "HIGHEND_CPU") {
+        if (typeStr == "DesignType::HIGHEND_CPU") {
             type = DesignType::HIGHEND_CPU;
         }
-        else if (typeStr == "DESKTOP_CPU") {
+        else if (typeStr == "DesignType::DESKTOP_CPU") {
             type = DesignType::DESKTOP_CPU;
         }
-        else if (typeStr == "MOBILE_CPU") {
+        else if (typeStr == "DesignType::MOBILE_CPU") {
             type = DesignType::MOBILE_CPU;
         }
-        else if (typeStr == "STANDARD_CELL_CPU") {
+        else if (typeStr == "DesignType::STANDARD_CELL_CPU") {
             type = DesignType::STANDARD_CELL_CPU;
         }
-        else if (typeStr == "HIGHEND_GPU") {
+        else if (typeStr == "DesignType::HIGHEND_GPU") {
             type = DesignType::HIGHEND_GPU;
         }
-        else if (typeStr == "MOBILE_GPU") {
+        else if (typeStr == "DesignType::MOBILE_GPU") {
             type = DesignType::MOBILE_GPU;
         }
-        else if (typeStr == "STANDARD_CELL_GPU") {
+        else if (typeStr == "DesignType::STANDARD_CELL_GPU") {
             type = DesignType::STANDARD_CELL_GPU;
         }
-        else if (typeStr == "HIGHEND_FPGA") {
+        else if (typeStr == "DesignType::HIGHEND_FPGA") {
             type = DesignType::HIGHEND_FPGA;
         }
-        else if (typeStr == "LOWEND_FPGA") {
+        else if (typeStr == "DesignType::LOWEND_FPGA") {
             type = DesignType::LOWEND_FPGA;
         }
-        else if (typeStr == "HIGHEND_STANDARD_CELL") {
+        else if (typeStr == "DesignType::HIGHEND_STANDARD_CELL") {
             type = DesignType::HIGHEND_STANDARD_CELL;
         }
-        else if (typeStr == "LOWPOWER_STANDARD_CELL") {
+        else if (typeStr == "DesignType::LOWPOWER_STANDARD_CELL") {
             type = DesignType::LOWPOWER_STANDARD_CELL;
         }
         else {
@@ -476,13 +476,13 @@ namespace sw::energy {
                 return false;
             }
 
-            // Write header (Technology, EventType, Parameter, EnergyType, EnergyValue)
-            outfile << "Technology,EventType,Parameter,EnergyType,EnergyValue\n";
+            // Write header (Technology, DesignType, EventType, Parameter, EnergyType, EnergyValue)
+            outfile << "Technology,DesignType,EventType,Parameter,EnergyType,EnergyValue\n";
 
             for (const auto& [tech, techData] : technologyEnergies) {
                 for (const auto& [eventType, eventMap] : techData.energyMap) {
                     for (const auto& [param, energyValue] : eventMap) {
-                        outfile << tech << "," << eventType << ",";
+                        outfile << tech << "," << techData.design << "," << eventType << ",";
                         std::visit([&](const auto& p) {
                             outfile << p;
                             }, param);
@@ -526,48 +526,55 @@ namespace sw::energy {
                     tokens.push_back(token);
                 }
 
-                if (tokens.size() >= 5) {
+                if (tokens.size() >= 6) {
                     Technology tech;
                     std::stringstream techStream(tokens[0]);
                     techStream >> tech;
                     if (techStream.fail()) continue;
 
+                    DesignType designType;
+                    std::stringstream designStream(tokens[1]);
+                    designStream >> designType;
+                    if (designStream.fail()) continue;
+
                     EventType eventType;
-                    std::stringstream eventStream(tokens[1]);
+                    std::stringstream eventStream(tokens[2]);
                     eventStream >> eventType;
                     if (eventStream.fail()) continue;
 
                     EventVariant parameter;
                     if (tokens[2].find_first_not_of("0123456789") == std::string::npos) {
-                        parameter = static_cast<uint32_t>(std::stoul(tokens[2]));
+                        parameter = static_cast<uint32_t>(std::stoul(tokens[3]));
                     }
                     else {
-                        parameter = tokens[2];
+                        parameter = tokens[3];
                     }
 
                     EnergyValue energyValue;
-                    if (tokens[3] == "PerBit" && tokens.size() == 5) {
+                    if (tokens[4] == "PerBit" && tokens.size() == 6) {
                         try {
-                            energyValue.emplace<PerBitEnergy>(std::stod(tokens[4]));
+                            energyValue.emplace<PerBitEnergy>(std::stod(tokens[5]));
                         }
                         catch (const std::invalid_argument& e) { /* Handle error */ continue; }
                     }
-                    else if (tokens[3] == "PerBurst" && tokens.size() == 5) {
+                    else if (tokens[4] == "PerBurst" && tokens.size() == 6) {
                         try {
-                            energyValue.emplace<PerBurstEnergy>(std::stod(tokens[4]));
+                            energyValue.emplace<PerBurstEnergy>(std::stod(tokens[5]));
                         }
                         catch (const std::invalid_argument& e) { /* Handle error */ continue; }
                     }
-                    else if (tokens[3] == "Fixed" && tokens.size() == 5) {
+                    else if (tokens[4] == "Fixed" && tokens.size() == 6) {
                         try {
-                            energyValue.emplace<FixedEnergy>(std::stod(tokens[4]));
+                            energyValue.emplace<FixedEnergy>(std::stod(tokens[5]));
                         }
                         catch (const std::invalid_argument& e) { /* Handle error */ continue; }
                     }
                     else {
                         continue; // Invalid energy type or missing value
                     }
-
+                    // TODO: this looks like a lot of duplicate work, and error prone too
+                    technologyEnergies[tech].technology = tech;
+                    technologyEnergies[tech].design = designType;
                     technologyEnergies[tech].energyMap[eventType][parameter] = energyValue;
                 }
             }
