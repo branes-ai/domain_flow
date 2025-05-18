@@ -48,7 +48,17 @@ namespace sw::energy {
         DIRECTORY_WRITE
     };
 
-    std::ostream& operator<<(std::ostream& os, EventType type) {
+    inline bool isInstructionProcessing(const EventType& e) {
+        return (e == EventType::INSTR_FETCH || 
+            e == EventType::INSTR_DECODE ||
+            e == EventType::INSTR_DISPATCH);
+    }
+
+    inline bool isOffchip(const EventType& e) {
+        return (e == EventType::DRAM_READ || e == EventType::DRAM_WRITE);
+    }
+
+    inline std::ostream& operator<<(std::ostream& os, EventType type) {
         switch (type) {
         case EventType::INSTR_FETCH: os << "INSTR_FETCH"; break;
         case EventType::INSTR_DECODE: os << "INSTR_DECODE"; break;

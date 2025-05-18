@@ -14,6 +14,7 @@ namespace sw::energy {
         bool operator<(const ComputeEventKey& other) const {
             return std::tie(op, width) < std::tie(other.op, other.width);
         }
+        bool isEventInstructionProcessing() const { return isInstructionProcessing(op); }
     };
 
     // Memory events are reads/writes to register files, caches, and dram
@@ -25,6 +26,7 @@ namespace sw::energy {
         bool operator<(const MemoryEventKey& other) const {
             return std::tie(op, width, burstLength) < std::tie(other.op, other.width, other.burstLength);
         }
+        bool isEventOffchip() const { return isOffchip(op); }
     };
 
     // Network events are packet reads/writes on a bus or hop/forward network infrastructure
@@ -36,6 +38,7 @@ namespace sw::energy {
         bool operator<(const NetworkEventKey& other) const {
             return std::tie(op, width, burstLength) < std::tie(other.op, other.width, other.burstLength);
         }
+        bool isEventOffchip() const { return isOffchip(op); }
     };
 
     class EventCounterDatabase {
@@ -85,6 +88,23 @@ namespace sw::energy {
         }
 
         // ... methods to iterate through counts, clear counters, etc.
+        friend std::ostream& operator<<(std::ostream& os, const EventCounterDatabase& db) {
+            os << "Compute Event Counts:\n";
+            for (const auto& pair : db.computeEventCounts) {
+                os << "  Op: " << pair.first.op << ", Width: " << pair.first.width << ", Count: " << pair.second << "\n";
+            }
+
+            os << "\nMemory Event Counts:\n";
+            for (const auto& pair : db.memoryEventCounts) {
+                os << "  Op: " << pair.first.op << ", Width: " << pair.first.width << ", Burst Length: " << static_cast<unsigned>(pair.first.burstLength) << ", Count: " << pair.second << "\n";
+            }
+
+            os << "\nNetwork Event Counts:\n";
+            for (const auto& pair : db.networkEventCounts) {
+                os << "  Op: " << pair.first.op << ", Width: " << pair.first.width << ", Burst Length: " << static_cast<unsigned>(pair.first.burstLength) << ", Count: " << pair.second << "\n";
+            }
+            return os;
+        }
     };
 
 }
