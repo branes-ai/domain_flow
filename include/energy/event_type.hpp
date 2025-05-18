@@ -6,6 +6,9 @@
 namespace sw::energy {
 
     enum class EventType {
+        INSTR_FETCH,
+        INSTR_DECODE,
+        INSTR_DISPATCH,
         ALU_IADD,
         ALU_ISUB,
         ALU_IMUL,
@@ -18,6 +21,7 @@ namespace sw::energy {
         ALU_FDIV,
         ALU_FMA,
         ALU_FSFU,
+        WRITE_BACK,
         RF_READ,
         RF_WRITE,
         VRF_READ,
@@ -46,6 +50,9 @@ namespace sw::energy {
 
     std::ostream& operator<<(std::ostream& os, EventType type) {
         switch (type) {
+        case EventType::INSTR_FETCH: os << "INSTR_FETCH"; break;
+        case EventType::INSTR_DECODE: os << "INSTR_DECODE"; break;
+        case EventType::INSTR_DISPATCH: os << "INSTR_DISPATCH"; break;
         case EventType::ALU_IADD: os << "ALU_IADD"; break;
         case EventType::ALU_ISUB: os << "ALU_ISUB"; break;
         case EventType::ALU_IMUL: os << "ALU_IMUL"; break;
@@ -58,6 +65,7 @@ namespace sw::energy {
         case EventType::ALU_FDIV: os << "ALU_FDIV"; break;
         case EventType::ALU_FMA: os << "ALU_FMA"; break;
         case EventType::ALU_FSFU: os << "ALU_FSFU"; break;
+        case EventType::WRITE_BACK: os << "WRITE_BACK"; break;
         case EventType::RF_READ: os << "RF_READ"; break;
         case EventType::RF_WRITE: os << "RF_WRITE"; break;
         case EventType::VRF_READ: os << "VRF_READ"; break;
@@ -90,7 +98,16 @@ namespace sw::energy {
     inline std::istream& operator>>(std::istream& is, EventType& type) {
         std::string typeStr;
         is >> typeStr;
-        if (typeStr == "ALU_IADD") {
+        if (typeStr == "INSTR_FETCH") {
+            type = EventType::INSTR_FETCH;
+        }
+        else if (typeStr == "INSTR_DECODE") {
+            type = EventType::INSTR_DECODE;
+        }
+        else if (typeStr == "INSTR_DISPATCH") {
+            type = EventType::INSTR_DISPATCH;
+        }
+        else if (typeStr == "ALU_IADD") {
             type = EventType::ALU_IADD;
         }
         else if (typeStr == "ALU_ISUB") {
@@ -125,6 +142,9 @@ namespace sw::energy {
         }
         else if (typeStr == "ALU_FSFU") {
             type = EventType::ALU_FSFU;
+        }
+        else if (typeStr == "WRITE_BACK") {
+            type = EventType::WRITE_BACK;
         }
         else if (typeStr == "RF_READ") {
             type = EventType::RF_READ;
