@@ -20,7 +20,7 @@ int main() {
     EnergyDatabase energyDb;
 
     // Energy data for TSMC 5nm
-    TechnologyEnergyData tsmc5nmData{ Technology::TSMC_5NM };
+    TechnologyEnergyData tsmc5nmData{ Technology::TSMC_5NM, DesignType::LOWPOWER_STANDARD_CELL };
     tsmc5nmData.energyMap[EventType::ALU_IADD][static_cast<uint32_t>(32)] = FixedEnergy{ 1.2e-15 };
     tsmc5nmData.energyMap[EventType::RF_READ][static_cast<uint32_t>(32)] = PerBitEnergy{ 3.75e-17 };
     tsmc5nmData.energyMap[EventType::DRAM_READ]["64_8"] = PerBurstEnergy{ 50e-12 }; // Using string key for width_burst
@@ -31,7 +31,7 @@ int main() {
     std::cout << "TSMC : " << tsmc5nmData << '\n';
 
     // Energy data for Intel 18A
-    TechnologyEnergyData intel18aData{ Technology::INTEL_18A };
+    TechnologyEnergyData intel18aData{ Technology::INTEL_18A, DesignType::MOBILE_CPU };
     intel18aData.energyMap[EventType::ALU_IADD][static_cast<uint32_t>(32)] = FixedEnergy{ 1.0e-15 };
     intel18aData.energyMap[EventType::RF_READ][static_cast<uint32_t>(32)] = PerBitEnergy{ 3.5e-17 };
     intel18aData.energyMap[EventType::DRAM_READ]["64_8"] = PerBurstEnergy{ 45e-12 };

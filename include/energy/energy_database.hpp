@@ -12,21 +12,70 @@
 namespace sw::energy {
 
     enum class Technology {
+        TSMC_28NM,
+        TSMC_22NM,
+        TSMC_16NM,
+        TSMC_14NM,
+        TSMC_12NM,
+        TSMC_7NM,
+        TSMC_6NM,
         TSMC_5NM,
+        TSMC_4NM,
+        TSMC_3NM,
+        TSMC_2NM,
+        GF_12NM,
+        SAMSUNG_14NM,
         INTEL_18A,
-        // ... other technologies
+        UNKNOWN
     };
 
     inline std::ostream& operator<<(std::ostream& ostr, const Technology& tech) {
         switch (tech) {
+        case Technology::TSMC_28NM:
+            ostr << "Technology::TSMC_28NM";
+            break;
+        case Technology::TSMC_22NM:
+            ostr << "Technology::TSMC_22NM";
+            break;
+        case Technology::TSMC_16NM:
+            ostr << "Technology::TSMC_16NM";
+            break;
+        case Technology::TSMC_14NM:
+            ostr << "Technology::TSMC_14NM";
+            break;
+        case Technology::TSMC_12NM:
+            ostr << "Technology::TSMC_12NM";
+            break;
+        case Technology::TSMC_7NM:
+            ostr << "Technology::TSMC_7NM";
+            break;
+        case Technology::TSMC_6NM:
+            ostr << "Technology::TSMC_6NM";
+            break;
         case Technology::TSMC_5NM:
             ostr << "Technology::TSMC_5NM";
+            break;
+        case Technology::TSMC_4NM:
+            ostr << "Technology::TSMC_4NM";
+            break;
+        case Technology::TSMC_3NM:
+            ostr << "Technology::TSMC_3NM";
+            break;
+        case Technology::TSMC_2NM:
+            ostr << "Technology::TSMC_2NM";
+            break;
+        case Technology::GF_12NM:
+            ostr << "Technology::GF_12NM";
+            break;
+        case Technology::SAMSUNG_14NM:
+            ostr << "Technology::SAMSUNG_14NM";
             break;
         case Technology::INTEL_18A:
             ostr << "Technology::INTEL_18A";
             break;
+        case Technology::UNKNOWN:
         default:
-            ostr << "Technology::unknown";
+            ostr << "Technology::UNKNOWN";
         }
         return ostr;
     }
@@ -34,17 +83,132 @@ namespace sw::energy {
     inline std::istream& operator>>(std::istream& istr, Technology& tech) {
         std::string techStr;
         istr >> techStr;
-        if (techStr == "TSMC_5NM") {
+        if (techStr == "TSMC_28NM") {
+            tech = Technology::TSMC_28NM;
+        }
+        else if (techStr == "TSMC_22NM") {
+            tech = Technology::TSMC_22NM;
+        }
+        else if (techStr == "TSMC_16NM") {
+            tech = Technology::TSMC_16NM;
+        }
+        else if (techStr == "TSMC_14NM") {
+            tech = Technology::TSMC_14NM;
+        }
+        else if (techStr == "TSMC_12NM") {
+            tech = Technology::TSMC_12NM;
+        }
+        else if (techStr == "TSMC_7NM") {
+            tech = Technology::TSMC_7NM;
+        }
+        else if (techStr == "TSMC_6NM") {
+            tech = Technology::TSMC_6NM;
+        }
+        else if (techStr == "TSMC_5NM") {
             tech = Technology::TSMC_5NM;
+        }
+        else if (techStr == "TSMC_4NM") {
+            tech = Technology::TSMC_4NM;
+        }
+        else if (techStr == "TSMC_3NM") {
+            tech = Technology::TSMC_5NM;
+        }
+        else if (techStr == "TSMC_2NM") {
+            tech = Technology::TSMC_5NM;
+        }
+        else if (techStr == "GF_12NM") {
+            tech = Technology::GF_12NM;
+        }
+        else if (techStr == "SAMSUNG_14NM") {
+            tech = Technology::SAMSUNG_14NM;
         }
         else if (techStr == "INTEL_18A") {
             tech = Technology::INTEL_18A;
         }
         else {
-            tech = static_cast<Technology>(-1); // Or throw an exception for unknown technology
+            tech = Technology::UNKNOWN;
         }
         return istr;
     }
+
+    enum class DesignType {
+        HIGHEND_CPU,
+        DESKTOP_CPU,
+        MOBILE_CPU,
+        STANDARD_CELL_CPU,
+        HIGHEND_GPU,
+        MOBILE_GPU,
+        STANDARD_CELL_GPU,
+        HIGHEND_FPGA,
+        LOWEND_FPGA,
+        HIGHEND_STANDARD_CELL,
+        LOWPOWER_STANDARD_CELL,
+        UNKNOWN
+    };
+
+    inline std::ostream& operator<<(std::ostream& os, DesignType type) {
+        switch (type) {
+        case DesignType::HIGHEND_CPU: os << "HIGHEND_CPU"; break;
+        case DesignType::DESKTOP_CPU: os << "DESKTOP_CPU"; break;
+        case DesignType::MOBILE_CPU: os << "MOBILE_CPU"; break;
+        case DesignType::STANDARD_CELL_CPU: os << "STANDARD_CELL_CPU"; break;
+        case DesignType::HIGHEND_GPU: os << "HIGHEND_GPU"; break;
+        case DesignType::MOBILE_GPU: os << "MOBILE_GPU"; break;
+        case DesignType::STANDARD_CELL_GPU: os << "STANDARD_CELL_GPU"; break;
+        case DesignType::HIGHEND_FPGA: os << "HIGHEND_FPGA"; break;
+        case DesignType::LOWEND_FPGA: os << "LOWEND_FPGA"; break;
+        case DesignType::HIGHEND_STANDARD_CELL: os << "HIGHEND_STANDARD_CELL"; break;
+        case DesignType::LOWPOWER_STANDARD_CELL: os << "LOWPOWER_STANDARD_CELL"; break;
+        case DesignType::UNKNOWN: 
+        default: 
+            os << "UNKNOWN";
+            break;
+        }
+        return os;
+    }
+
+    inline std::istream& operator>>(std::istream& is, DesignType& type) {
+        std::string typeStr;
+        is >> typeStr;
+        if (typeStr == "HIGHEND_CPU") {
+            type = DesignType::HIGHEND_CPU;
+        }
+        else if (typeStr == "DESKTOP_CPU") {
+            type = DesignType::DESKTOP_CPU;
+        }
+        else if (typeStr == "MOBILE_CPU") {
+            type = DesignType::MOBILE_CPU;
+        }
+        else if (typeStr == "STANDARD_CELL_CPU") {
+            type = DesignType::STANDARD_CELL_CPU;
+        }
+        else if (typeStr == "HIGHEND_GPU") {
+            type = DesignType::HIGHEND_GPU;
+        }
+        else if (typeStr == "MOBILE_GPU") {
+            type = DesignType::MOBILE_GPU;
+        }
+        else if (typeStr == "STANDARD_CELL_GPU") {
+            type = DesignType::STANDARD_CELL_GPU;
+        }
+        else if (typeStr == "HIGHEND_FPGA") {
+            type = DesignType::HIGHEND_FPGA;
+        }
+        else if (typeStr == "LOWEND_FPGA") {
+            type = DesignType::LOWEND_FPGA;
+        }
+        else if (typeStr == "HIGHEND_STANDARD_CELL") {
+            type = DesignType::HIGHEND_STANDARD_CELL;
+        }
+        else if (typeStr == "LOWPOWER_STANDARD_CELL") {
+            type = DesignType::LOWPOWER_STANDARD_CELL;
+        }
+        else {
+            type = DesignType::UNKNOWN;
+        }
+        return is;
+    }
+
 
     struct PerBitEnergy { double joulesPerBit; };
     struct PerBurstEnergy { double joulesPerBurst; };
@@ -98,6 +262,8 @@ namespace sw::energy {
         return is;
     }
 
+
+
     using EnergyValue = std::variant<PerBitEnergy, PerBurstEnergy, FixedEnergy>;
 
     std::ostream& operator<<(std::ostream& os, const EnergyValue& ev) {
@@ -134,21 +300,25 @@ namespace sw::energy {
 
     struct TechnologyEnergyData {
         Technology technology;
+        DesignType design;
         std::map<EventType, std::map<EventVariant, EnergyValue>> energyMap;
+        TechnologyEnergyData() : technology{ Technology::UNKNOWN }, design{ DesignType::UNKNOWN }, energyMap{} {}
+        TechnologyEnergyData(const Technology& t, const DesignType& d) : technology{ t }, design{ d }, energyMap{} {}
     };
 
     std::ostream& operator<<(std::ostream& os, const TechnologyEnergyData& data) {
-        os << "Technology: " << data.technology << "\n";
+        os << "Technology: " << data.technology << '\n';
+        os << "Design Type: " << data.design << '\n';
         os << "Energy Map:\n";
         for (const auto& eventPair : data.energyMap) {
-            os << "  Event Type: " << eventPair.first << "\n";
+            os << "  Event Type: " << eventPair.first << '\n';
             os << "    Parameters:\n";
             for (const auto& paramPair : eventPair.second) {
                 os << "      ";
                 std::visit([&](const auto& param) {
                     os << param;
                     }, paramPair.first);
-                os << ": " << paramPair.second << "\n";
+                os << ": " << paramPair.second << '\n';
             }
         }
         return os;
@@ -165,6 +335,12 @@ namespace sw::energy {
                 std::stringstream techStream(token);
                 techStream >> data.technology;
                 if (techStream.fail()) return is; // Failed to read technology
+            }
+
+            if (std::getline(ss, token, delimiter)) {
+                std::stringstream designStream(token);
+                designStream >> data.design;
+                if (designStream.fail()) return is; // Failed to read design type
             }
 
             while (std::getline(ss, token, delimiter)) {
