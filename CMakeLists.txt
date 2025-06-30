@@ -68,6 +68,7 @@ option(DOMAINFLOW_VERBOSE_TESTS "Always print test output, otherwise only errors
 option(DOMAINFLOW_BUILD_TESTS "Switch to turn off test generation when using CPM to fetch this library" OFF)
 option(DOMAINFLOW_LOCAL_DEVELOPMENT "Enable/disable local development." OFF)
 option(DOMAINFLOW_TOOLS "Enable/disable domain flow tools." OFF)
+option(DOMAINFLOW_POLYHEDRAL "Enable/disable polyhedral tools." ON)
 option(DOMAINFLOW_MLIR_TOOLS "Enable/disable MLIR tools." OFF)
 option(DOMAINFLOW_DSE "Enable/disable design space exploration tools." OFF)
 option(DOMAINFLOW_MATPLOT_TOOLS "Enable/disable MATPLOT tools." OFF)
@@ -152,6 +153,11 @@ if(DOMAINFLOW_VISUALIZATION)
 # visualization tools
 add_subdirectory(tools/viz)
 endif()
+
+if(DOMAINFLOW_POLYHEDRAL)
+add_subdirectory(src/polyhedral)
+endif()
+
 if(DOMAINFLOW_DSE)
 # design space exploration tools
 add_subdirectory(tools/dse)
