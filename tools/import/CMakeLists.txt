@@ -48,9 +48,9 @@ set(LIBS
 )
 
 ######################################################################################
-# Create TOSA graph importer executable
+# Create TOSA MLIR graph importer executable
 set(DFA_TOSA_IMPORTER dfa-import-tosa)
-set(DFA_TOSA_IMPORTER_SRC dfa_import.cpp)
+set(DFA_TOSA_IMPORTER_SRC dfa_import_tosa.cpp)
 add_mlir_tool(${DFA_TOSA_IMPORTER} 
     ${DFA_TOSA_IMPORTER_SRC}
     PARTIAL_SOURCES_INTENDED
@@ -63,3 +63,18 @@ llvm_update_compile_flags(${DFA_TOSA_IMPORTER})
 mlir_check_all_link_libraries(${DFA_TOSA_IMPORTER})
 set_target_properties(${DFA_TOSA_IMPORTER} PROPERTIES FOLDER "tools/importers")
 
+######################################################################################
+# Create Torch MLIR graph importer executable
+set(DFA_TORCH_IMPORTER dfa-import-torch)
+set(DFA_TORCH_IMPORTER_SRC dfa_import_torch.cpp)
+add_mlir_tool(${DFA_TORCH_IMPORTER} 
+    ${DFA_TORCH_IMPORTER_SRC}
+    PARTIAL_SOURCES_INTENDED
+    
+    DEPENDS
+    ${LIBS}
+)
+target_link_libraries(${DFA_TORCH_IMPORTER} ${LIBS})
+llvm_update_compile_flags(${DFA_TORCH_IMPORTER})
+mlir_check_all_link_libraries(${DFA_TORCH_IMPORTER})
+set_target_properties(${DFA_TORCH_IMPORTER} PROPERTIES FOLDER "tools/importers")

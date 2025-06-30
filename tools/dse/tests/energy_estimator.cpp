@@ -44,10 +44,10 @@ int main() {
     std::cout << "energyDatabase  :\n" << energyDb << '\n';
 
     // Calculate and print energy consumption for different technologies
-    double energyTSMC5nm = calculateTotalEnergy(eventCounterDb, energyDb, Technology::TSMC_5NM);
+    auto energyTSMC5nm = calculateTotalEnergy(eventCounterDb, energyDb, Technology::TSMC_5NM);
     std::cout << "Total energy (TSMC 5nm): " << energyTSMC5nm << " Joules" << std::endl;
 
-    double energyIntel18A = calculateTotalEnergy(eventCounterDb, energyDb, Technology::INTEL_18A);
+    auto energyIntel18A = calculateTotalEnergy(eventCounterDb, energyDb, Technology::INTEL_18A);
     std::cout << "Total energy (Intel 18A): " << energyIntel18A << " Joules" << std::endl;
 
     return EXIT_SUCCESS;
