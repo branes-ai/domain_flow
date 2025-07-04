@@ -148,26 +148,60 @@ namespace sw {
         ClampAttributes parseClampAttributes(mlir::tosa::ClampOp clampOp) {
             ClampAttributes result{};
 
-            // Extract min_int attribute
-            if (auto minIntAttr = clampOp.getMinIntAttr()) {
-                result.minInt = minIntAttr.getValue().getSExtValue();
+            //// Extract min_int attribute
+            //if (auto minIntAttr = clampOp.getMinIntAttr()) {
+            //    result.minInt = minIntAttr.getValue().getSExtValue();
+            //}
+
+            //// Extract max_int attribute
+            //if (auto maxIntAttr = clampOp.getMaxIntAttr()) {
+            //    result.maxInt = maxIntAttr.getValue().getSExtValue();
+            //}
+
+            //// Extract min_fp attribute
+            //if (auto minFpAttr = clampOp.getMinFpAttr()) {
+            //    result.minFp = minFpAttr.getValue().convertToDouble();
+            //}
+
+            //// Extract max_fp attribute
+            //if (auto maxFpAttr = clampOp.getMaxFpAttr()) {
+            //    result.maxFp = maxFpAttr.getValue().convertToDouble();
+            //}
+
+            // Extract min_val attribute
+            // The getMinValAttr() method returns an mlir::Attribute.
+            // To safely cast this generic mlir::Attribute to a more specific type (like IntegerAttr or FloatAttr),
+            // we use the global utility function mlir::dyn_cast_or_null.
+            if (mlir::Attribute minValAttr = clampOp.getMinValAttr()) {
+                if (auto minIntAttr = mlir::dyn_cast_or_null<mlir::IntegerAttr>(minValAttr)) {
+                    // If it's an integer attribute, extract the signed 64-bit integer value.
+                    result.minInt = minIntAttr.getValue().getSExtValue();
+                }
+                else if (auto minFpAttr = mlir::dyn_cast_or_null<mlir::FloatAttr>(minValAttr)) {
+                    // If it's a floating-point attribute, convert it to a double.
+                    result.minFp = minFpAttr.getValue().convertToDouble();
+                }
+                // Handle other potential attribute types if necessary, or log an error.
+                // For example, if minValAttr is neither an IntegerAttr nor a FloatAttr,
+                // you might want to print a warning or handle it as an error.
             }
 
-            // Extract max_int attribute
-            if (auto maxIntAttr = clampOp.getMaxIntAttr()) {
-                result.maxInt = maxIntAttr.getValue().getSExtValue();
+            // Extract max_val attribute
+            // Similar logic applies for the max_val attribute, using mlir::dyn_cast_or_null.
+            if (mlir::Attribute maxValAttr = clampOp.getMaxValAttr()) {
+                if (auto maxIntAttr = mlir::dyn_cast_or_null<mlir::IntegerAttr>(maxValAttr)) {
+                    // If it's an integer attribute, extract the signed 64-bit integer value.
+                    result.maxInt = maxIntAttr.getValue().getSExtValue();
+                }
+                else if (auto maxFpAttr = mlir::dyn_cast_or_null<mlir::FloatAttr>(maxValAttr)) {
+                    // If it's a floating-point attribute, convert it to a double.
+                    result.maxFp = maxFpAttr.getValue().convertToDouble();
+                }
+                // Handle other potential attribute types if necessary.
             }
 
-            // Extract min_fp attribute
-            if (auto minFpAttr = clampOp.getMinFpAttr()) {
-                result.minFp = minFpAttr.getValue().convertToDouble();
-            }
-
-            // Extract max_fp attribute
-            if (auto maxFpAttr = clampOp.getMaxFpAttr()) {
-                result.maxFp = maxFpAttr.getValue().convertToDouble();
-            }
-
+            // Note: The 'nan_mode' attribute is also present, but not requested in the original
+            // function. You could extract it similarly using clampOp.getNanModeAttr().
             return result;
         }
 
@@ -480,7 +514,7 @@ namespace sw {
             return node;
         }
         // A specialized function to parse TOSA ReduceProd operations
-        DomainFlowNode parseTosaReduceProd(DomainFlowGraph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
+        DomainFlowNode parseTosaReduceProduct(DomainFlowGraph& gr, mlir::Operation& op, llvm::raw_ostream& os) {
             std::string opName = op.getName().getStringRef().str();
             std::vector<AttributeInfo> attributes = parseAttributes(op);
             auto node = DomainFlowNode(DomainFlowOperator::REDUCE_PROD, opName);
@@ -553,9 +587,16 @@ namespace sw {
             else if (mlir::isa<mlir::tosa::PadOp>(op)) {
                 node = parseTosaPad(gr, op, os);
             }
+            /*the FULLY_CONNECTED operator has been removed from the TOSA dialect 
+             as part of the TOSA v1.0 alignment effort.
+
+                Source 1.1 explicitly states : "This patch removes FullyConncected 
+                Operator from the TOSA Dialect and all associated tests and transforms. 
+                This is part of the TOSA v1.0 alignment effort."
+
             else if (mlir::isa<mlir::tosa::FullyConnectedOp>(op)) {
                 node = parseTosaFullyConnected(gr, op, os);
-            }
+            }*/
             else if (mlir::isa<mlir::tosa::MatMulOp>(op)) {
                 node = parseTosaMatmul(gr, op, os);
             }
@@ -601,8 +642,8 @@ namespace sw {
             else if (mlir::isa<mlir::tosa::ReduceSumOp>(op)) {;
                 node = parseTosaReduceSum(gr, op, os);
             }
-            else if (mlir::isa<mlir::tosa::ReduceProdOp>(op)) {
-                node = parseTosaReduceProd(gr, op, os);
+            else if (mlir::isa<mlir::tosa::ReduceProductOp>(op)) {
+                node = parseTosaReduceProduct(gr, op, os);
             }
 
             else {
