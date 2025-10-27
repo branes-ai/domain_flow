@@ -168,36 +168,28 @@ namespace sw {
             //    result.maxFp = maxFpAttr.getValue().convertToDouble();
             //}
 
-            // Extract min_val attribute
-            // The getMinValAttr() method returns an mlir::Attribute.
-            // To safely cast this generic mlir::Attribute to a more specific type (like IntegerAttr or FloatAttr),
-            // we use the global utility function mlir::dyn_cast_or_null.
-            if (mlir::Attribute minValAttr = clampOp.getMinValAttr()) {
+            // Extract min_val and max_val attributes
+            // MLIR 20.x changed the API: use getMinVal() and getMaxVal() directly
+            // These return TypedAttr<IntegerAttr or FloatAttr> depending on the clamp type
+
+            // Try to get min_val as an attribute (works with MLIR 20.x)
+            if (auto minValAttr = clampOp->getAttr("min_val")) {
                 if (auto minIntAttr = mlir::dyn_cast_or_null<mlir::IntegerAttr>(minValAttr)) {
-                    // If it's an integer attribute, extract the signed 64-bit integer value.
                     result.minInt = minIntAttr.getValue().getSExtValue();
                 }
                 else if (auto minFpAttr = mlir::dyn_cast_or_null<mlir::FloatAttr>(minValAttr)) {
-                    // If it's a floating-point attribute, convert it to a double.
                     result.minFp = minFpAttr.getValue().convertToDouble();
                 }
-                // Handle other potential attribute types if necessary, or log an error.
-                // For example, if minValAttr is neither an IntegerAttr nor a FloatAttr,
-                // you might want to print a warning or handle it as an error.
             }
 
-            // Extract max_val attribute
-            // Similar logic applies for the max_val attribute, using mlir::dyn_cast_or_null.
-            if (mlir::Attribute maxValAttr = clampOp.getMaxValAttr()) {
+            // Try to get max_val as an attribute (works with MLIR 20.x)
+            if (auto maxValAttr = clampOp->getAttr("max_val")) {
                 if (auto maxIntAttr = mlir::dyn_cast_or_null<mlir::IntegerAttr>(maxValAttr)) {
-                    // If it's an integer attribute, extract the signed 64-bit integer value.
                     result.maxInt = maxIntAttr.getValue().getSExtValue();
                 }
                 else if (auto maxFpAttr = mlir::dyn_cast_or_null<mlir::FloatAttr>(maxValAttr)) {
-                    // If it's a floating-point attribute, convert it to a double.
                     result.maxFp = maxFpAttr.getValue().convertToDouble();
                 }
-                // Handle other potential attribute types if necessary.
             }
 
             // Note: The 'nan_mode' attribute is also present, but not requested in the original
@@ -642,9 +634,11 @@ namespace sw {
             else if (mlir::isa<mlir::tosa::ReduceSumOp>(op)) {;
                 node = parseTosaReduceSum(gr, op, os);
             }
-            else if (mlir::isa<mlir::tosa::ReduceProductOp>(op)) {
-                node = parseTosaReduceProduct(gr, op, os);
-            }
+            // Note: ReduceProductOp was removed from TOSA dialect in MLIR 20.x
+            // Commenting out to maintain compatibility with newer MLIR versions
+            // else if (mlir::isa<mlir::tosa::ReduceProductOp>(op)) {
+            //     node = parseTosaReduceProduct(gr, op, os);
+            // }
 
             else {
 
