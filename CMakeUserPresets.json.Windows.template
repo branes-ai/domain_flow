@@ -1,0 +1,103 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 28,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "user-ninja-debug",
+      "inherits": "Ninja-Debug",
+      "description": "Windows Ninja Debug build with vcpkg",
+      "environment": {
+        "VCPKG_ROOT": "C:/dev/vcpkg",
+        "LLVM_PROJECT_ROOT": "C:/dev/clones/llvm-project"
+      },
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": {
+          "type": "FILEPATH",
+          "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        }
+      }
+    },
+    {
+      "name": "user-ninja-release",
+      "inherits": "Ninja-Release",
+      "description": "Windows Ninja Release build with vcpkg",
+      "environment": {
+        "VCPKG_ROOT": "C:/dev/vcpkg",
+        "LLVM_PROJECT_ROOT": "C:/dev/clones/llvm-project",
+        "QT_PLUGIN_PATH": "$env{VCPKG_ROOT}/installed/x64-windows/Qt6/plugins"
+      },
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": {
+          "type": "FILEPATH",
+          "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        },
+        "MLIR_DIR": {
+          "type": "PATH",
+          "value": "$env{LLVM_PROJECT_ROOT}/build_msvc/lib/cmake/mlir"
+        }
+      }
+    },
+    {
+      "name": "user-vs17-debug",
+      "inherits": "VS17-Debug",
+      "description": "Visual Studio 17 Debug build with vcpkg",
+      "environment": {
+        "VCPKG_ROOT": "C:/dev/vcpkg",
+        "LLVM_PROJECT_ROOT": "C:/dev/clones/llvm-project",
+        "QT_PLUGIN_PATH": "$env{VCPKG_ROOT}/installed/x64-windows/Qt6/plugins"
+      },
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": {
+          "type": "FILEPATH",
+          "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        },
+        "MLIR_DIR": {
+          "type": "PATH",
+          "value": "$env{LLVM_PROJECT_ROOT}/build_msvc/lib/cmake/mlir"
+        }
+      }
+    },
+    {
+      "name": "user-vs17-release",
+      "inherits": "VS17-Release",
+      "description": "Visual Studio 17 Release build with vcpkg",
+      "environment": {
+        "VCPKG_ROOT": "C:/dev/vcpkg",
+        "LLVM_PROJECT_ROOT": "C:/dev/clones/llvm-project",
+        "QT_PLUGIN_PATH": "$env{VCPKG_ROOT}/installed/x64-windows/Qt6/plugins"
+      },
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": {
+          "type": "FILEPATH",
+          "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        },
+        "MLIR_DIR": {
+          "type": "PATH",
+          "value": "$env{LLVM_PROJECT_ROOT}/build_msvc/lib/cmake/mlir"
+        }
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "user-ninja-debug",
+      "configurePreset": "user-ninja-debug"
+    },
+    {
+      "name": "user-ninja-release",
+      "configurePreset": "user-ninja-release"
+    },
+    {
+      "name": "user-vs17-debug",
+      "configurePreset": "user-vs17-debug"
+    },
+    {
+      "name": "user-vs17-release",
+      "configurePreset": "user-vs17-release"
+    }
+  ]
+}
