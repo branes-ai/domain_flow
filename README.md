@@ -183,5 +183,5 @@ rm -rf build/
 ## Documentation
 
 - [SETUP.md](SETUP.md) - Detailed platform-specific setup guide
-- [CLAUDE.md](CLAUDE.md) - Architecture overview and development guide
+- [ARCHITECTURE.md](ARCHITECTURE.md) - Architecture overview and development guide
 - [docs/](docs/) - Additional documentation
