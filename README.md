@@ -23,3 +23,36 @@ Operators are hypothesized to execute in multi-dimensional data paths,
 and the goal of the analysis is to find spatial reductions that avoid
 resource contention.
 
+
+## How to build
+
+Here are the commands to build, clean and rebuild:
+
+```bash
+  # Clean the build directory completely
+  rm -rf build/user-ninja-release
+
+  # Configure from scratch
+  cmake --preset user-ninja-release
+
+  # Build all targets
+  cmake --build build/user-ninja-release
+
+  # Optional: Build with verbose output to see all commands
+  cmake --build build/user-ninja-release --verbose
+
+  # Optional: Build just one target
+  cmake --build build/user-ninja-release --target dfa_domain_flow
+
+  # Optional: Run tests
+  ctest --test-dir build/user-ninja-release
+
+  # Optional: Run a specific executable
+  ./build/user-ninja-release/workloads/dfa/dfa_domain_flow
+
+  # Quick clean and rebuild:
+  rm -rf build/user-ninja-release && cmake --preset user-ninja-release && cmake --build build/user-ninja-release
+
+  # To clean everything (all build variants):
+  rm -rf build/
+```
