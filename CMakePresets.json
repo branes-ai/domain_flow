@@ -2,70 +2,57 @@
   "version": 3,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 31,
+    "minor": 28,
     "patch": 0
   },
   "configurePresets": [
     {
       "name": "ninja-default",
       "hidden": true,
-      "environment": {
-        "LLVM_PROJECT_ROOT": "F:/Users/tomtz/dev/clones/llvm-project",
-	"QT_PLUGIN_PATH": "$env{VCPKG_ROOT}/installed/x64-linux/Qt6/plugins"
-      },
-      "generator": "Ninja"
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
     },
     {
       "name": "vs17-default",
       "hidden": true,
-      "environment": {
-        "LLVM_PROJECT_ROOT": "F:/Users/tomtz/dev/clones/llvm-project",
-	"QT_PLUGIN_PATH": "$env{VCPKG_ROOT}/installed/x64-windows/Qt6/plugins"
-      },
       "generator": "Visual Studio 17 2022"
     },
     {
       "name": "Ninja-Debug",
       "inherits": "ninja-default",
-      "description": "Ninja Debug build",
+      "description": "Ninja Debug build (inherit in user presets, add CMAKE_TOOLCHAIN_FILE if using vcpkg)",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-	"CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
       "name": "Ninja-Release",
       "inherits": "ninja-default",
-      "description": "Ninja Release build",
+      "description": "Ninja Release build (inherit in user presets, add CMAKE_TOOLCHAIN_FILE if using vcpkg)",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-	"MLIR_DIR": "$env{LLVM_PROJECT_ROOT}/build_msvc/lib/cmake/mlir",
-	"CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        "CMAKE_BUILD_TYPE": "Release"
       }
     },
     {
       "name": "VS17-Debug",
       "inherits": "vs17-default",
-      "description": "Visual Studio 17 Debug build",
+      "description": "Visual Studio 17 Debug build (inherit in user presets, add CMAKE_TOOLCHAIN_FILE for vcpkg)",
       "binaryDir": "${sourceDir}/build_msvc/${presetName}",
-
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-	"MLIR_DIR": "$env{LLVM_PROJECT_ROOT}/build_msvc/lib/cmake/mlir",
-	"CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
       "name": "VS17-Release",
       "inherits": "vs17-default",
-      "description": "Visual Studio 17 Release build",
+      "description": "Visual Studio 17 Release build (inherit in user presets, add CMAKE_TOOLCHAIN_FILE for vcpkg)",
       "binaryDir": "${sourceDir}/build_msvc/${presetName}",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-	"MLIR_DIR": "$env{LLVM_PROJECT_ROOT}/build_msvc/lib/cmake/mlir",
-	"CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        "CMAKE_BUILD_TYPE": "Release"
       }
     }
   ],

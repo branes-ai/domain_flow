@@ -49,8 +49,9 @@ namespace sw {
                     std::cerr << "IndexSpace compute_bounding_box requires constraints to be set\n";
                     return;
                 }
-                lower_bounds.resize(dimension, std::numeric_limits<double>::infinity());
-                upper_bounds.resize(dimension, -std::numeric_limits<double>::infinity());
+                // Use proper integer limits instead of converting from double infinity
+                lower_bounds.resize(dimension, std::numeric_limits<ConstraintCoefficientType>::max());
+                upper_bounds.resize(dimension, std::numeric_limits<ConstraintCoefficientType>::min());
 
                 TwoPhaseSimplex simplex;
                 std::vector<std::vector<double>> A(constraints.size(), std::vector<double>(dimension));
@@ -92,8 +93,8 @@ namespace sw {
                         upper_bounds[d] = solution[d];
                     }
                     catch (const std::exception& e) {
-                        // Handle unbounded or infeasible cases
-                        upper_bounds[d] = 1e10; // Large fallback value
+                        // Handle unbounded or infeasible cases with proper integer limits
+                        upper_bounds[d] = std::numeric_limits<ConstraintCoefficientType>::max() / 2;
                     }
 
                     // Minimize x_d (maximize -x_d)
@@ -103,7 +104,8 @@ namespace sw {
                         lower_bounds[d] = solution[d];
                     }
                     catch (const std::exception& e) {
-                        lower_bounds[d] = -1e10; // Large negative fallback value
+                        // Use proper integer limits instead of double literal
+                        lower_bounds[d] = std::numeric_limits<ConstraintCoefficientType>::min() / 2;
                     }
                 }
 
