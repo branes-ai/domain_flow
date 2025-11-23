@@ -1,0 +1,36 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 28,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "user-ninja-debug",
+      "inherits": "Ninja-Debug",
+      "description": "Linux Ninja Debug build with native system dependencies",
+      "environment": {
+        "LLVM_PROJECT_ROOT": "/home/yourname/dev/clones/llvm-project"
+      }
+    },
+    {
+      "name": "user-ninja-release",
+      "inherits": "Ninja-Release",
+      "description": "Linux Ninja Release build with native system dependencies",
+      "environment": {
+        "LLVM_PROJECT_ROOT": "/home/yourname/dev/clones/llvm-project"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "user-ninja-debug",
+      "configurePreset": "user-ninja-debug"
+    },
+    {
+      "name": "user-ninja-release",
+      "configurePreset": "user-ninja-release"
+    }
+  ]
+}

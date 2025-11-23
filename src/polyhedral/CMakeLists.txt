@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.31)
+cmake_minimum_required(VERSION 3.28)
 project(isl_schedule_tree_demo)
 
 # Find ISL (assumes it's installed system-wide)
