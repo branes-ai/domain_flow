@@ -73,7 +73,8 @@ message(STATUS "PROJECT_NAME = ${PROJECT_NAME}")
 ####
 # Set environmental options for tracing, testing, and verbosity
 option(DOMAINFLOW_CMAKE_TRACE "Tracing CMake results, i.e. printing variable settings." OFF)
-option(DOMAINFLOW_BUILD_TESTING "Enable the build and running of tests." ON)
+# we need to key off cmake standard BUILD_TESTING, not a parallel guard variable
+#option(DOMAINFLOW_BUILD_TESTING "Enable the build and running of tests." ON)
 option(DOMAINFLOW_VERBOSE_TESTS "Always print test output, otherwise only errors. Only relevant when tests enabled." OFF)
 option(DOMAINFLOW_LOCAL_DEVELOPMENT "Enable/disable local development." OFF)
 option(DOMAINFLOW_TOOLS "Enable/disable domain flow tools." OFF)
