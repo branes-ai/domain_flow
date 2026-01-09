@@ -11,7 +11,11 @@
       "hidden": true,
       "generator": "Ninja",
       "cacheVariables": {
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "BUILD_TESTING": "ON",
+        "DOMAINFLOW_BUILD_TESTING": "ON",
+        "DOMAINFLOW_TOOLS": "ON",
+        "DOMAINFLOW_DSE": "ON"
       }
     },
     {
