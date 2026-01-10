@@ -109,16 +109,16 @@ namespace sw {
 
 			// define the faces: right hand rule pointing out of the volume
 			// A tensor confluence
-			auto f0 = hull.add_face({ v0, v1, v2, v3 }); // left face, pointing out
+			[[maybe_unused]] auto f0 = hull.add_face({ v0, v1, v2, v3 }); // left face, pointing out
 			// B tensor confluence
-			auto f1 = hull.add_face({ v0, v3, v4, v5 }); // back face, pointing out
+			[[maybe_unused]] auto f1 = hull.add_face({ v0, v3, v4, v5 }); // back face, pointing out
 			// input C tensor confluence
-			auto f2 = hull.add_face({ v0, v5, v6, v1 }); // bottom face, pointing out
+			[[maybe_unused]] auto f2 = hull.add_face({ v0, v5, v6, v1 }); // bottom face, pointing out
 			// output C tensor confluence
-			auto f3 = hull.add_face({ v3, v2, v7, v4 }); // top face, pointing out
+			[[maybe_unused]] auto f3 = hull.add_face({ v3, v2, v7, v4 }); // top face, pointing out
 			// remaining faces do not have tensor confluences
-			auto f4 = hull.add_face({ v1, v6, v7, v2 }); // front face
-			auto f5 = hull.add_face({ v5, v4, v7, v6 }); // right face
+			[[maybe_unused]] auto f4 = hull.add_face({ v1, v6, v7, v2 }); // front face
+			[[maybe_unused]] auto f5 = hull.add_face({ v5, v4, v7, v6 }); // right face
 		}
 
 		template<typename ConstraintCoefficientType = float>

@@ -167,9 +167,9 @@ namespace sw {
 
                 // Validate affine map compatibility
                 bool isValidAffineMap(const std::string& from, const std::string& to,
-                    const AffineMap<int>& map) const {
-                    auto* fromVar = graph->variableMap[from];
-                    auto* toVar = graph->variableMap[to];
+                    [[maybe_unused]] const AffineMap<int>& map) const {
+                    [[maybe_unused]] auto* fromVar = graph->variableMap[from];
+                    [[maybe_unused]] auto* toVar = graph->variableMap[to];
 
                     // Check if the affine map's dimensions match the variables
                     // This is a placeholder - implementation TBD
@@ -561,7 +561,7 @@ namespace sw {
             // Generate ASCII art visualization
             std::string generateASCII(const std::vector<std::vector<RecurrenceVariable*>>& sccs) const {
                 std::stringstream ascii;
-                const int maxWidth = 80;
+                [[maybe_unused]] const int maxWidth = 80;
 
                 // Helper function to create box around text
                 auto makeBox = [](const std::string& text, int width) {
