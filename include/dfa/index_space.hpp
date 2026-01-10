@@ -219,9 +219,9 @@ namespace sw {
 			// Generate all points in the index space
 			// precondition: bounding box must be set
             void enumerate() {
-                std::vector<IndexPointType> current_point(dimension);
-                for (size_t i = 0; i < dimension; ++i) {
-                    current_point[i] = lower_bounds[i];
+                std::vector<IndexPointType> current_point(static_cast<size_t>(dimension));
+                for (int i = 0; i < dimension; ++i) {
+                    current_point[static_cast<size_t>(i)] = lower_bounds[static_cast<size_t>(i)];
                 }
 
                 while (true) {

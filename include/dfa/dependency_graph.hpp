@@ -354,26 +354,26 @@ namespace sw {
                 std::vector<std::pair<int, int>> edges;
 
                 // Map variables to their SCC index
-                std::map<RecurrenceVariable*, int> sccIndex;
-                for (int i = 0; i < sccs.size(); i++) {
+                std::map<RecurrenceVariable*, size_t> sccIndex;
+                for (size_t i = 0; i < sccs.size(); i++) {
                     for (auto* var : sccs[i]) {
                         sccIndex[var] = i;
                     }
                 }
 
                 // Find edges between different SCCs
-                for (int i = 0; i < sccs.size(); i++) {
-                    std::unordered_set<int> connectedComponents;
+                for (size_t i = 0; i < sccs.size(); i++) {
+                    std::unordered_set<size_t> connectedComponents;
                     for (auto* var : sccs[i]) {
                         for (const auto& [dep, _] : var->dependencies) {
-                            int targetSCC = sccIndex[dep];
+                            size_t targetSCC = sccIndex[dep];
                             if (targetSCC != i) {
                                 connectedComponents.insert(targetSCC);
                             }
                         }
                     }
-                    for (int target : connectedComponents) {
-                        edges.emplace_back(i, target);
+                    for (size_t target : connectedComponents) {
+                        edges.emplace_back(static_cast<int>(i), static_cast<int>(target));
                     }
                 }
 
@@ -398,9 +398,9 @@ namespace sw {
 
                 // Perform topological sort using Kahn's algorithm
                 std::queue<int> q;
-                for (int i = 0; i < sccs.size(); i++) {
+                for (size_t i = 0; i < sccs.size(); i++) {
                     if (inDegree[i] == 0) {
-                        q.push(i);
+                        q.push(static_cast<int>(i));
                     }
                 }
 
@@ -491,8 +491,8 @@ namespace sw {
                 mmd << "graph TD\n";
 
                 // Map for tracking SCC clusters
-                std::map<RecurrenceVariable*, int> sccMap;
-                for (int i = 0; i < sccs.size(); i++) {
+                std::map<RecurrenceVariable*, size_t> sccMap;
+                for (size_t i = 0; i < sccs.size(); i++) {
                     for (auto* var : sccs[i]) {
                         sccMap[var] = i;
                     }
@@ -705,9 +705,9 @@ namespace sw {
             // Helper function to find SCC index for a variable
             int findSCCIndex(RecurrenceVariable* var,
                 const std::vector<std::vector<RecurrenceVariable*>>& sccs) const {
-                for (int i = 0; i < sccs.size(); i++) {
+                for (size_t i = 0; i < sccs.size(); i++) {
                     if (std::find(sccs[i].begin(), sccs[i].end(), var) != sccs[i].end()) {
-                        return i;
+                        return static_cast<int>(i);
                     }
                 }
                 return -1;

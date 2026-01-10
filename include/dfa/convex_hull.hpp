@@ -166,10 +166,10 @@ namespace sw {
 			void generateConvexHull() {
 				// TBD: Implement convex hull generation algorithm
 				// This is a placeholder for the actual convex hull generation logic
-				// For now, assume we have a prism of m x n x k 
+				// For now, assume we have a prism of m x n x k
 				// First, gather the m, n, and k values from the constraints
 				std::vector<ConstraintCoefficientType> shape;
-				for (int i = 0; i < b_.size(); ++i) {
+				for (size_t i = 0; i < b_.size(); ++i) {
 					if (b_(i) > 0) {
 						shape.push_back(b_(i));
 					}
@@ -266,7 +266,7 @@ namespace sw {
 			ConvexHull transform(const Mat3& R, const Vec3& t) const {
 				MatX A_new = A_ * R.transpose();
 				VecX b_new(b_.size());
-				for (int i = 0; i < b_.size(); ++i)
+				for (size_t i = 0; i < b_.size(); ++i)
 					b_new(i) = b_(i) - A_.row(i).dot(t);
 				return ConvexHull(A_new, b_new);
 			}

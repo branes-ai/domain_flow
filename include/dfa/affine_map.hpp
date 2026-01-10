@@ -63,10 +63,10 @@ namespace sw {
                 VectorX<Scalar> resultConsts(outputDimension, 0);
 
                 // Compute CA (matrix multiplication)
-                for (int i = 0; i < outputDimension; i++) {
-                    for (int j = 0; j < other.inputDimension; j++) {
-                        int sum = 0;
-                        for (int k = 0; k < inputDimension; k++) {
+                for (size_t i = 0; i < outputDimension; i++) {
+                    for (size_t j = 0; j < other.inputDimension; j++) {
+                        Scalar sum = 0;
+                        for (size_t k = 0; k < inputDimension; k++) {
                             sum += getCoefficient(i, k) * other.getCoefficient(k, j);
                         }
                         resultCoeffs[i][j] = sum;
@@ -74,9 +74,9 @@ namespace sw {
                 }
 
                 // Compute Cb + d
-                for (int i = 0; i < outputDimension; i++) {
-                    int sum = constants[i];  // d term
-                    for (int j = 0; j < inputDimension; j++) {
+                for (size_t i = 0; i < outputDimension; i++) {
+                    Scalar sum = constants[i];  // d term
+                    for (size_t j = 0; j < inputDimension; j++) {
                         sum += getCoefficient(i, j) * other.constants[j];  // Cb term
                     }
                     resultConsts[i] = sum;

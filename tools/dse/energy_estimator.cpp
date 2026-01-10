@@ -303,7 +303,7 @@ int main() {
 
     constexpr unsigned WIDTH = 15;
     std::cout << "  latency (sec) :     energy (J)  :      power (W)\n";
-    for (int i = 0; i < x.size(); ++i) {
+    for (size_t i = 0; i < x.size(); ++i) {
         std::cout << std::setw(WIDTH) << x[i] << " : " << std::setw(WIDTH) << y[i] << " : " << std::setw(WIDTH) << y[i]/x[i] << '\n';
     }
 

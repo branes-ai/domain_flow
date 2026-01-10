@@ -126,8 +126,8 @@ namespace sw {
             MatrixX operator*(const Matrix3<Scalar>& m) const {
                 if (cols() != 3) throw std::runtime_error("MatrixX must have 3 columns");
                 MatrixX result(rows(), cols());
-                for (int i = 0; i < rows(); ++i)
-                    for (int j = 0; j < cols(); ++j)
+                for (size_t i = 0; i < rows(); ++i)
+                    for (size_t j = 0; j < cols(); ++j)
                         result(i, j) = row(i).dot(m.row(j));
                 return result;
             }
@@ -152,13 +152,13 @@ namespace sw {
         template<typename _T>
         inline std::ostream& operator<<(std::ostream& ostr, const MatrixX<_T>& M) {
             ostr << "{\n";
-            for (int i = 0; i < M.rows(); ++i) {
+            for (size_t i = 0; i < M.rows(); ++i) {
                 ostr << " { ";
-                for (int j = 0; j < M.cols(); ++j) {
+                for (size_t j = 0; j < M.cols(); ++j) {
                     ostr << M[i][j];
                     if (j < M.cols() - 1) ostr << ", ";
                 }
-                if (i < M.cols() - 1) ostr << "},\n"; else ostr << "}\n";
+                if (i < M.rows() - 1) ostr << "},\n"; else ostr << "}\n";
             }
             return ostr << "}\n";
         }
