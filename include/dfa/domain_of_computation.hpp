@@ -296,6 +296,9 @@ namespace sw {
 					}
 				}
 				break;
+				default:
+					// Unhandled DomainFlowOperator types (TODO: implement remaining operators)
+					break;
 				}
 			}
 
@@ -383,6 +386,9 @@ namespace sw {
 					constraints.shapeExtract(tensorOut);
 				}
 				break;
+				default:
+					// Unhandled operators fall through to the constraints.empty() check below
+					break;
 				}
 
 				// report on any unprocessed nodes
