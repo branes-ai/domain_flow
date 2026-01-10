@@ -91,7 +91,7 @@ namespace sw {
                 prev = current;
             }
 
-            const auto vertex_writer{ [](nodeId_t vertex_id, TensorOperator vertex) -> std::string {
+            const auto vertex_writer{ []([[maybe_unused]] nodeId_t vertex_id, TensorOperator vertex) -> std::string {
                 return std::format("node={}", vertex.name);
             } };
 

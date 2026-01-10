@@ -124,7 +124,8 @@ namespace sw {
             bool onStack = false;
 
             // Helper function to validate affine map compatibility
-            bool isValidAffineMap(const AffineMap<int>& map, const RecurrenceVariable* target) const {
+            bool isValidAffineMap([[maybe_unused]] const AffineMap<int>& map,
+                                  [[maybe_unused]] const RecurrenceVariable* target) const {
                 // Check if the affine map dimensions are compatible with this variable and the target
                 // This is a placeholder - implement based on your AffineMap representation
                 // Should verify that the map can transform from this variable's space to target's space

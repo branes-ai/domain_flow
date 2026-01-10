@@ -57,9 +57,9 @@ namespace sw {
         }
 
         inline void generate_dot(
-            const directed_graph<Operator, Flow>& graph,
+            [[maybe_unused]] const directed_graph<Operator, Flow>& graph,
             const std::optional<algorithm::shortest_path::graph_path<int>>& path, // Change decltype(weight(std::declval<Flow>())) to int
-            const std::string& filepath)
+            [[maybe_unused]] const std::string& filepath)
         {
             auto shortest_path{ path.value() };
             std::unordered_set<edgeId_t, edge_id_hash> edges_on_shortest_path{};
@@ -71,7 +71,7 @@ namespace sw {
                 prev = current;
             }
 
-            const auto vertex_writer{ [](nodeId_t vertex_id, Operator vertex) -> std::string {
+            const auto vertex_writer{ []([[maybe_unused]] nodeId_t vertex_id, Operator vertex) -> std::string {
               const auto style{"filled"};
               return std::format(
                   "label=\"{}\", style={}, color=black, fontcolor=black, shape=rectangle,"
@@ -135,7 +135,7 @@ namespace sw {
                 prev = current;
             }
 
-            const auto vertex_writer{ [](nodeId_t vertex_id, Operator vertex) -> std::string {
+            const auto vertex_writer{ []([[maybe_unused]] nodeId_t vertex_id, Operator vertex) -> std::string {
                 return std::format("node={}", vertex.name);
             } };
 

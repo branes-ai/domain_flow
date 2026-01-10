@@ -223,7 +223,7 @@ namespace sw {
         }
 
         template<typename Scalar>
-        std::string formatAffineMap(const AffineMap<Scalar>& map) {
+        std::string formatAffineMap([[maybe_unused]] const AffineMap<Scalar>& map) {
             std::string str("TBD");
             return str;
         }
