@@ -30,7 +30,6 @@ bool validate(const sw::dfa::ConstraintSet<ConstraintCoefficientType>& constrain
 
 int main() {
     using namespace sw::dfa;
-    using IndexPointType = int;
     using ConstraintCoefficientType = int;
 
     ConstraintSet<ConstraintCoefficientType> constraints = {

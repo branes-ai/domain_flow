@@ -204,8 +204,8 @@ namespace sw::energy {
         unsigned nrFMAs = m * k * n;
         db.increment(ComputeEvent{ EventType::ALU_FMA, widthInBits }, nrFMAs);
         // and the RF events
-        db.increment(MemoryEvent{ EventType::RF_READ, widthInBits }, 3*nrFMAs);
-        db.increment(MemoryEvent{ EventType::RF_WRITE, widthInBits }, nrFMAs);
+        db.increment(MemoryEvent{ EventType::RF_READ, widthInBits, 0 }, 3*nrFMAs);
+        db.increment(MemoryEvent{ EventType::RF_WRITE, widthInBits, 0 }, nrFMAs);
 
         // we need to execute loop indices and address generation for each FMA
         // assume 10 instructions per iteration

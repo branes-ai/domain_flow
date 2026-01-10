@@ -16,7 +16,8 @@ Mathematically
 int main() {
 	using namespace sw::dfa;
 
-	
+	using ConstraintCoefficientType = int;
+
 	// create a reduced dependency graph for matrix multiplication
 	MatrixX<int> Eye = { {1, 0, 0}, {0, 1, 0}, {0, 0, 1} };
 	VectorX<int> i = { 1, 0, 0 };
@@ -41,9 +42,6 @@ int main() {
 
 	// std::cout << "Affine Map for A: " << matmulRDG.getAffineMap("A") << '\n';
 	// std::cout << "A propagation : " << jDirection << '\n';
-
-	using IndexPointType = int;
-	using ConstraintCoefficientType = int;
 
 	/*
 	    y = W^T * x + b
