@@ -125,6 +125,9 @@ namespace sw {
 				case DomainFlowOperator::FUNCTION_RETURN:
                     bIsOperator = false;
                     break;
+                default:
+                    // All other DomainFlowOperator values are operators
+                    break;
                 }
 				return bIsOperator;
             }
