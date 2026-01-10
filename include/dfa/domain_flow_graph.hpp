@@ -69,7 +69,7 @@ namespace sw {
 			// sort the nodes in the graph
 			// Assign depth values to nodes based on their maximum distance from inputs
 			void assignNodeDepths() noexcept {
-				constexpr bool bTrace = false; // Set to true for detailed tracing
+				[[maybe_unused]] constexpr bool bTrace = false; // Set to true for detailed tracing
 				auto nodeDepths = calculateNodeDepths(graph);
 				// Store depth values in the operator nodes
 				for (size_t i = 0; i < graph.nrNodes(); ++i) {
@@ -141,8 +141,8 @@ namespace sw {
 
 			void alignDomainFlow() noexcept {
 				// walk the graph, and align the domain flow for each operator
-				for (auto& [nodeId, node] : graph.nodes()) {
-
+				for ([[maybe_unused]] auto& [nodeId, node] : graph.nodes()) {
+					// TODO: implement domain flow alignment
 				}
 			}
 			
@@ -157,13 +157,15 @@ namespace sw {
 
 			void generateFabric() noexcept {
 				// walk the graph, and generate the fabric for each operator
-				for (const auto& [nodeId, _] : graph.nodes()) {
+				for ([[maybe_unused]] const auto& [nodeId, node] : graph.nodes()) {
+					// TODO: implement fabric generation
 				}
 			}
 
 			void generatePareto() noexcept {
 				// walk the graph, and generate the pareto for each operator
-				for (const auto& [nodeId, _] : graph.nodes()) {
+				for ([[maybe_unused]] const auto& [nodeId, node] : graph.nodes()) {
+					// TODO: implement pareto generation
 				}
 			}
 

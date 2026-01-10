@@ -10,8 +10,8 @@ int main() {
 	std::string graphName = "matmul_linear";
 	DomainFlowGraph nla(graphName); // Numerical Linear Algebra
 
-	size_t SLOT_A = 0;
-	size_t SLOT_B = 1;
+	[[maybe_unused]] size_t SLOT_A = 0;
+	[[maybe_unused]] size_t SLOT_B = 1;
 
 	// model of a single layer Multi Level Perceptron using a Linear operator, 
 	// which consists of an input, a weights matrix, and a bias.

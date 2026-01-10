@@ -12,7 +12,7 @@ int main() {
         .edge("Z", "X", AffineMap({ {1, 0}, {0, 1} }, { 1, 1 }))
         .build();
 
-    auto sccs = graph->getStronglyConnectedComponents();
-    bool isStronglyConnected = graph->isStronglyConnected();
+    [[maybe_unused]] auto sccs = graph->getStronglyConnectedComponents();
+    [[maybe_unused]] bool isStronglyConnected = graph->isStronglyConnected();
 	return EXIT_SUCCESS;
 }

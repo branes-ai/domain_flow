@@ -328,9 +328,9 @@ namespace sw {
                             break;
                         }
                         int batch = input.shape[0];
-                        int inHeight = input.shape[1];
-                        int inWidth = input.shape[2];
-                        int inputChannels = input.shape[3];
+                        [[maybe_unused]] int inHeight = input.shape[1];
+                        [[maybe_unused]] int inWidth = input.shape[2];
+                        [[maybe_unused]] int inputChannels = input.shape[3];
 
                         int outputChannels = kernel.shape[0];
                         int kernelHeight = kernel.shape[1];
@@ -340,11 +340,11 @@ namespace sw {
                         int batch2 = result.shape[0];
                         int height = result.shape[1];
                         int width = result.shape[2];
-                        int outputChannels2 = result.shape[3];
+                        [[maybe_unused]] int outputChannels2 = result.shape[3];
 
                         int kernelSize = kernelHeight * kernelWidth * kernelChannels;
-                        uint64_t kernelMuls = kernelSize * outputChannels;
-                        uint64_t kernelAdds = (kernelSize - 1) * outputChannels;
+                        [[maybe_unused]] uint64_t kernelMuls = kernelSize * outputChannels;
+                        [[maybe_unused]] uint64_t kernelAdds = (kernelSize - 1) * outputChannels;
 
                         // check if the batch size between input and output are correct
                         if (batch != batch2) {
@@ -391,14 +391,14 @@ namespace sw {
                             break;
                         }
                         int batch = input.shape[0];
-                        int inHeight = input.shape[1];
-                        int inWidth = input.shape[2];
-                        int inputChannels = input.shape[3];
+                        [[maybe_unused]] int inHeight = input.shape[1];
+                        [[maybe_unused]] int inWidth = input.shape[2];
+                        [[maybe_unused]] int inputChannels = input.shape[3];
 
-                        
+
                         int kernelHeight = kernel.shape[0];
                         int kernelWidth = kernel.shape[1];
-                        int inputChannels2 = kernel.shape[2];
+                        [[maybe_unused]] int inputChannels2 = kernel.shape[2];
                         int channelMultiplier = kernel.shape[3];
 
                         int batch2 = result.shape[0];

@@ -139,11 +139,11 @@ namespace sw {
 					switch (tensor0.size()) {
 					case 1:
 					{
-						// 1D line 
+						// 1D line
 						hull.setDimension(1); // 1D convex hull
 						auto v0 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0 }));
 						auto v1 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensor0.shape[0] }));
-						auto f0 = hull.add_face({ v0, v1 });
+						hull.add_face({ v0, v1 });
 					}
 						break;
 					case 2:
@@ -154,7 +154,7 @@ namespace sw {
 						auto v1 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, tensor0.shape[1] }));
 						auto v2 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensor0.shape[0], tensor0.shape[1] }));
 						auto v3 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensor0.shape[0], 0 }));
-						auto f0 = hull.add_face({ v0, v1, v2, v3 });
+						hull.add_face({ v0, v1, v2, v3 });
 					}
 						break;
 					case 3:
@@ -169,8 +169,8 @@ namespace sw {
 						auto v5 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, tensor0.shape[1], tensor0.shape[2] }));
 						auto v6 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensor0.shape[0], tensor0.shape[1], tensor0.shape[2] }));
 						auto v7 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensor0.shape[0], 0, tensor0.shape[2] }));
-						auto f0 = hull.add_face({ v0, v1, v2, v3 }); // left face
-						auto f1 = hull.add_face({ v4, v5, v6, v7 }); // right face
+						hull.add_face({ v0, v1, v2, v3 }); // left face
+						hull.add_face({ v4, v5, v6, v7 }); // right face
 					}
 						break;
 					}
@@ -234,14 +234,14 @@ namespace sw {
 
 					// define the faces: right hand rule pointing out of the volume
 					// A tensor confluence
-					auto f0 = hull.add_face({ v0, v1, v2, v3 }); // left face, pointing out
-					Confluence<ConstraintCoefficientType> confluence0(getInput(0), f0);
+					[[maybe_unused]] auto f0 = hull.add_face({ v0, v1, v2, v3 }); // left face, pointing out
+					[[maybe_unused]] Confluence<ConstraintCoefficientType> confluence0(getInput(0), f0);
 					// B tensor confluence
-					auto f1 = hull.add_face({ v0, v3, v4, v5 }); // back face, pointing out
+					[[maybe_unused]] auto f1 = hull.add_face({ v0, v3, v4, v5 }); // back face, pointing out
 					// input C tensor confluence
-					auto f2 = hull.add_face({ v0, v5, v6, v1 }); // bottom face, pointing out
+					[[maybe_unused]] auto f2 = hull.add_face({ v0, v5, v6, v1 }); // bottom face, pointing out
 					// output C tensor confluence
-					auto f3 = hull.add_face({ v3, v2, v7, v4 }); // top face, pointing out
+					[[maybe_unused]] auto f3 = hull.add_face({ v3, v2, v7, v4 }); // top face, pointing out
 					// remaining faces do not have tensor confluences
 					hull.add_face({ v1, v6, v7, v2 }); // front face
 					hull.add_face({ v5, v4, v7, v6 }); // right face
@@ -259,11 +259,11 @@ namespace sw {
 					switch (tensorOut.size()) {
 					case 1:
 					{
-						// 1D line 
+						// 1D line
 						hull.setDimension(1); // 1D convex hull
 						auto v0 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0 }));
 						auto v1 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensorOut.shape[0] }));
-						auto f0 = hull.add_face({ v0, v1 });
+						hull.add_face({ v0, v1 });
 					}
 					break;
 					case 2:
@@ -274,7 +274,7 @@ namespace sw {
 						auto v1 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, tensorOut.shape[1] }));
 						auto v2 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensorOut.shape[0], tensorOut.shape[1] }));
 						auto v3 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensorOut.shape[0], 0 }));
-						auto f0 = hull.add_face({ v0, v1, v2, v3 });
+						hull.add_face({ v0, v1, v2, v3 });
 					}
 					break;
 					case 3:
@@ -289,8 +289,8 @@ namespace sw {
 						auto v5 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, tensorOut.shape[1], tensorOut.shape[2] }));
 						auto v6 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensorOut.shape[0], tensorOut.shape[1], tensorOut.shape[2] }));
 						auto v7 = hull.add_vertex(Point<ConstraintCoefficientType>({ tensorOut.shape[0], 0, tensorOut.shape[2] }));
-						auto f0 = hull.add_face({ v0, v1, v2, v3 }); // left face
-						auto f1 = hull.add_face({ v4, v5, v6, v7 }); // right face
+						hull.add_face({ v0, v1, v2, v3 }); // left face
+						hull.add_face({ v4, v5, v6, v7 }); // right face
 					}
 					break;
 					}
