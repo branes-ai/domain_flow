@@ -16,8 +16,6 @@ bool isInsideHull(const sw::dfa::ConstraintSet<ConstraintCoefficientType>& const
 
 int main() {
     using namespace sw::dfa;
-    using IndexPointType = int;
-    using ConstraintCoefficientType = int;
 
 	std::cout << "test 1: set up a Domain of Computation for a matmul operator\n";
     std::map<std::size_t, std::string> inputs, outputs;

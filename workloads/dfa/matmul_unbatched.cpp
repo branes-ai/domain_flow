@@ -12,8 +12,6 @@
 
 int main() {
     using namespace sw::dfa;
-    using IndexPointType = int;
-    using ConstraintCoefficientType = int;
 
     std::string graphName, dfgFilename, A, B, C, Cin, Cout;
 

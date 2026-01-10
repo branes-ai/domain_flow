@@ -11,8 +11,6 @@
 
 int main() {
     using namespace sw::dfa;
-    using IndexPointType = int;
-    using ConstraintCoefficientType = int;
 
     std::string A, B, C, Cin, Cout;
 

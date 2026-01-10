@@ -33,7 +33,7 @@ namespace sw::energy {
     }
 
     inline EnergyReport calculateTotalEnergy(const EventCounterDatabase& eventDb, const EnergyDatabase& energyDb, Technology technology) {
-        EnergyReport energies{0.0, 0.0, 0.0, 0.0};
+        EnergyReport energies{0.0, 0.0, 0.0, 0.0, 0.0};
         const auto* techData = energyDb.getTechnologyData(technology);
 
         if (!techData) {
