@@ -28,8 +28,8 @@ namespace sw {
             DomainFlowEdge(int flow, bool inMemory, std::string shape, int scalarSizeInBits) 
                 : flow{ flow }, stationair{ inMemory }, shape{ shape }, scalarSizeInBits{ scalarSizeInBits }, srcSlot{ 0 }, dstSlot{ 0 }, schedule{ {0,0,0} } {}
 
-            DomainFlowEdge(int flow, bool inMemory, std::string shape, int scalarSizeInBits, size_t srcSlot, size_t dstSlot, std::vector<int> tau) 
-                : flow{ flow }, stationair{ inMemory }, shape{ shape }, scalarSizeInBits{ scalarSizeInBits }, srcSlot{ 0 }, dstSlot{ 0 }, schedule{ tau } {}
+            DomainFlowEdge(int flow, bool inMemory, std::string shape, int scalarSizeInBits, size_t srcSlot, size_t dstSlot, std::vector<int> tau)
+                : flow{ flow }, stationair{ inMemory }, shape{ shape }, scalarSizeInBits{ scalarSizeInBits }, srcSlot{ srcSlot }, dstSlot{ dstSlot }, schedule{ tau } {}
             ~DomainFlowEdge() {}
         };
 

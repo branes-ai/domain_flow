@@ -38,7 +38,7 @@ namespace sw {
 			// modifiers
 			void clear() { graph.clear(); source.clear(); sink.clear(); name.clear(); }
 			void setName(const std::string& name) { this->name = name; }
-			void setSchedule(const Schedule<int>& tau) { /*graph.setSchedule(tau);*/ }
+			void setSchedule([[maybe_unused]] const Schedule<int>& tau) { /* TODO: graph.setSchedule(tau); */ }
 
 			void addNode(const std::string& name) {
 				DomainFlowNode node(name);
