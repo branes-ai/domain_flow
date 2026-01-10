@@ -98,8 +98,8 @@ try {
 
     // Output results
     auto printMatrix = [](const MatX& A) {
-        for (int i = 0; i < A.rows(); ++i) {
-            for (int j = 0; j < A.cols(); ++j) {
+        for (size_t i = 0; i < A.rows(); ++i) {
+            for (size_t j = 0; j < A.cols(); ++j) {
                 double val = A(i, j);
                 std::cout << (std::abs(val) < 1e-6 ? 0 : val) << " ";
             }
@@ -108,7 +108,7 @@ try {
         };
 
     auto printVector = [](const VecX& b) {
-        for (int i = 0; i < b.size(); ++i) {
+        for (size_t i = 0; i < b.size(); ++i) {
             double val = b(i);
             std::cout << (std::abs(val) < 1e-6 ? 0 : val) << "\n";
         }

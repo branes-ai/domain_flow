@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
 		std::cout << "  Operator: " << node.getOperator() << std::endl;
 		if (node.getNrInputs() > 0) {
             std::cout << "  Inputs:\n";
-            for (int i = 0; i < node.getNrInputs(); ++i) {
+            for (size_t i = 0; i < node.getNrInputs(); ++i) {
                 std::cout << "    Operand   : " << i << " : " << node.getOperandType(i) << '\n';
             }
 		}
@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
 
         if (node.getNrOutputs() > 0) {
             std::cout << "  Outputs:\n";
-            for (int i = 0; i < node.getNrOutputs(); ++i) {
+            for (size_t i = 0; i < node.getNrOutputs(); ++i) {
                 std::cout << "    Result    : " << i << " : " << node.getResultType(i) << '\n';
             }
         }

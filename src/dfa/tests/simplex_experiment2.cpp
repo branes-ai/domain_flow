@@ -188,7 +188,7 @@ public:
             throw std::invalid_argument("At least one half-plane constraint is required");
         }
         for (const auto& plane : planes) {
-            if (plane.a.size() != dimension) {
+            if (plane.a.size() != static_cast<size_t>(dimension)) {
                 throw std::invalid_argument("Constraint coefficients must match dimension");
             }
         }

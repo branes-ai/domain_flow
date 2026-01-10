@@ -23,9 +23,9 @@ namespace sw {
 				if (constraints.empty()) {
 					std::cerr << "ConstraintSet constructor: at least one constraint is required\n";
 				}
-				dimension = constraints[0].normal.size();
+				dimension = static_cast<int>(constraints[0].normal.size());
 				for (const auto& c : constraints) {
-					if (c.normal.size() != dimension) {
+					if (c.normal.size() != static_cast<size_t>(dimension)) {
 						std::cerr << "ConstraintSet constructor: all constraints must have the same dimension\n";
 						dimension = 0;
 						constraints.clear();
@@ -42,13 +42,13 @@ namespace sw {
 			/// <param name="c"></param>
 			void add(const Constraint& c) noexcept {
 				if (constraints.empty()) {
-					dimension = c.normal.size();
+					dimension = static_cast<int>(c.normal.size());
 				}
-				else if (c.normal.size() != dimension) {
+				else if (c.normal.size() != static_cast<size_t>(dimension)) {
 					std::cerr << "ConstraintSet add: all constraints must have the same dimension\n";
 					return;
 				}
-				constraints.push_back(c); 
+				constraints.push_back(c);
 			}
 
 			/// <summary>
