@@ -1,14 +1,19 @@
-
+# dfactl: the Domain Flow Architecture SURE simulator CLI
 set(DFA_SIMULATOR dfactl)
 add_executable(${DFA_SIMULATOR} dfa-cli.cpp)
-target_include_directories(${DFA_SIMULATOR} PUBLIC
-    ${DFATOOLS_ROOT}/include
-)
-target_link_libraries(${DFA_SIMULATOR} ${DFA_LIBRARY})  # Link to the DFA library
+
+# domain_flow is the header-only INTERFACE library (defined in the top-level
+# CMakeLists); linking it supplies the include/ search path and C++20.
+target_link_libraries(${DFA_SIMULATOR} PRIVATE ${PROJECT_NAME})
+
 set_target_properties(${DFA_SIMULATOR} PROPERTIES FOLDER "tools")
 
+# Publish the CLI target name to the parent scope so the top-level install rule
+# can package it (see install(TARGETS ${DFA_TOOL_CLI} ...)).
+set(DFA_TOOL_CLI ${DFA_SIMULATOR} PARENT_SCOPE)
 
-# Example: Add include directories specific to the tools (if needed)
-# target_include_directories(MyExecutable PRIVATE
-#     ${CMAKE_CURRENT_SOURCE_DIR}/include  # For tool-specific headers
-# )
+if(DOMAINFLOW_BUILD_TESTING)
+    add_test(NAME dfactl_matmul COMMAND ${DFA_SIMULATOR} matmul)
+    add_test(NAME dfactl_matvec COMMAND ${DFA_SIMULATOR} matvec)
+    add_test(NAME dfactl_qr     COMMAND ${DFA_SIMULATOR} qr)
+endif()
