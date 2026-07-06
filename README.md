@@ -69,6 +69,9 @@ ctest --test-dir build/user-ninja-release
 
 # Run a sample workload
 ./build/user-ninja-release/workloads/dfa/dfa_domain_flow
+
+# Run the SURE simulator CLI (see docs/sure-simulator.md)
+./build/user-ninja-release/sim/dfactl matmul --tau 1,1,1
 ```
 
 ### Build with MLIR Tools
@@ -184,4 +187,5 @@ rm -rf build/
 
 - [SETUP.md](SETUP.md) - Detailed platform-specific setup guide
 - [ARCHITECTURE.md](ARCHITECTURE.md) - Architecture overview and development guide
+- [docs/sure-simulator.md](docs/sure-simulator.md) - The SURE simulator: why, what, and how, with worked examples
 - [docs/](docs/) - Additional documentation
