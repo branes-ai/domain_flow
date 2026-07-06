@@ -171,6 +171,7 @@ The `src/dfa/` directory contains only legacy skeleton CMakeLists files (as of 2
 - **Transformations** (`transformation.hpp`): Affine loop transformations
 
 #### SURE Simulator (`include/dfa/sim/`)
+
 A standalone, header-only functional simulator for Systems of Uniform/Affine
 Recurrence Equations: numeric evaluation with boundary/operand semantics,
 free (ASAP) schedule derivation, schedule legality checking (`tau.theta >= 1`),
@@ -189,6 +190,7 @@ Domain flow graph analysis and manipulation:
 - `domain_confluence.cpp` - Domain merging analysis
 
 #### dfactl (`sim/`)
+
 The SURE simulator CLI (built with `DOMAINFLOW_TOOLS=ON`): runs built-in recurrence
 specs (`matmul`, `matvec`, `qr`) or imported `.dfg` graphs under free or linear
 schedules, and reports legality and memory cardinality. See `docs/sure-simulator.md`.

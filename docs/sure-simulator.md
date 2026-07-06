@@ -186,9 +186,10 @@ Memory cardinality: peakLiveValues=11  latency=25  work=42
 
 ### Example 4: importing a .dfg graph
 
-Any `.dfg` file (saved by the MLIR import tools or the graph API) can be lowered
-and executed. The report is explicit about coverage — unsupported operators are
-counted, not hidden:
+Any `.dfg` file (saved by the MLIR import tools or the graph API) can be lowered;
+execution then follows only for graphs under the 200k-point execution cap, with
+unsupported operators modeled as zero sources. The report is explicit about
+coverage — unsupported operators are counted, not hidden:
 
 ```console
 $ dfactl data/tosa/oneLayerMLP_tosa.dfg
