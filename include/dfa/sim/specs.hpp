@@ -10,6 +10,8 @@
 #include <vector>
 #include <map>
 #include <cmath>
+#include <utility>
+#include <algorithm>
 #include <stdexcept>
 #include <dfa/sim/sure_simulator.hpp>
 

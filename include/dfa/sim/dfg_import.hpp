@@ -15,12 +15,14 @@
 //   - anything else: reported as unsupported and modeled as a zero source so the
 //     rest of the graph still elaborates.
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 #include <map>
 #include <set>
 #include <cmath>
 #include <functional>
+#include <stdexcept>
 #include <dfa/dfa.hpp>                 // full library umbrella (correct include ordering, no MLIR)
 #include <dfa/sim/sure_simulator.hpp>
 
@@ -90,6 +92,15 @@ namespace sw {
                     return AffineDependency::map(std::move(A), std::move(b));
                 }
 
+                // Rank equality plus per-axis size match (allowing size-1 broadcast axes);
+                // gates broadcastMap so incompatible operands fall back to unsupported.
+                inline bool shapeBroadcastCompatible(const std::vector<int>& out, const std::vector<int>& in) {
+                    if (out.size() != in.size()) return false;
+                    for (std::size_t r = 0; r < out.size(); ++r)
+                        if (in[r] != 1 && in[r] != out[r]) return false;
+                    return true;
+                }
+
                 inline bool isLeaf(DomainFlowOperator op) {
                     return op == DomainFlowOperator::CONSTANT ||
                            op == DomainFlowOperator::FUNCTION_ARGUMENT;
@@ -140,10 +151,16 @@ namespace sw {
                 res.report.nodes = static_cast<int>(g.getNrNodes());
                 res.report.edges = static_cast<int>(g.getNrEdges());
 
-                // producerOf[(consumerNode, dstSlot)] = producerNode  (result slot 0 assumed)
+                // producerOf[(consumerNode, dstSlot)] = producerNode.  Only result slot 0 is
+                // modeled (varName covers one value per node); fail fast on multi-output
+                // producers rather than silently binding the wrong variable.
                 std::map<std::pair<std::size_t, std::size_t>, std::size_t> producerOf;
-                for (const auto& [edgeId, edge] : g.edges())
+                for (const auto& [edgeId, edge] : g.edges()) {
+                    if (edge.srcSlot != 0)
+                        throw std::runtime_error("dfg import: multi-output producer (srcSlot != 0) on node " +
+                                                 varName(edgeId.first) + " is not supported");
                     producerOf[{ edgeId.second, edge.dstSlot }] = edgeId.first;
+                }
 
                 auto inputVar = [&](std::size_t node, std::size_t slot) -> std::string {
                     auto it = producerOf.find({ node, slot });
@@ -201,7 +218,7 @@ namespace sw {
                     if (auto f = binaryFn(op)) {
                         std::vector<int> s0 = shapeOf(node.getOperandType(0));
                         std::vector<int> s1 = shapeOf(node.getOperandType(1));
-                        if (outShape.size() != s0.size() || outShape.size() != s1.size()) { addLeaf(id, 0.0); countUnsupported(op); continue; }
+                        if (!shapeBroadcastCompatible(outShape, s0) || !shapeBroadcastCompatible(outShape, s1)) { addLeaf(id, 0.0); countUnsupported(op); continue; }
                         sys.add(Equation<double>{
                             varName(id), boxDomain(outShape),
                             { { inputVar(id, 0), broadcastMap(outShape, s0) },
@@ -214,6 +231,7 @@ namespace sw {
 
                     if (auto f = unaryFn(op)) {
                         std::vector<int> s0 = shapeOf(node.getOperandType(0));
+                        if (!shapeBroadcastCompatible(outShape, s0)) { addLeaf(id, 0.0); countUnsupported(op); continue; }
                         sys.add(Equation<double>{
                             varName(id), boxDomain(outShape),
                             { { inputVar(id, 0), broadcastMap(outShape, s0) } },

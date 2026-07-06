@@ -45,8 +45,12 @@ namespace {
     void listSpecs(std::ostream& os) {
         os << "Available specs:\n";
         for (const auto& name : specNames()) {
-            Spec s = buildSpec(name);
-            os << "  " << s.name << "\t" << s.description << "\n";
+            try {
+                Spec s = buildSpec(name);
+                os << "  " << s.name << "\t" << s.description << "\n";
+            } catch (const std::exception& e) {
+                std::cerr << "error: spec '" << name << "': " << e.what() << "\n";
+            }
         }
     }
 
@@ -63,7 +67,7 @@ namespace {
 
     // Import a .dfg / MLIR-derived graph, report coverage, and (if small enough)
     // execute it under the free schedule.
-    int runDfg(const std::string& path, std::ostream& os) {
+    int runDfg(const std::string& path, std::ostream& os, bool quiet) {
         ImportResult ir;
         try { ir = importDfgFile(path); }
         catch (const std::exception& e) {
@@ -88,7 +92,7 @@ namespace {
         }
 
         SureSimulator<double> sim(ir.system);
-        for (const auto& o : ir.outputs) {
+        if (!quiet) for (const auto& o : ir.outputs) {
             long long total = 1;
             for (int d : o.shape) total *= (d > 0 ? d : 1);
             long long limit = std::min<long long>(total, 16);
@@ -183,7 +187,7 @@ int main(int argc, char** argv) {
         dfgPath = specName;
         specName.clear();
     }
-    if (!dfgPath.empty()) return runDfg(dfgPath, std::cout);
+    if (!dfgPath.empty()) return runDfg(dfgPath, std::cout, quiet);
 
     if (specName.empty()) { usage(std::cerr); return 2; }
 

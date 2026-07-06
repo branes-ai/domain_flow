@@ -2,6 +2,7 @@
 #include <iostream>
 #include <functional>
 #include <vector>
+#include <stdexcept>
 #include <dfa/index_point.hpp>
 
 namespace sw {
@@ -18,6 +19,7 @@ namespace sw {
                 Rel rel;
 
                 bool satisfied(const IndexPoint& p) const {
+                    if (a.size() > p.size()) return false;   // dimension mismatch: not satisfiable
                     long s = 0;
                     for (std::size_t c = 0; c < a.size(); ++c) s += static_cast<long>(a[c]) * p[c];
                     switch (rel) {
@@ -52,6 +54,8 @@ namespace sw {
                 // 0 <= x_axis < extent : adds the two half-spaces *and* widens the
                 // enumeration box along that axis.
                 Domain& axis(int axis, int loV, int hiV) {
+                    if (axis < 0 || axis >= dim_)
+                        throw std::out_of_range("Domain::axis: axis index out of range");
                     HalfSpace lo{ std::vector<int>(dim_, 0), loV,     HalfSpace::GE };  lo.a[axis] = 1;
                     HalfSpace hi{ std::vector<int>(dim_, 0), hiV - 1, HalfSpace::LE };  hi.a[axis] = 1;
                     cons_.push_back(lo);
@@ -62,7 +66,12 @@ namespace sw {
                 }
 
                 // Arbitrary affine constraint (e.g. k <= j for a triangular domain).
-                Domain& add(HalfSpace h) { cons_.push_back(std::move(h)); return *this; }
+                Domain& add(HalfSpace h) {
+                    if (static_cast<int>(h.a.size()) != dim_)
+                        throw std::invalid_argument("Domain::add: constraint dimension mismatch");
+                    cons_.push_back(std::move(h));
+                    return *this;
+                }
 
                 bool isInside(const IndexPoint& p) const {
                     if (static_cast<int>(p.size()) != dim_) return false;   // wrong rank => boundary

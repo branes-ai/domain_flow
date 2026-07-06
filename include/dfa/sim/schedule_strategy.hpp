@@ -30,8 +30,10 @@ namespace sw {
                     : tau_(std::move(tau)), beta_(std::move(beta)) {}
 
                 long time(const std::string& var, const IndexPoint& p) const override {
+                    if (tau_.size() != p.size())
+                        throw std::invalid_argument("LinearSchedule: tau dimension does not match index point rank");
                     long t = 0;
-                    for (std::size_t i = 0; i < tau_.size() && i < p.size(); ++i)
+                    for (std::size_t i = 0; i < tau_.size(); ++i)
                         t += static_cast<long>(tau_[i]) * p[i];
                     auto it = beta_.find(var);
                     if (it != beta_.end()) t += it->second;
@@ -54,8 +56,10 @@ namespace sw {
                 long time(const std::string& var, const IndexPoint& p) const override {
                     for (const auto& pc : pieces) {
                         if (pc.region(var, p)) {
+                            if (pc.tau.size() != p.size())
+                                throw std::invalid_argument("PiecewiseLinearSchedule: tau dimension does not match index point rank");
                             long t = pc.offset;
-                            for (std::size_t i = 0; i < pc.tau.size() && i < p.size(); ++i)
+                            for (std::size_t i = 0; i < pc.tau.size(); ++i)
                                 t += static_cast<long>(pc.tau[i]) * p[i];
                             return t;
                         }
