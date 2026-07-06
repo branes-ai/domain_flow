@@ -45,7 +45,7 @@ ctest --test-dir build/user-ninja-release -R test_matmul   # via ctest
 cmake --build build/user-ninja-release --target test_matmul  # rebuild just one
 ```
 
-Executables can also be run directly from the build tree. (With VS17 presets, add `--build-config Release` / `--config Release` as above.)
+Executables can also be run directly from the build tree; with VS17 presets they land in a per-configuration subdirectory (e.g. `build_msvc/<presetName>/src/dfa/tests/Release/test_matmul.exe`). The `--config`/`--build-config` flags above apply only to `cmake --build` and `ctest`.
 
 ### Feature options (all OFF by default; ninja presets turn TOOLS and DSE ON)
 
