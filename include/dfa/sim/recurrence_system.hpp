@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <stdexcept>
 #include <dfa/index_point.hpp>
 #include <dfa/sim/affine_dependency.hpp>
 #include <dfa/sim/domain.hpp>
@@ -45,6 +46,8 @@ namespace sw {
                 std::map<std::string, Equation<Value>> eqs_;
             public:
                 RecurrenceSystem& add(Equation<Value> e) {
+                    if (eqs_.count(e.name))
+                        throw std::invalid_argument("RecurrenceSystem::add: duplicate equation name '" + e.name + "'");
                     eqs_[e.name] = std::move(e);
                     return *this;
                 }

@@ -29,6 +29,10 @@ namespace sw {
                     if (A_.size() != b_.size()) {
                         throw std::invalid_argument("AffineDependency: row count of A must match size of b");
                     }
+                    for (const auto& row : A_) {
+                        if (row.size() != A_[0].size())
+                            throw std::invalid_argument("AffineDependency: ragged matrix A");
+                    }
                 }
 
                 IndexPoint apply(const IndexPoint& p) const {

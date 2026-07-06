@@ -2,6 +2,7 @@
 #include <iostream>
 #include <functional>
 #include <map>
+#include <set>
 #include <vector>
 #include <string>
 #include <limits>
@@ -43,6 +44,7 @@ namespace sw {
             private:
                 const RecurrenceSystem<Value>& sys_;
                 std::map<Key, Value> memo_;
+                std::set<Key> active_;   // recursion guard: keys currently being evaluated
 
                 // last-use (death) time of every computed value under a schedule
                 std::map<Key, long> deathTimes(const ISchedule& sched) const {
@@ -80,16 +82,25 @@ namespace sw {
                     auto it = memo_.find(k);
                     if (it != memo_.end()) return it->second;
 
+                    // A key re-entered before its memo completes is a dependency cycle
+                    // (an illegal recurrence); diagnose it instead of overflowing the stack.
+                    if (!active_.insert(k).second) {
+                        std::ostringstream oss;
+                        oss << "SureSimulator::eval: cyclic dependency on " << var << p;
+                        throw std::runtime_error(oss.str());
+                    }
+
                     std::vector<Value> tv;
                     tv.reserve(eq.taps.size());
                     for (const auto& t : eq.taps)
                         tv.push_back(eval(t.source, t.map.apply(p)));
 
                     Value v = eq.compute(tv, p);
+                    active_.erase(k);
                     memo_[k] = v;
                     return v;
                 }
-                void clearMemo() { memo_.clear(); }
+                void clearMemo() { memo_.clear(); active_.clear(); }
 
                 // ---------------------------------------------------------------
                 // Free schedule (ASAP): the data-flow earliest time of every value.
@@ -99,6 +110,7 @@ namespace sw {
                 ExplicitSchedule computeFreeSchedule() const {
                     ExplicitSchedule sched;
                     std::map<Key, long> depth;
+                    std::set<Key> active;   // recursion guard: cycle => illegal recurrence
                     std::function<long(const std::string&, const IndexPoint&)> visit =
                         [&](const std::string& var, const IndexPoint& p) -> long {
                             const auto& eq = sys_.at(var);
@@ -106,9 +118,15 @@ namespace sw {
                             Key k{ var, p };
                             auto it = depth.find(k);
                             if (it != depth.end()) return it->second;
+                            if (!active.insert(k).second) {
+                                std::ostringstream oss;
+                                oss << "SureSimulator::computeFreeSchedule: cyclic dependency on " << var << p;
+                                throw std::runtime_error(oss.str());
+                            }
                             long d = 0;
                             for (const auto& t : eq.taps)
                                 d = std::max(d, visit(t.source, t.map.apply(p)) + 1);
+                            active.erase(k);
                             depth[k] = d;
                             sched.set(var, p, d);
                             return d;
@@ -138,13 +156,15 @@ namespace sw {
                     long tmax = std::numeric_limits<long>::min();
                     long total = 0;
                     for (const auto& [k, tb] : birth) {
+                        ++total;
+                        tmin = std::min(tmin, tb);
+                        tmax = std::max(tmax, tb);
                         auto dit = death.find(k);
-                        long td = (dit != death.end()) ? dit->second : tb;  // outputs: live only at birth
+                        if (dit == death.end()) continue;   // output: drained at birth, never resident
+                        long td = dit->second;
                         delta[tb] += 1;            delta[td + 1] -= 1;
                         deltaVar[k.var][tb] += 1;  deltaVar[k.var][td + 1] -= 1;
-                        tmin = std::min(tmin, tb);
                         tmax = std::max(tmax, td);
-                        ++total;
                     }
 
                     LivenessReport r;
@@ -188,7 +208,7 @@ namespace sw {
                     for (const auto& [t, keys] : born)
                         for (const auto& k : keys) {
                             auto it = death.find(k);
-                            dieAt[it != death.end() ? it->second : t].push_back(k);  // output drains at birth
+                            if (it != death.end()) dieAt[it->second].push_back(k);  // outputs never enter the store
                         }
 
                     std::map<Key, Value> store;     // live (resident) values
@@ -216,8 +236,10 @@ namespace sw {
                                 }
                             }
                             Value v = eq.compute(tv, k.p);
-                            store[k] = v;
-                            if (death.find(k) == death.end()) outputs[k] = v;   // never consumed
+                            if (death.find(k) == death.end())
+                                outputs[k] = v;   // never consumed: drained at birth, never resident
+                            else
+                                store[k] = v;
                         }
                         peak = std::max(peak, static_cast<long>(store.size()));
                         auto it = dieAt.find(t);

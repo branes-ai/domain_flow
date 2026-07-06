@@ -30,6 +30,7 @@ namespace sw {
                 bool legal = true;
                 long edgesChecked = 0;
                 long minSlack = std::numeric_limits<long>::max();   // tightest edge; >=1 => legal
+                long unresolvedTaps = 0;                            // taps whose source name isn't registered
                 std::vector<DependencyViolation> violations;        // capped sample
             };
 
@@ -49,7 +50,7 @@ namespace sw {
                         long tc = sched.time(name, q);
                         for (const auto& tap : eq.taps) {
                             IndexPoint prod = tap.map.apply(q);
-                            if (!sys.has(tap.source)) continue;
+                            if (!sys.has(tap.source)) { ++rep.unresolvedTaps; continue; }
                             if (!sys.at(tap.source).domain.isInside(prod)) continue;  // boundary
                             long tp = sched.time(tap.source, prod);
                             long slack = tc - tp;
@@ -71,6 +72,8 @@ namespace sw {
                 os << (r.legal ? "LEGAL" : "ILLEGAL")
                    << "  edges=" << r.edgesChecked
                    << "  minSlack(tau.theta)=" << r.minSlack;
+                if (r.unresolvedTaps > 0)
+                    os << "  unresolvedTaps=" << r.unresolvedTaps;
                 if (!r.legal) {
                     os << "  violations=" << r.violations.size() << ":\n";
                     for (const auto& v : r.violations)

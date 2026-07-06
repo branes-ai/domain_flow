@@ -8,71 +8,34 @@
 //   y[i]    = y(i,N-1)
 //
 // A is supplied as a rank-0 (input) equation: every access is a boundary, so it
-// streams without occupying memory.  Verifies output, then reports peak live
-// values for the free (ASAP) schedule vs the linear schedule tau=[1,1].
+// streams without occupying memory.  The system itself is the canonical
+// buildMatvec() spec (specs.hpp); this test verifies output, reports peak live
+// values for the free (ASAP) schedule vs the linear schedule tau=[1,1] with the
+// beta[y]=1 stage offset, and checks that the offset-less schedule is rejected.
 
 #include <iostream>
 #include <vector>
 #include <cmath>
-#include <dfa/sim/sure_simulator.hpp>
+#include <dfa/sim/specs.hpp>
 #include <dfa/sim/legality.hpp>
 
 using namespace sw::dfa;
 using namespace sw::dfa::sim;
 
 int main() {
-    const int M = 2, N = 3;
-    std::vector<std::vector<double>> A = {{1, 2, 3}, {4, 5, 6}};
-    std::vector<double> x = {1, 0, -1};
-
-    RecurrenceSystem<double> sys;
-
-    // A: pure input operand (empty domain => every read is a boundary).
-    sys.add(Equation<double>{
-        "A", Domain{}, {},
-        nullptr,
-        [&](const IndexPoint& p) { return A[p[0]][p[1]]; }     // (i,k) -> A[i][k]
-    });
-
-    // xs(i,k): broadcast x[k] down the rows i.
-    sys.add(Equation<double>{
-        "xs",
-        Domain(2).axis(0, 0, M).axis(1, 0, N),
-        { { "xs", AffineDependency::shift({-1, 0}) } },
-        [](const std::vector<double>& t, const IndexPoint&) { return t[0]; },
-        [&](const IndexPoint& p) { return x[p[1]]; }           // i<0 boundary: x[k]
-    });
-
-    // y(i,k): accumulate A[i][k]*xs(i,k) along +k.
-    sys.add(Equation<double>{
-        "y",
-        Domain(2).axis(0, 0, M).axis(1, 0, N),
-        { { "y",  AffineDependency::shift({0, -1}) },           // y(i,k-1)
-          { "A",  AffineDependency::shift({0,  0}) },           // A(i,k)   (identity -> input)
-          { "xs", AffineDependency::shift({0,  0}) } },         // xs(i,k)
-        [](const std::vector<double>& t, const IndexPoint&) { return t[0] + t[1] * t[2]; },
-        [](const IndexPoint&) { return 0.0; }                  // k<0 boundary: accumulator init 0
-    });
+    Spec spec = buildMatvec();
+    const RecurrenceSystem<double>& sys = spec.system;
 
     // ---- evaluate and check against reference y = A*x ----
     SureSimulator<double> simom(sys);
-    bool ok = true;
-    std::cout << "y = A*x:\n";
-    for (int i = 0; i < M; ++i) {
-        double ref = 0;
-        for (int k = 0; k < N; ++k) ref += A[i][k] * x[k];
-        double got = simom.eval("y", IndexPoint({ i, N - 1 }));
-        std::cout << "  y[" << i << "] = " << got << "  (ref " << ref << ")"
-                  << (std::abs(got - ref) < 1e-9 ? "" : "  MISMATCH") << "\n";
-        ok &= std::abs(got - ref) < 1e-9;
-    }
+    bool ok = spec.printOutputs(simom, std::cout);
 
     // ---- memory cardinality: free (ASAP) vs linear [1,1] ----
     SureSimulator<double> sim(sys);
     ExplicitSchedule freeSched = sim.computeFreeSchedule();
     // y reads xs at the SAME index point (tau.theta = 0), so y needs a +1 stage
-    // offset to make the linear schedule legal: beta[y] = 1.
-    LinearSchedule   linSched({1, 1}, { { "y", 1 } });
+    // offset to make the linear schedule legal: beta[y] = 1 (the spec's canonical beta).
+    LinearSchedule   linSched(spec.tau, spec.beta);
 
     LivenessReport fr = sim.analyzeMemory(freeSched);
     LivenessReport lr = sim.analyzeMemory(linSched);
