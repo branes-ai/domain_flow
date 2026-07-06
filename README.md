@@ -183,6 +183,7 @@ rm -rf build/
 
 ## Documentation
 
+- **[Documentation site](https://branes-ai.github.io/domain_flow/)** - Published docs (getting started, architecture, SURE simulator, theory)
 - [SETUP.md](SETUP.md) - Detailed platform-specific setup guide
 - [ARCHITECTURE.md](ARCHITECTURE.md) - Architecture overview and development guide
 - [docs/sure-simulator.md](docs/sure-simulator.md) - The SURE simulator: why, what, and how, with worked examples
