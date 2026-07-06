@@ -82,8 +82,8 @@ Configure with CMake options (all default to OFF unless noted):
 
 ```bash
 # Core options
--DDOMAINFLOW_ENABLE_TESTS=ON          # Enable test generation (default: ON)
--DDOMAINFLOW_BUILD_TESTS=ON           # Build test executables
+-DBUILD_TESTING=ON                    # CMake standard; default for DOMAINFLOW_BUILD_TESTING when root
+-DDOMAINFLOW_BUILD_TESTING=ON         # Build and register tests (default: BUILD_TESTING as root, OFF as subproject)
 -DDOMAINFLOW_VERBOSE_TESTS=ON         # Print all test output
 
 # Feature toggles
@@ -232,7 +232,7 @@ When `DOMAINFLOW_MLIR_TOOLS=ON`, the project integrates with LLVM/MLIR:
 
 ### Working with Tests
 
-Each `.cpp` file in test directories becomes a separate executable via the `compile_all` macro. Tests are automatically discovered and registered with CTest when `DOMAINFLOW_ENABLE_TESTS=ON`.
+Each `.cpp` file in test directories becomes a separate executable via the `compile_all` macro. Tests are automatically discovered and registered with CTest when `DOMAINFLOW_BUILD_TESTING=ON`.
 
 ### Debugging
 
