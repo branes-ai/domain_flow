@@ -108,7 +108,7 @@ function addFrontmatter(content, srcRelative) {
   const safeTitle = title.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
   // Point "Edit this page" at the real committed source, not the generated tree.
   const repoPath = srcRelative.startsWith('../')
-    ? srcRelative.slice(3)              // repo-root file (SETUP.md, ...)
+    ? srcRelative.slice('../'.length)   // repo-root file (SETUP.md, ...)
     : `docs/${srcRelative}`;            // docs/ file
   const editUrl = `${REPO_URL}/edit/main/${repoPath}`;
   return `---\ntitle: "${safeTitle}"\neditUrl: "${editUrl}"\n---\n\n${body}`;
