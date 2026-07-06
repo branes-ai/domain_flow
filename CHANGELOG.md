@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Documentation site** (`docs-site/`): Astro + Starlight site published to GitHub
+  Pages at https://branes-ai.github.io/domain_flow/ via `.github/workflows/docs.yml`.
+  Content is synced from the repo's `docs/` tree by `docs-site/sync-content.mjs`
+  (sections: getting started, architecture, SURE simulator, theory, changelog),
+  with KaTeX math rendering and a landing page at `docs/site/index.mdx`.
 - **SURE simulator** (`include/dfa/sim/`, PR #3): standalone header-only functional
   simulator for Systems of Uniform/Affine Recurrence Equations — numeric evaluation
   with boundary/operand semantics, free (ASAP) schedule derivation, schedule
