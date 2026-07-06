@@ -18,7 +18,13 @@ All content lives in the repo's `docs/` tree (or `ARCHITECTURE.md` / `SETUP.md` 
 To publish a new document: add it under `docs/`, then add one line to
 `FILE_MAP` in `sync-content.mjs`. The sidebar section is derived from the
 destination directory (`getting-started/`, `architecture/`, `simulator/`,
-`theory/`).
+`theory/`). A mapped file that goes missing fails the build (exit 1), so
+renames surface in CI instead of silently dropping pages.
+
+The site base path and repo URL live in one place: `base.mjs`. Site MDX
+pages under `docs/site/` reference the base with the `%BASE%` placeholder,
+substituted at sync time. Each synced page gets an `editUrl` pointing at
+its real source file, so "Edit this page" never targets the generated tree.
 
 ## Commands
 

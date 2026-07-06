@@ -20,11 +20,11 @@
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync, cpSync, rmSync } from 'fs';
 import { dirname, join, posix } from 'path';
+import { BASE, REPO_URL } from './base.mjs';
 
 const REPO = join(import.meta.dirname, '..');
 const DOCS = join(REPO, 'docs');
 const OUT  = join(import.meta.dirname, 'src', 'content', 'docs');
-const BASE = '/domain_flow';  // Astro base path
 
 // ── Site pages (MDX with Starlight components) ────────────────────
 // These are copied verbatim — they already contain frontmatter.
@@ -106,7 +106,12 @@ function addFrontmatter(content, srcRelative) {
   body = rewriteImagePaths(body);
   body = rewriteLinks(body, srcRelative);
   const safeTitle = title.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-  return `---\ntitle: "${safeTitle}"\n---\n\n${body}`;
+  // Point "Edit this page" at the real committed source, not the generated tree.
+  const repoPath = srcRelative.startsWith('../')
+    ? srcRelative.slice(3)              // repo-root file (SETUP.md, ...)
+    : `docs/${srcRelative}`;            // docs/ file
+  const editUrl = `${REPO_URL}/edit/main/${repoPath}`;
+  return `---\ntitle: "${safeTitle}"\neditUrl: "${editUrl}"\n---\n\n${body}`;
 }
 
 // ── File operations ───────────────────────────────────────────────
@@ -117,9 +122,12 @@ function writeOut(destRelative, content) {
   writeFileSync(destPath, content);
 }
 
+let missingSources = 0;
+
 function syncMarkdown(srcPath, srcRelative, destRelative) {
   if (!existsSync(srcPath)) {
-    console.warn(`  SKIP (not found): ${srcPath}`);
+    console.error(`  MISSING: ${srcPath}`);
+    ++missingSources;
     return;
   }
   const content = readFileSync(srcPath, 'utf-8');
@@ -128,10 +136,13 @@ function syncMarkdown(srcPath, srcRelative, destRelative) {
 
 function copySitePage(srcPath, destRelative) {
   if (!existsSync(srcPath)) {
-    console.warn(`  SKIP (not found): ${srcPath}`);
+    console.error(`  MISSING: ${srcPath}`);
+    ++missingSources;
     return;
   }
-  const content = readFileSync(srcPath, 'utf-8');
+  // Site pages are authored with a %BASE% placeholder so the base path has a
+  // single source of truth (base.mjs).
+  const content = readFileSync(srcPath, 'utf-8').replaceAll('%BASE%', BASE);
   writeOut(destRelative, content);
 }
 
@@ -177,6 +188,11 @@ if (existsSync(imgSrc)) {
   mkdirSync(imgDest, { recursive: true });
   cpSync(imgSrc, imgDest, { recursive: true });
   console.log('  Copied docs/images/ → public/images/');
+}
+
+if (missingSources > 0) {
+  console.error(`FAILED: ${missingSources} mapped source file(s) missing — fix the file map or restore the file(s).`);
+  process.exit(1);
 }
 
 console.log('Done.');
