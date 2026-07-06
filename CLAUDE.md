@@ -29,6 +29,13 @@ ctest --test-dir build/user-ninja-release    # run all tests
 
 The build directory name matches the *user* preset name (e.g. `build/user-ninja-release/`), not the base preset. On cache trouble, delete the build directory and reconfigure.
 
+The VS17 presets use a multi-config generator (build dir `build_msvc/<presetName>`), so pass the configuration explicitly there:
+
+```bash
+cmake --build build_msvc/user-vs17 --config Release
+ctest --test-dir build_msvc/user-vs17 --build-config Release
+```
+
 ### Running a single test
 
 Every `.cpp` file in a `tests/` directory becomes its own executable via the `compile_all` macro (`cmake/domain_flow_helpers.cmake`), named `<prefix>_<filename>` — test dirs use prefix `test`, so `src/dfa/tests/matmul.cpp` → target and CTest name `test_matmul`.
@@ -38,7 +45,7 @@ ctest --test-dir build/user-ninja-release -R test_matmul   # via ctest
 cmake --build build/user-ninja-release --target test_matmul  # rebuild just one
 ```
 
-Executables can also be run directly from the build tree.
+Executables can also be run directly from the build tree. (With VS17 presets, add `--build-config Release` / `--config Release` as above.)
 
 ### Feature options (all OFF by default; ninja presets turn TOOLS and DSE ON)
 
