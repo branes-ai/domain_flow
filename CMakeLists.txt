@@ -134,6 +134,8 @@ if(DOMAINFLOW_TOOLS)
   # dfg tools
   add_subdirectory(tools/rdg)
   add_subdirectory(tools/dfg)
+  # dfactl: the SURE simulator CLI (header-only, no external deps)
+  add_subdirectory(sim)
 endif()
 
 if(DOMAINFLOW_MLIR_TOOLS)
@@ -165,8 +167,10 @@ endif()
 #    PATTERN ".git" EXCLUDE
 #    PATTERN ".DS_Store" EXCLUDE
 #)
-# Install the library target 
-install(TARGETS ${DFA_TOOL_CLI} DESTINATION bin)
+# Install the CLI tool (only defined when DOMAINFLOW_TOOLS built sim/)
+if(DFA_TOOL_CLI)
+  install(TARGETS ${DFA_TOOL_CLI} DESTINATION bin)
+endif()
 #export(TARGETS ${PROJECT_NAME} FILE "${PROJECT_NAME}Config.cmake")
 #install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets
 #    RUNTIME DESTINATION bin
