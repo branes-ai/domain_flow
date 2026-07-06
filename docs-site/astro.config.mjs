@@ -2,10 +2,11 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import { BASE, REPO_URL } from './base.mjs';
 
 export default defineConfig({
   site: 'https://branes-ai.github.io',
-  base: '/domain_flow',
+  base: BASE,
   markdown: {
     remarkPlugins: [remarkMath],
     rehypePlugins: [rehypeKatex],
@@ -19,12 +20,12 @@ export default defineConfig({
         {
           icon: 'github',
           label: 'GitHub',
-          href: 'https://github.com/branes-ai/domain_flow',
+          href: REPO_URL,
         },
       ],
-      editLink: {
-        baseUrl: 'https://github.com/branes-ai/domain_flow/edit/main/docs/',
-      },
+      // No global editLink: src/content/docs/ is generated, so a global
+      // baseUrl would 404. sync-content.mjs injects a per-page editUrl
+      // pointing at each page's real source file instead.
       customCss: [
         'katex/dist/katex.min.css',
         './src/styles/custom.css',
