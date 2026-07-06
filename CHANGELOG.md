@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **SURE simulator** (`include/dfa/sim/`, PR #3): standalone header-only functional
+  simulator for Systems of Uniform/Affine Recurrence Equations — numeric evaluation
+  with boundary/operand semantics, free (ASAP) schedule derivation, schedule
+  legality checking (`tau.theta >= 1` with violation reports), memory-cardinality
+  (peak live values) analysis, eviction-based execution, and a `.dfg` import path.
+  Includes the `dfactl` CLI (`sim/`) with built-in `matmul`, `matvec`, and `qr`
+  specs, plus tests under `src/dfa/tests/sim/`.
+- **SURE simulator documentation** (`docs/sure-simulator.md`): why/what/how guide
+  with worked `dfactl` examples (legal vs illegal schedules, stage offsets,
+  heterogeneous-rank SAREs, `.dfg` import) and a spec-authoring walkthrough.
+
 ### Fixed
 
 - **Compiler warnings cleanup**: Eliminated all 6,720 compiler warnings with `-Wall -Wextra` flags
