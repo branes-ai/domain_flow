@@ -3,8 +3,16 @@ name: CMake on multiple platforms
 on:
   push:
     branches: [ "main" ]
+    paths-ignore: ['**.md', 'docs/**', 'docs-site/**', 'LICENSE']
   pull_request:
     branches: [ "main" ]
+    paths-ignore: ['**.md', 'docs/**', 'docs-site/**', 'LICENSE']
+  # Weekly cache warmer: GitHub evicts caches unused for 7 days, and caches
+  # saved on PR branches are invisible to sibling branches. Running on main
+  # every week keeps a main-scoped LLVM cache warm for all PR branches.
+  schedule:
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -130,15 +138,33 @@ jobs:
       uses: actions/cache@v3
       with:
         path: llvm-install
+        # llvm-build-config.txt fingerprints the LLVM configure flags. The
+        # restore-keys prefix falls back to any cache for this OS/branch
+        # (including ones saved before the fingerprint file existed).
         key: ${{ runner.os }}-llvm-${{ matrix.llvm-branch }}-${{ hashFiles('llvm-build-config.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-llvm-${{ matrix.llvm-branch }}-
+
+    # cache-hit is only true on an exact primary-key match; a restore-keys
+    # (prefix) restore still reports false. Gate the expensive build on
+    # whether a usable install tree is actually present.
+    - name: Check for restored LLVM install
+      id: llvm-installed
+      shell: bash
+      run: |
+        if [ -x llvm-install/bin/mlir-tblgen ] || [ -x llvm-install/bin/mlir-tblgen.exe ]; then
+          echo "present=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "present=false" >> "$GITHUB_OUTPUT"
+        fi
 
     - name: Clone LLVM
-      if: steps.cache-llvm-build.outputs.cache-hit != 'true'
+      if: steps.llvm-installed.outputs.present != 'true'
       run: |
         git clone https://github.com/llvm/llvm-project.git --branch ${{ matrix.llvm-branch }} --depth 1
 
     - name: Build LLVM (Unix/macOS)
-      if: steps.cache-llvm-build.outputs.cache-hit != 'true' && (runner.os == 'Linux' || runner.os == 'macOS')
+      if: steps.llvm-installed.outputs.present != 'true' && (runner.os == 'Linux' || runner.os == 'macOS')
       run: |
         mkdir -p llvm-build
         cd llvm-build
@@ -151,7 +177,7 @@ jobs:
         cmake --build . --target install -j$(nproc)
     
     - name: Build LLVM (Windows)
-      if: steps.cache-llvm-build.outputs.cache-hit != 'true' && runner.os == 'Windows'
+      if: steps.llvm-installed.outputs.present != 'true' && runner.os == 'Windows'
       shell: pwsh
       run: |
         mkdir llvm-build
