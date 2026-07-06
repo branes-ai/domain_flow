@@ -1,0 +1,21 @@
+{
+  "name": "domain-flow-docs",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "sync": "node sync-content.mjs",
+    "clean": "git clean -fXd src/content/docs/",
+    "dev": "node sync-content.mjs && astro dev",
+    "build": "node sync-content.mjs && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.34",
+    "astro": "^5.18",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0",
+    "sharp": "^0.33"
+  }
+}
