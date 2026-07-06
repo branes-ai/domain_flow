@@ -1,0 +1,56 @@
+---
+title: Domain Flow Architecture
+description: A header-only C++20 library for building domain flow architecture parallelizing compilers.
+template: splash
+hero:
+  tagline: >
+    Represent deep learning graphs as domain flow graphs — operators defined by
+    Systems of Affine Recurrence Equations — and find schedules and spatial
+    mappings that minimize data movement.
+  actions:
+    - text: Get Started
+      link: /domain_flow/getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/branes-ai/domain_flow
+      icon: external
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid stagger>
+  <Card title="Domain Flow Graphs" icon="list-format">
+    DL graphs as chains of operators, each with a domain of computation derived
+    from its tensor operands — not loop nests and memory views.
+  </Card>
+  <Card title="SURE / SARE Operators" icon="pencil">
+    Operators defined by Systems of Uniform or Affine Recurrence Equations, the
+    formalism behind systolic and spatial dataflow execution.
+  </Card>
+  <Card title="Schedule Analysis" icon="approve-check">
+    Prove a schedule legal (`tau.theta >= 1` on every dependency edge) and
+    measure the memory cardinality it implies — before committing silicon.
+  </Card>
+  <Card title="SURE Simulator" icon="rocket">
+    Execute recurrence systems numerically with `dfactl`: free vs linear
+    schedules, legality reports, peak-live-value analysis, `.dfg` import.
+  </Card>
+  <Card title="MLIR Import" icon="document">
+    Read MLIR bytecode (TOSA, Torch, StableHLO) and lower DL graphs into
+    domain flow form for analysis.
+  </Card>
+  <Card title="Header-Only C++20" icon="seti:cpp">
+    Just `#include <dfa/dfa.hpp>` — no linking, no dependencies for the core
+    library.
+  </Card>
+</CardGrid>
+
+## Why domain flow?
+
+Data movement — not arithmetic — dominates the energy cost of deep learning
+execution. Domain Flow Architecture, rooted in E. Theodore Omtzigt's Yale
+dissertation on domain flow and streaming architectures, structures computation
+by its computational domains: static schedules, maximal data locality, and
+spatial mappings that avoid resource contention. This repository provides the
+compiler-side tooling to analyze DL graphs in that form.
