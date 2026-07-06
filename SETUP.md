@@ -196,8 +196,7 @@ Control features with CMake options:
 
 ```bash
 cmake --preset user-ninja-release \
-  -DDOMAINFLOW_ENABLE_TESTS=ON \
-  -DDOMAINFLOW_BUILD_TESTS=ON \
+  -DDOMAINFLOW_BUILD_TESTING=ON \
   -DDOMAINFLOW_TOOLS=ON \
   -DDOMAINFLOW_DSE=ON \
   -DDOMAINFLOW_MLIR_TOOLS=OFF
@@ -207,8 +206,7 @@ cmake --preset user-ninja-release \
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `DOMAINFLOW_ENABLE_TESTS` | ON | Enable test generation |
-| `DOMAINFLOW_BUILD_TESTS` | OFF | Build test executables |
+| `DOMAINFLOW_BUILD_TESTING` | `BUILD_TESTING` (root) / OFF (subproject) | Build and register tests |
 | `DOMAINFLOW_TOOLS` | OFF | Build dfg/rdg tools |
 | `DOMAINFLOW_POLYHEDRAL` | ON | Build polyhedral tools |
 | `DOMAINFLOW_MLIR_TOOLS` | OFF | Build MLIR integration (requires LLVM) |
