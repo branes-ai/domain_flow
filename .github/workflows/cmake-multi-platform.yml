@@ -14,6 +14,13 @@ on:
     - cron: '0 5 * * 1'
   workflow_dispatch:
 
+# Collapse redundant runs on the same ref, but only auto-cancel PR runs:
+# cancelling an in-progress main/scheduled run mid-LLVM-build would prevent
+# the shared cache from ever being saved.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -152,7 +159,8 @@ jobs:
       id: llvm-installed
       shell: bash
       run: |
-        if [ -x llvm-install/bin/mlir-tblgen ] || [ -x llvm-install/bin/mlir-tblgen.exe ]; then
+        if { [ -x llvm-install/bin/mlir-tblgen ] || [ -x llvm-install/bin/mlir-tblgen.exe ]; } && \
+           { [ -x llvm-install/bin/clang ] || [ -x llvm-install/bin/clang.exe ]; }; then
           echo "present=true" >> "$GITHUB_OUTPUT"
         else
           echo "present=false" >> "$GITHUB_OUTPUT"
