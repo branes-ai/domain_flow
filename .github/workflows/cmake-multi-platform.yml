@@ -22,7 +22,81 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # Build (or verify) the LLVM install cache ONCE per OS. Without this job,
+  # a fully cold cache would be built independently by every compiler leg on
+  # the same OS (gcc + clang on ubuntu), with only one cache save winning
+  # (issue #10). The compiler matrix below depends on this job and only
+  # restores the cache.
+  llvm:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        llvm-branch: ['release/20.x']
+    steps:
+    - uses: actions/checkout@v4   # provides llvm-build-config.txt for the cache key
+
+    - name: Cache LLVM build
+      id: cache-llvm-build
+      uses: actions/cache@v3
+      with:
+        path: llvm-install
+        # llvm-build-config.txt fingerprints the LLVM configure flags. The
+        # restore-keys prefix falls back to any cache for this OS/branch
+        # (including ones saved before the fingerprint file existed).
+        key: ${{ runner.os }}-llvm-${{ matrix.llvm-branch }}-${{ hashFiles('llvm-build-config.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-llvm-${{ matrix.llvm-branch }}-
+
+    # cache-hit is only true on an exact primary-key match; a restore-keys
+    # (prefix) restore still reports false. Gate the expensive build on
+    # whether a usable install tree is actually present.
+    - name: Check for restored LLVM install
+      id: llvm-installed
+      shell: bash
+      run: |
+        if { [ -x llvm-install/bin/mlir-tblgen ] || [ -x llvm-install/bin/mlir-tblgen.exe ]; } && \
+           { [ -x llvm-install/bin/clang ] || [ -x llvm-install/bin/clang.exe ]; }; then
+          echo "present=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "present=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Clone LLVM
+      if: steps.llvm-installed.outputs.present != 'true'
+      run: |
+        git clone https://github.com/llvm/llvm-project.git --branch ${{ matrix.llvm-branch }} --depth 1
+
+    - name: Build LLVM (Unix/macOS)
+      if: steps.llvm-installed.outputs.present != 'true' && (runner.os == 'Linux' || runner.os == 'macOS')
+      run: |
+        mkdir -p llvm-build
+        cd llvm-build
+        cmake ../llvm-project/llvm \
+          -DLLVM_ENABLE_PROJECTS="mlir;clang" \
+          -DLLVM_TARGETS_TO_BUILD="host" \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DLLVM_ENABLE_ASSERTIONS=ON \
+          -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/llvm-install"
+        cmake --build . --target install -j$(nproc)
+
+    - name: Build LLVM (Windows)
+      if: steps.llvm-installed.outputs.present != 'true' && runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        mkdir llvm-build
+        cd llvm-build
+        cmake ..\llvm-project\llvm `
+          -DLLVM_ENABLE_PROJECTS="mlir;clang" `
+          -DLLVM_TARGETS_TO_BUILD="host" `
+          -DCMAKE_BUILD_TYPE=Release `
+          -DLLVM_ENABLE_ASSERTIONS=ON `
+          -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/llvm-install"
+        cmake --build . --target install --config Release -j $env:NUMBER_OF_PROCESSORS
+
   build:
+    needs: llvm
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -140,64 +214,29 @@ jobs:
         cmake --install . --config Release
       shell: pwsh
 
-    - name: Cache LLVM build
+    # The llvm job (a `needs` dependency) has already built and saved the
+    # LLVM cache for this OS, so a read-only restore is guaranteed to
+    # succeed; the verify step below fails fast if it somehow didn't.
+    - name: Restore LLVM build cache
       id: cache-llvm-build
-      uses: actions/cache@v3
+      uses: actions/cache/restore@v3
       with:
         path: llvm-install
-        # llvm-build-config.txt fingerprints the LLVM configure flags. The
-        # restore-keys prefix falls back to any cache for this OS/branch
-        # (including ones saved before the fingerprint file existed).
         key: ${{ runner.os }}-llvm-${{ matrix.llvm-branch }}-${{ hashFiles('llvm-build-config.txt') }}
         restore-keys: |
           ${{ runner.os }}-llvm-${{ matrix.llvm-branch }}-
 
-    # cache-hit is only true on an exact primary-key match; a restore-keys
-    # (prefix) restore still reports false. Gate the expensive build on
-    # whether a usable install tree is actually present.
-    - name: Check for restored LLVM install
-      id: llvm-installed
+    - name: Verify LLVM install
       shell: bash
       run: |
         if { [ -x llvm-install/bin/mlir-tblgen ] || [ -x llvm-install/bin/mlir-tblgen.exe ]; } && \
            { [ -x llvm-install/bin/clang ] || [ -x llvm-install/bin/clang.exe ]; }; then
-          echo "present=true" >> "$GITHUB_OUTPUT"
+          echo "LLVM install restored from cache."
         else
-          echo "present=false" >> "$GITHUB_OUTPUT"
+          echo "::error::LLVM install tree not restored from cache; the llvm job should have built and saved it. Re-run the workflow."
+          exit 1
         fi
 
-    - name: Clone LLVM
-      if: steps.llvm-installed.outputs.present != 'true'
-      run: |
-        git clone https://github.com/llvm/llvm-project.git --branch ${{ matrix.llvm-branch }} --depth 1
-
-    - name: Build LLVM (Unix/macOS)
-      if: steps.llvm-installed.outputs.present != 'true' && (runner.os == 'Linux' || runner.os == 'macOS')
-      run: |
-        mkdir -p llvm-build
-        cd llvm-build
-        cmake ../llvm-project/llvm \
-          -DLLVM_ENABLE_PROJECTS="mlir;clang" \
-          -DLLVM_TARGETS_TO_BUILD="host" \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DLLVM_ENABLE_ASSERTIONS=ON \
-          -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/llvm-install"
-        cmake --build . --target install -j$(nproc)
-    
-    - name: Build LLVM (Windows)
-      if: steps.llvm-installed.outputs.present != 'true' && runner.os == 'Windows'
-      shell: pwsh
-      run: |
-        mkdir llvm-build
-        cd llvm-build
-        cmake ..\llvm-project\llvm `
-          -DLLVM_ENABLE_PROJECTS="mlir;clang" `
-          -DLLVM_TARGETS_TO_BUILD="host" `
-          -DCMAKE_BUILD_TYPE=Release `
-          -DLLVM_ENABLE_ASSERTIONS=ON `
-          -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/llvm-install"
-        cmake --build . --target install --config Release -j $env:NUMBER_OF_PROCESSORS
-    
     - name: Setup environment
       run: echo "${{ github.workspace }}/llvm-install/bin" >> $GITHUB_PATH
 
