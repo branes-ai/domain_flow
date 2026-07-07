@@ -1,0 +1,16 @@
+# LLVM build configuration fingerprint for the CI cache key.
+#
+# .github/workflows/cmake-multi-platform.yml hashes this file into the
+# actions/cache key for the LLVM install tree. Keep it in sync with the
+# "Build LLVM" steps in that workflow: changing a configure flag here (and
+# there) changes the primary cache key so a fresh build is triggered.
+#
+# NOTE: the workflow also has a restore-keys prefix fallback and skips the
+# LLVM build whenever a restored llvm-install/ is present. After editing
+# this file, delete the stale caches too (gh cache list / gh cache delete)
+# to force a genuine rebuild rather than a prefix-restored reuse.
+LLVM_BRANCH=release/20.x
+LLVM_ENABLE_PROJECTS=mlir;clang
+LLVM_TARGETS_TO_BUILD=host
+CMAKE_BUILD_TYPE=Release
+LLVM_ENABLE_ASSERTIONS=ON
