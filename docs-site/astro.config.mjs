@@ -33,19 +33,19 @@ export default defineConfig({
       sidebar: [
         {
           label: 'Getting Started',
-          autogenerate: { directory: 'getting-started' },
+          items: [{ autogenerate: { directory: 'getting-started' } }],
         },
         {
           label: 'Architecture',
-          autogenerate: { directory: 'architecture' },
+          items: [{ autogenerate: { directory: 'architecture' } }],
         },
         {
           label: 'SURE Simulator',
-          autogenerate: { directory: 'simulator' },
+          items: [{ autogenerate: { directory: 'simulator' } }],
         },
         {
           label: 'Theory',
-          autogenerate: { directory: 'theory' },
+          items: [{ autogenerate: { directory: 'theory' } }],
         },
         {
           label: 'Changelog',
