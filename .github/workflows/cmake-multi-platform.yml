@@ -21,6 +21,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+# Cloning and building only; no write scopes needed anywhere.
+permissions:
+  contents: read
+
 jobs:
   # Build (or verify) the LLVM install cache ONCE per OS. Without this job,
   # a fully cold cache would be built independently by every compiler leg on
@@ -31,15 +35,20 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
+      # Keep this OS list in sync with the build matrix below: any OS added
+      # there (e.g. re-enabling macos-latest) MUST be added here too, or its
+      # compiler legs will fail at the read-only cache restore + verify step.
       matrix:
         os: [ubuntu-latest, windows-latest]
         llvm-branch: ['release/20.x']
     steps:
     - uses: actions/checkout@v4   # provides llvm-build-config.txt for the cache key
+      with:
+        persist-credentials: false
 
     - name: Cache LLVM build
       id: cache-llvm-build
-      uses: actions/cache@v3
+      uses: actions/cache@v5
       with:
         path: llvm-install
         # llvm-build-config.txt fingerprints the LLVM configure flags. The
@@ -143,6 +152,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -152,7 +163,7 @@ jobs:
     # Cache system packages on Linux
     - name: Cache apt packages
       if: matrix.os == 'ubuntu-latest'
-      uses: actions/cache@v3
+      uses: actions/cache@v5
       with:
         path: /var/cache/apt
         key: ${{ runner.os }}-apt-${{ hashFiles('**/workflow-apt-packages.txt') }}
@@ -162,7 +173,7 @@ jobs:
     # Cache vcpkg on Windows
     - name: Cache vcpkg
       if: matrix.os == 'windows-latest'
-      uses: actions/cache@v3
+      uses: actions/cache@v5
       with:
         path: |
           vcpkg
@@ -219,7 +230,7 @@ jobs:
     # succeed; the verify step below fails fast if it somehow didn't.
     - name: Restore LLVM build cache
       id: cache-llvm-build
-      uses: actions/cache/restore@v3
+      uses: actions/cache/restore@v5
       with:
         path: llvm-install
         key: ${{ runner.os }}-llvm-${{ matrix.llvm-branch }}-${{ hashFiles('llvm-build-config.txt') }}
