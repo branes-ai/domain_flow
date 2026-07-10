@@ -129,6 +129,19 @@ namespace sw {
                         default:                             return nullptr;
                     }
                 }
+                // Name-keyed activation table for the fused MATMUL output-face
+                // epilogue attribute (issue #1); mirrors unaryFn's operator table.
+                inline std::function<double(double)> activationFn(const std::string& name) {
+                    if (name == "relu")       return [](double x){ return x > 0 ? x : 0.0; };
+                    if (name == "sigmoid")    return [](double x){ return 1.0 / (1.0 + std::exp(-x)); };
+                    if (name == "abs")        return [](double x){ return std::abs(x); };
+                    if (name == "negate")     return [](double x){ return -x; };
+                    if (name == "exp")        return [](double x){ return std::exp(x); };
+                    if (name == "atan")       return [](double x){ return std::atan(x); };
+                    if (name == "reciprocal") return [](double x){ return x != 0 ? 1.0 / x : 0.0; };
+                    return nullptr;
+                }
+
                 inline std::function<double(double,double)> binaryFn(DomainFlowOperator op) {
                     switch (op) {
                         case DomainFlowOperator::ADD: return [](double a, double b){ return a + b; };
@@ -194,6 +207,23 @@ namespace sw {
                         std::vector<int> b = shapeOf(node.getOperandType(1));   // [K,N]
                         if (a.size() != 2 || b.size() != 2 || a[1] != b[0]) { addLeaf(id, 0.0); countUnsupported(op); continue; }
                         int M = a[0], K = a[1], N = b[1];
+
+                        // fused output-face epilogue (issue #1): optional Cin bias via the
+                        // 3rd operand and optional pointwise activation via the node's
+                        // "activation" attribute, both consumed on the terminal k-face
+                        std::function<double(double)> act;   // null => identity
+                        std::string actName = node.getAttribute("activation");
+                        if (!actName.empty() && actName != "n/a") {
+                            act = activationFn(actName);
+                            if (!act) { addLeaf(id, 0.0); countUnsupported(op); continue; }   // unknown activation
+                        }
+                        bool hasBias = node.getNrInputs() == 3;
+                        std::vector<int> biasShape;
+                        if (hasBias) {
+                            biasShape = shapeOf(node.getOperandType(2));
+                            if (!shapeBroadcastCompatible({ M, N }, biasShape)) { addLeaf(id, 0.0); countUnsupported(op); continue; }
+                        }
+
                         std::string cvar = "c" + std::to_string(id);
                         std::string A = inputVar(id, 0), B = inputVar(id, 1);
                         // c(i,j,k) = c(i,j,k-1) + A(i,k)*B(k,j)
@@ -204,11 +234,18 @@ namespace sw {
                               { B,    AffineDependency::map({{0,0,1},{0,1,0}}, {0,0}) } }, // (i,j,k)->(k,j)
                             [](const std::vector<double>& t, const IndexPoint&) { return t[0] + t[1] * t[2]; },
                             [](const IndexPoint&) { return 0.0; } });
-                        // n<id>(i,j) = c(i,j,K-1)
+                        // n<id>(i,j) = act(c(i,j,K-1) [+ Cin(i,j)])  -- the output-face epilogue
+                        std::vector<Equation<double>::Tap> outTaps{
+                            { cvar, AffineDependency::map({{1,0},{0,1},{0,0}}, {0, 0, K - 1}) } };
+                        if (hasBias)
+                            outTaps.push_back({ inputVar(id, 2), broadcastMap({ M, N }, biasShape) });
                         sys.add(Equation<double>{
                             varName(id), Domain(2).axis(0, 0, M).axis(1, 0, N),
-                            { { cvar, AffineDependency::map({{1,0},{0,1},{0,0}}, {0, 0, K - 1}) } },
-                            [](const std::vector<double>& t, const IndexPoint&) { return t[0]; },
+                            std::move(outTaps),
+                            [act, hasBias](const std::vector<double>& t, const IndexPoint&) {
+                                double v = t[0] + (hasBias ? t[1] : 0.0);
+                                return act ? act(v) : v;
+                            },
                             [](const IndexPoint&) { return 0.0; } });
                         res.indexSpaceSize += product({ M, N, K });
                         countLowered(op);
