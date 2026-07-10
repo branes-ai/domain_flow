@@ -27,13 +27,22 @@ namespace sw {
 		template<typename ConstraintCoefficientType = int>
 		class Confluence {
 		public:
-			Confluence(std::string tensorSpec, std::size_t faceId)
-				: tensorSpec{ tensorSpec }, faceId{ faceId } {
+			Confluence(std::string tensorSpec, std::size_t faceId, std::string epilogue = "")
+				: tensorSpec{ tensorSpec }, faceId{ faceId }, epilogue{ epilogue } {
 			}
+
+			const std::string& getTensorSpec() const noexcept { return tensorSpec; }
+			std::size_t getFaceId() const noexcept { return faceId; }
+			// optional pointwise epilogue fused onto this face (e.g. "relu" on the
+			// terminal output face of a MATMUL); empty when the face is a pure
+			// tensor confluence
+			bool hasEpilogue() const noexcept { return !epilogue.empty(); }
+			const std::string& getEpilogue() const noexcept { return epilogue; }
 		private:
 			std::string tensorSpec;  // something like tensor<4x256x16xf32>
 			TensorTypeInfo tensorTypeInfo; // parsed tensor type information
 			std::size_t faceId;      // the face ID of the convex hull
+			std::string epilogue;    // pointwise operation applied at this face, "" if none
 
 			template<typename CCType>
 			friend inline std::ostream& operator<<(std::ostream& os, const Confluence<CCType>& c);
@@ -42,13 +51,15 @@ namespace sw {
 		template<typename CCType>
 		inline std::ostream& operator<<(std::ostream& os, const Confluence<CCType>& c) {
 			os << "Confluence: " << c.tensorSpec << " Face ID: " << c.faceId;
+			if (c.epilogue.size() > 0) os << " Epilogue: " << c.epilogue;
 			return os;
 		}
 
 		template<typename ConstraintCoefficientType>
 		class ConfluenceSet : public std::vector<Confluence<ConstraintCoefficientType>> {
 		public:
-			void add(const Confluence<ConstraintCoefficientType>& c) noexcept { push_back(c); }
+			// this-> is required: push_back lives in the dependent std::vector base
+			void add(const Confluence<ConstraintCoefficientType>& c) noexcept { this->push_back(c); }
 		};
 
 		template<typename ConstraintCoefficientType>
@@ -91,11 +102,12 @@ namespace sw {
 
 
 			// modifiers
-			void clear() noexcept { 
+			void clear() noexcept {
 				constraints.clear();
 				inputs.clear();
 				outputs.clear();
 				inputFaces.clear();
+				outputFaces.clear();
 			}
 
 			void addInput(std::size_t slot, const std::string& typeStr) noexcept { inputs[slot] = typeStr; }
@@ -111,7 +123,9 @@ namespace sw {
 			/// </summary>
 			/// TODO: all the remaining DomainFlowOperator types
 			/// <returns>no return type</returns>
-			void elaborateDomainOfComputation(const DomainFlowOperator& opType) noexcept 
+			/// <param name="activation">optional pointwise activation fused onto the
+			/// operator's terminal output face (e.g. "relu"); empty for none</param>
+			void elaborateDomainOfComputation(const DomainFlowOperator& opType, const std::string& activation = "") noexcept
 			{
 				switch (opType) {
 				case DomainFlowOperator::ADD:
@@ -234,14 +248,22 @@ namespace sw {
 
 					// define the faces: right hand rule pointing out of the volume
 					// A tensor confluence
-					[[maybe_unused]] auto f0 = hull.add_face({ v0, v1, v2, v3 }); // left face, pointing out
-					[[maybe_unused]] Confluence<ConstraintCoefficientType> confluence0(getInput(0), f0);
+					auto f0 = hull.add_face({ v0, v1, v2, v3 }); // left face, pointing out
+					inputFaces.add(Confluence<ConstraintCoefficientType>(getInput(0), f0));
 					// B tensor confluence
-					[[maybe_unused]] auto f1 = hull.add_face({ v0, v3, v4, v5 }); // back face, pointing out
-					// input C tensor confluence
-					[[maybe_unused]] auto f2 = hull.add_face({ v0, v5, v6, v1 }); // bottom face, pointing out
-					// output C tensor confluence
-					[[maybe_unused]] auto f3 = hull.add_face({ v3, v2, v7, v4 }); // top face, pointing out
+					auto f1 = hull.add_face({ v0, v3, v4, v5 }); // back face, pointing out
+					inputFaces.add(Confluence<ConstraintCoefficientType>(getInput(1), f1));
+					// input C tensor confluence (only when the 3-input Cout = A*B + Cin form is used)
+					auto f2 = hull.add_face({ v0, v5, v6, v1 }); // bottom face, pointing out
+					if (inputs.size() == 3) {
+						inputFaces.add(Confluence<ConstraintCoefficientType>(getInput(2), f2));
+					}
+					// output C tensor confluence on the terminal k = K-1 face; a fused
+					// pointwise epilogue (issue #1: bias via Cin, activation via node
+					// attribute) is recorded here, as it consumes the matmul result in
+					// place on this face without adding iteration dimensions
+					auto f3 = hull.add_face({ v3, v2, v7, v4 }); // top face, pointing out
+					outputFaces.add(Confluence<ConstraintCoefficientType>(getOutput(0), f3, activation));
 					// remaining faces do not have tensor confluences
 					hull.add_face({ v1, v6, v7, v2 }); // front face
 					hull.add_face({ v5, v4, v7, v6 }); // right face
@@ -427,6 +449,7 @@ namespace sw {
 			const std::map<std::size_t, std::string>& getInputs() const noexcept { return this->inputs; }
 			const std::map<std::size_t, std::string>& getOutputs() const noexcept { return this->outputs; }
 			const std::vector<Confluence<ConstraintCoefficientType>>& getInputFaces() const noexcept { return this->inputFaces; }
+			const std::vector<Confluence<ConstraintCoefficientType>>& getOutputFaces() const noexcept { return this->outputFaces; }
 			
 			// get a copy of the constraints that define the domain of computation
 			const ConstraintSet<ConstraintCoefficientType>& getConstraints() const noexcept { return this->constraints; }
@@ -444,9 +467,12 @@ namespace sw {
 			// get the confluence set that defines the tensor confluences
 			ConfluenceSet<ConstraintCoefficientType> getConfluences() const noexcept {
 				ConfluenceSet<ConstraintCoefficientType> confluences;
-				//for (const auto& confluence : inputFaces) {
-				//	confluences.add(confluence);
-				//}
+				for (const auto& confluence : inputFaces) {
+					confluences.add(confluence);
+				}
+				for (const auto& confluence : outputFaces) {
+					confluences.add(confluence);
+				}
 				return confluences;
 			}
 

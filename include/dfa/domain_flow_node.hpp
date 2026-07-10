@@ -501,8 +501,14 @@ namespace sw {
 				for (auto& op : resultType) {
 					doc.addOutput(op.first, op.second);
 				}
-				// interpret the DomainFlowOperator and select a parallel algorithm
-                doc.elaborateDomainOfComputation(opType);
+				// interpret the DomainFlowOperator and select a parallel algorithm.
+				// A node may declare a fused pointwise epilogue on its terminal output
+				// face via attribute["activation"] (e.g. "relu"); the elaboration
+				// records it on the output-face confluence (issue #1)
+				std::string activation{};
+				auto act = attribute.find("activation");
+				if (act != attribute.end()) activation = act->second;
+				doc.elaborateDomainOfComputation(opType, activation);
 			}
             PointSet<ConstraintCoefficientType> getConvexHullPointSet() const noexcept { return doc.getConvexHullPointSet(); }
             ConvexHull<ConstraintCoefficientType> getConvexHull() const noexcept { return doc.getConvexHull(); }
