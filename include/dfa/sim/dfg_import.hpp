@@ -202,10 +202,12 @@ namespace sw {
                     std::vector<int> outShape = shapeOf(node.getResultType(0));
                     res.indexSpaceSize += product(outShape);
 
-                    if (op == DomainFlowOperator::MATMUL) {
+                    if (op == DomainFlowOperator::MATMUL || op == DomainFlowOperator::FUSED_MATMUL_BIAS_ACT) {
                         std::vector<int> a = shapeOf(node.getOperandType(0));   // [M,K]
                         std::vector<int> b = shapeOf(node.getOperandType(1));   // [K,N]
                         if (a.size() != 2 || b.size() != 2 || a[1] != b[0]) { addLeaf(id, 0.0); countUnsupported(op); continue; }
+                        // the dedicated fused operator (issue #2) requires the bias operand
+                        if (op == DomainFlowOperator::FUSED_MATMUL_BIAS_ACT && node.getNrInputs() != 3) { addLeaf(id, 0.0); countUnsupported(op); continue; }
                         int M = a[0], K = a[1], N = b[1];
 
                         // fused output-face epilogue (issue #1): optional Cin bias via the

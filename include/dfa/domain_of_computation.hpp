@@ -269,6 +269,65 @@ namespace sw {
 					hull.add_face({ v5, v4, v7, v6 }); // right face
 				}
 				break;
+				case DomainFlowOperator::FUSED_MATMUL_BIAS_ACT:
+				{
+					// dedicated fused operator (issue #2):  Y = act(A*B + bias)
+					// The fusion merges domains: over D = {(i,j,k)} the matmul
+					// accumulates C(i,j,k) = C(i,j,k-1) + A(i,k)*B(k,j), and the
+					// epilogue is a boundary recurrence on the terminal k = K-1 face:
+					// Y(i,j) = act(C(i,j,K-1) + bias(i,j)).  The only value leaving D
+					// is Y -- no intermediate tensor is materialized.
+					//
+					// Unlike the 3-input MATMUL (where Cin seeds the accumulator on the
+					// k = 0 face), the bias here enters on the *terminal* face where the
+					// epilogue executes.
+					if (inputs.size() != 3) {
+						std::cerr << "DomainOfComputation elaborateDomainOfComputation: FUSED_MATMUL_BIAS_ACT requires operands A, B, and bias: ignoring operator" << std::endl;
+						break;
+					}
+					TensorTypeInfo tensor0 = parseTensorType(getInput(0));
+					TensorTypeInfo tensor1 = parseTensorType(getInput(1));
+					if (tensor0.empty() || tensor1.empty()) {
+						std::cerr << "DomainOfComputation elaborateDomainOfComputation: invalid fused matmul arguments: ignoring operator" << std::endl;
+						break;
+					}
+					shapeAnalysisResults result;
+					if (!calculateMatmulShape(tensor0.shape, tensor1.shape, result)) {
+						std::cerr << "DomainOfComputation elaborateDomainOfComputation: " << result.errMsg << std::endl;
+						break;
+					}
+					ConstraintCoefficientType m_ = result.m - 1;
+					ConstraintCoefficientType k_ = result.k - 1;
+					ConstraintCoefficientType n_ = result.n - 1;
+
+					// same (i,j,k) polyhedron as MATMUL: the epilogue adds no iteration
+					// dimensions -- it is pointwise on the (i,j) output face
+					hull.setDimension(3);
+					auto v0 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, 0 }));
+					auto v1 = hull.add_vertex(Point<ConstraintCoefficientType>({ m_, 0, 0 }));
+					auto v2 = hull.add_vertex(Point<ConstraintCoefficientType>({ m_, 0, k_ }));
+					auto v3 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, k_ }));
+					auto v4 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, n_, k_ }));
+					auto v5 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, n_, 0 }));
+					auto v6 = hull.add_vertex(Point<ConstraintCoefficientType>({ m_, n_, 0 }));
+					auto v7 = hull.add_vertex(Point<ConstraintCoefficientType>({ m_, n_, k_ }));
+
+					// A and B stream in on their respective faces
+					auto f0 = hull.add_face({ v0, v1, v2, v3 }); // left face, pointing out
+					inputFaces.add(Confluence<ConstraintCoefficientType>(getInput(0), f0));
+					auto f1 = hull.add_face({ v0, v3, v4, v5 }); // back face, pointing out
+					inputFaces.add(Confluence<ConstraintCoefficientType>(getInput(1), f1));
+					hull.add_face({ v0, v5, v6, v1 }); // bottom face: accumulator init, no tensor confluence
+					// terminal k = K-1 face: bias enters here (broadcast on the (i,j)
+					// face) and Y leaves here with the activation epilogue
+					auto f3 = hull.add_face({ v3, v2, v7, v4 }); // top face, pointing out
+					inputFaces.add(Confluence<ConstraintCoefficientType>(getInput(2), f3));
+					outputFaces.add(Confluence<ConstraintCoefficientType>(getOutput(0), f3, activation));
+					// remaining faces do not have tensor confluences
+					hull.add_face({ v1, v6, v7, v2 }); // front face
+					hull.add_face({ v5, v4, v7, v6 }); // right face
+				}
+				break;
 				case DomainFlowOperator::FUNCTION_RETURN:
 				{
 					TensorTypeInfo tensorIn = parseTensorType(getInput(0));
@@ -350,6 +409,7 @@ namespace sw {
 				}
 				break;
 				case DomainFlowOperator::MATMUL:
+				case DomainFlowOperator::FUSED_MATMUL_BIAS_ACT:   // same (i,j,k) index space; epilogue adds no dimensions
 				{
 					TensorTypeInfo tensor1 = parseTensorType(getInput(0));
 					TensorTypeInfo tensor2 = parseTensorType(getInput(1));
