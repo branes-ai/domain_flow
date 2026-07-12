@@ -1,0 +1,55 @@
+// Executable version of the single-channel Conv2D SURE from conv2d.md,
+// uniformized for the v2 confluence DSL: a 3x3 kernel with [1,1] zero
+// padding over an N x N image.
+//
+//   D = ((i,j,k,l) | 0 <= i,j < N, -1 <= k,l <= 1)
+//
+// The document's conditional cascade is replaced by four total recurrences.
+// The pointwise reads of I_padded and W become *flows*: w carries the kernel
+// weights across the image (propagating along +i), and x carries the padded
+// image so that x(i,j,k,l) = Ipad(i+k, j+l) -- its uniform dependence
+// (i-1,k+1) walks anti-diagonals, seeded from two disjoint halo faces.
+// The reduction is a row sum along l followed by a column sum along k:
+//
+//   x(i,j,k,l)  padded-image value Ipad(i+k, j+l), flowing in
+//   w(i,j,k,l)  kernel weight W(k,l), flowing in
+//   p(i,j,k,l)  partial sum of row k of the window (accumulates along l)
+//   s(i,j,k,l)  sum of completed rows (accumulates along k, reads p at l = 1)
+//
+// The output O(i,j) = s(i,j,1,l) leaves through the terminal k = 1 face.
+// The test bench binds the PADDED image (the zero ring is explicit data).
+//
+// Run it:   dfactl --sure docs/SURE/conv2d.sure
+
+N = 4;
+
+system ((i,j,k,l) | 0 <= i < N, 0 <= j < N, -1 <= k < 2, -1 <= l < 2) {
+    x(i,j,k,l) = x(i-1,j,k+1,l);                      // Ipad(i+k, j+l) anti-diagonal flow
+    w(i,j,k,l) = w(i-1,j,k,l);                        // W(k,l) broadcast along +i
+    p(i,j,k,l) = p(i,j,k,l-1) + x(i,j,k,l) * w(i,j,k,l);   // row sum along l
+    s(i,j,k,l) = s(i,j,k-1,l) + p(i,j,k,1);           // add completed rows along k
+}
+
+// input confluences: the x flow is seeded from two disjoint halo faces --
+// the k = 2 plane feeds the anti-diagonal walk from above, the i = -1 plane
+// (kernel rows k in [0,2)) from the left; together they cover every escape
+input Ipad[6][6] ((i,j,k,l) | -1 <= i < 3, 0 <= j < N, -1 <= l < 2, k = 2)   : x(i,j,k,l) = Ipad[i+3][j+l+1];
+input            ((i,j,k,l) | 0 <= j < N, 0 <= k < 2, -1 <= l < 2, i = -1)   : x(i,j,k,l) = Ipad[k][j+l+1];
+input W[3][3]    ((i,j,k,l) | 0 <= j < N, -1 <= k < 2, -1 <= l < 2, i = -1)  : w(i,j,k,l) = W[k+1][l+1];
+input            ((i,j,k,l) | 0 <= i < N, 0 <= j < N, -1 <= k < 2, l = -2)   : p(i,j,k,l) = 0;
+input            ((i,j,k,l) | 0 <= i < N, 0 <= j < N, -1 <= l < 2, k = -2)   : s(i,j,k,l) = 0;
+
+// output confluence: the finished window sum on the terminal k = 1 face
+output O[N][N] ((i,j,k,l) | 0 <= i < N, 0 <= j < N, 1 <= l < 2, k = 1) : O[i][j] = s(i,j,k,l);
+
+// test bench: 4x4 ramp image inside an explicit zero-padding ring,
+// convolved with the Sobel-x kernel
+data Ipad = {  0,  0,  0,  0,  0,  0,
+               0,  1,  2,  3,  4,  0,
+               0,  5,  6,  7,  8,  0,
+               0,  9, 10, 11, 12,  0,
+               0, 13, 14, 15, 16,  0,
+               0,  0,  0,  0,  0,  0 };
+data W = {  1,  0, -1,
+            2,  0, -2,
+            1,  0, -1 };
