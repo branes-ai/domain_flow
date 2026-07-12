@@ -81,6 +81,14 @@ static bool checkMatmul() {
     std::cout << "  tau=[1,1,0]: " << checkLegality(spec.system, bad) << "\n";
     std::cout << "schedule analysis on parsed system: " << (sok ? "PASS" : "FAIL") << "\n";
 
+    // an overriding schedule must revalidate flux: tau=[1,1,-1] reverses the
+    // output face flow even though it is caught here before legality
+    bool fok = false;
+    try { validateSureFlux(spec, { 1, 1, -1 }); }
+    catch (const std::exception& e) { fok = std::string(e.what()).find("flux") != std::string::npos; }
+    std::cout << "flux revalidation for overridden tau: " << (fok ? "PASS" : "FAIL") << "\n";
+    ok &= fok;
+
     // memory analysis + eviction run agree
     LivenessReport lr = sim2.analyzeMemory(good);
     long peak = 0;
@@ -230,6 +238,30 @@ static bool checkDiagnostics() {
     ok &= expectParseError("missing output",
         sys + seed,
         "no output");
+    // review round (PR #18): supporting-hyperplane and binding contracts
+    ok &= expectParseError("face plane splits domain points",
+        "N = 3;\n"
+        "system ((i,j) | 0 <= i,j < N) { c(i,j) = c(i,j-1); }\n"
+        "input ((i,j) | 0 <= i < N, 0 <= j < N, i + j = 1) : c(i,j) = 0;\n"
+        "input ((i,j) | 0 <= i < N, j = -1) : c(i,j) = 0;\n"
+        "output C[3][3] ((i,j) | 0 <= i < N, j = 2) : C[i][j] = c(i,j);\n",
+        "cuts the domain interior");
+    ok &= expectParseError("constant face equality",
+        sys + "input ((i,j) | 0 <= i < N, 0 = 1) : c(i,j) = 0;\n" + outp,
+        "no index terms");
+    ok &= expectParseError("named input must read its tensor",
+        sys + "input A[2] ((i,j) | 0 <= i < N, j = -1) : c(i,j) = 0;\n" + outp,
+        "must read its declared tensor");
+    ok &= expectParseError("constant input reads a tensor",
+        sys +
+        "input W[2] ((i,j) | 0 <= i < N, j = -1) : c(i,j) = W[i];\n"
+        "data W = { 1, 2 };\n"
+        "input ((i,j) | 0 <= i < N, j = 2) : c(i,j) = W[0];\n" + outp,
+        "constant input may not read tensors");
+    ok &= expectParseError("undeclared tap source",
+        "N = 2;\n"
+        "system ((i,j) | 0 <= i,j < N) { c(i,j) = typo(i,j); }\n" + seed + outp,
+        "unknown recurrence variable");
     return ok;
 }
 

@@ -206,10 +206,13 @@ namespace {
             for (std::size_t i = 0; i < tau.size(); ++i) os << tau[i] << (i + 1 < tau.size() ? "," : "");
             os << "]\n";
             try {
+                // an overriding --tau must also respect the declared confluence
+                // flow directions, not just the dependency slacks
+                validateSureFlux(sure, tau);
                 LinearSchedule s(tau);
                 rc = analyzeAndRun(sim, sure.system, s, os);
             } catch (const std::exception& e) {
-                os << "\n" << e.what() << "\n";   // run() rejected an illegal schedule
+                os << "\n" << e.what() << "\n";   // illegal schedule or flux violation
                 rc = 1;
             }
         }
