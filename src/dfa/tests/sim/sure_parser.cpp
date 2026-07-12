@@ -165,6 +165,82 @@ output U[1] ((k) | k = 1)  : U[0] = u(k);
     return ok && nok;
 }
 
+// docs/SURE/qr.sure: Modified Gram-Schmidt over one shared triangular domain;
+// verify the factorization A = Q*R against the classic 3x3 example
+static bool checkQr() {
+    SureSpec spec = parseSureFile(std::string(SURE_DOCS_DIR) + "/qr.sure");
+    bool ok = true;
+
+    const double A[3][3] = { { 12, -51, 4 }, { 6, 167, -68 }, { -4, 24, -41 } };
+    double Q[3][3] = {};
+    double R[3][3] = {};
+
+    SureSimulator<double> sim(spec.system);
+    for (const auto& out : spec.outputs) {
+        for (const auto& fp : out.region.enumerate()) {
+            std::vector<long> idx = out.elemIndex(fp);
+            double v = out.eval(sim, fp);
+            if (out.tensor == "Q")          Q[idx[0]][idx[1]] = v;
+            else if (out.tensor == "Rdiag") R[idx[0]][idx[0]] = v;
+            else                            R[idx[0]][idx[1]] = v;   // Roff
+        }
+    }
+
+    // exact factors for this A: R = [[14,21,-14],[0,175,-70],[0,0,35]]
+    const double Rref[3][3] = { { 14, 21, -14 }, { 0, 175, -70 }, { 0, 0, 35 } };
+    for (int r = 0; r < 3; ++r)
+        for (int c = 0; c < 3; ++c)
+            ok &= (std::abs(R[r][c] - Rref[r][c]) < 1e-9);
+
+    // Q orthonormal and Q*R == A
+    double maxOrtho = 0, maxQR = 0;
+    for (int r = 0; r < 3; ++r)
+        for (int c = 0; c < 3; ++c) {
+            double dot = 0, qr = 0;
+            for (int t = 0; t < 3; ++t) { dot += Q[t][r] * Q[t][c]; qr += Q[r][t] * R[t][c]; }
+            maxOrtho = std::max(maxOrtho, std::abs(dot - (r == c ? 1.0 : 0.0)));
+            maxQR = std::max(maxQR, std::abs(qr - A[r][c]));
+        }
+    ok &= (maxOrtho < 1e-9) && (maxQR < 1e-9);
+    std::cout << "qr.sure: max|Q^T*Q - I| = " << maxOrtho << "  max|Q*R - A| = " << maxQR
+              << "  R exact: " << (ok ? "PASS" : "FAIL") << "\n";
+    return ok;
+}
+
+// docs/SURE/conv2d.sure: 3x3 Sobel-x over a 4x4 ramp with [1,1] zero padding;
+// verify against a direct correlation reference
+static bool checkConv2d() {
+    SureSpec spec = parseSureFile(std::string(SURE_DOCS_DIR) + "/conv2d.sure");
+    bool ok = true;
+
+    const int N = 4;
+    double I[4][4];
+    for (int r = 0; r < N; ++r)
+        for (int c = 0; c < N; ++c) I[r][c] = 1.0 + r * N + c;
+    const double W[3][3] = { { 1, 0, -1 }, { 2, 0, -2 }, { 1, 0, -1 } };
+    auto ipad = [&](int r, int c) {
+        return (r < 0 || r >= N || c < 0 || c >= N) ? 0.0 : I[r][c];
+    };
+
+    SureSimulator<double> sim(spec.system);
+    const SureOutput& out = spec.outputs.front();
+    int checked = 0;
+    for (const auto& fp : out.region.enumerate()) {
+        std::vector<long> idx = out.elemIndex(fp);
+        double got = out.eval(sim, fp);
+        double ref = 0;
+        for (int k = -1; k <= 1; ++k)
+            for (int l = -1; l <= 1; ++l)
+                ref += ipad(static_cast<int>(idx[0]) + k, static_cast<int>(idx[1]) + l) * W[k + 1][l + 1];
+        ok &= (std::abs(got - ref) < 1e-9);
+        ++checked;
+    }
+    ok &= (checked == N * N);
+    std::cout << "conv2d.sure == direct correlation reference (" << checked << " points): "
+              << (ok ? "PASS" : "FAIL") << "\n";
+    return ok;
+}
+
 static bool expectParseError(const char* what, const std::string& prog, const char* needle) {
     try {
         SureSpec spec = parseSureString(prog);
@@ -252,12 +328,13 @@ static bool checkDiagnostics() {
     ok &= expectParseError("named input must read its tensor",
         sys + "input A[2] ((i,j) | 0 <= i < N, j = -1) : c(i,j) = 0;\n" + outp,
         "must read its declared tensor");
-    ok &= expectParseError("constant input reads a tensor",
+    ok &= expectParseError("input face reading two tensors",
         sys +
         "input W[2] ((i,j) | 0 <= i < N, j = -1) : c(i,j) = W[i];\n"
         "data W = { 1, 2 };\n"
-        "input ((i,j) | 0 <= i < N, j = 2) : c(i,j) = W[0];\n" + outp,
-        "constant input may not read tensors");
+        "input V[2] ((i,j) | 0 <= i < N, j = 2) : c(i,j) = V[0] + W[0];\n"
+        "data V = { 1, 2 };\n" + outp,
+        "may only read its declared tensor");
     ok &= expectParseError("undeclared tap source",
         "N = 2;\n"
         "system ((i,j) | 0 <= i,j < N) { c(i,j) = typo(i,j); }\n" + seed + outp,
@@ -269,6 +346,8 @@ int main() {
     bool ok = true;
     try {
         ok &= checkMatmul();
+        ok &= checkQr();
+        ok &= checkConv2d();
         ok &= checkConstraints();
         ok &= checkDiagnostics();
     } catch (const std::exception& e) {
