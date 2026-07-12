@@ -30,6 +30,7 @@ namespace sw {
             DIV,
             LINEAR,
             MATMUL,
+            FUSED_MATMUL_BIAS_ACT,   // fused Y = act(A*B + bias), epilogue on the terminal k-face
             NEGATE,
             PAD,
 
@@ -78,6 +79,7 @@ namespace sw {
             case DomainFlowOperator::DIV:        os << "DIV";        break;
 			case DomainFlowOperator::LINEAR:     os << "LINEAR";     break;
             case DomainFlowOperator::MATMUL:     os << "MATMUL";     break;
+            case DomainFlowOperator::FUSED_MATMUL_BIAS_ACT: os << "FUSED_MATMUL_BIAS_ACT"; break;
             case DomainFlowOperator::NEGATE:     os << "NEGATE";     break;
             case DomainFlowOperator::PAD:        os << "PAD";        break;
 
@@ -134,6 +136,7 @@ namespace sw {
 			else if (token == "DIV")    dfo = DomainFlowOperator::DIV;
 			else if (token == "LINEAR") dfo = DomainFlowOperator::LINEAR;
             else if (token == "MATMUL") dfo = DomainFlowOperator::MATMUL;
+            else if (token == "FUSED_MATMUL_BIAS_ACT") dfo = DomainFlowOperator::FUSED_MATMUL_BIAS_ACT;
             else if (token == "NEGATE") dfo = DomainFlowOperator::NEGATE;
             else if (token == "PAD")    dfo = DomainFlowOperator::PAD;
 
