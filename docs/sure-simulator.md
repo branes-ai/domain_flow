@@ -208,6 +208,41 @@ graph, round-trips it through `save()`/`load()`, and verifies `C[i][j] = 3.0`
 end-to-end. Graphs above 200k index points are imported structurally but not
 executed.
 
+### Example 5: running the SURE DSL directly
+
+The recurrence notation used throughout `docs/SURE/` is itself executable
+(`include/dfa/sim/sure_parser.hpp`). A `.sure` file is the documented
+`system((i,j,k) | constraints) { equations }` block plus declarations for what
+the docs express as prose: integer parameters, input data, boundary values,
+an optional canonical `tau`, and the output read. `docs/SURE/matmul.sure` is
+the executable version of `matmul.md`:
+
+```console
+$ dfactl --sure docs/SURE/matmul.sure --schedule linear
+sure program: docs/SURE/matmul.sure
+  system indices: (i,j,k)  variables: a b c
+  c(0,0) = 58
+  c(0,1) = 64
+  c(1,0) = 139
+  c(1,1) = 154
+
+schedule: linear tau=[1,1,1]
+
+Schedule legality: LEGAL  edges=32  minSlack(tau.theta)=1
+Memory cardinality: peakLiveValues=14  latency=5  work=36
+```
+
+Breaking the accumulation dependency reproduces the doc's legality argument
+numerically: `dfactl --sure docs/SURE/matmul.sure --tau 1,1,0` reports ILLEGAL
+with the violated `c(i,j,k) -> c(i,j,k-1)` edges. Notation rules: recurrence
+variables are read with parentheses (`a(i,j-1,k)`, becoming affine dependency
+taps), input arrays with brackets (`A[i][k]`, boundary expressions only), and
+every index needs constant bounds so the enumeration box is defined.
+Constraints may be chains (`0 <= i,j,k < N`), affine relations (`k <= j`), and
+may use negative bounds (`-1 <= k < 2`). Malformed programs fail with
+line-numbered diagnostics. Current scope: one shared system domain
+(per-equation domains, as QR needs, are a follow-up).
+
 ### Authoring a new spec
 
 A `Spec` bundles a recurrence system, its canonical schedule, and an output

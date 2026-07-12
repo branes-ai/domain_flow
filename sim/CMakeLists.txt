@@ -16,4 +16,7 @@ if(DOMAINFLOW_BUILD_TESTING)
     add_test(NAME dfactl_matmul COMMAND ${DFA_SIMULATOR} matmul)
     add_test(NAME dfactl_matvec COMMAND ${DFA_SIMULATOR} matvec)
     add_test(NAME dfactl_qr     COMMAND ${DFA_SIMULATOR} qr)
+    # the executable version of docs/SURE/matmul.md through the DSL front-end
+    add_test(NAME dfactl_sure_matmul
+             COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/matmul.sure --schedule linear)
 endif()
