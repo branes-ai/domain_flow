@@ -265,7 +265,7 @@ namespace sw {
                     std::vector<std::string> indexNames;      // system index vector
                     Domain systemDomain;
                     std::vector<long> sysLo, sysHi;           // domain bounding box
-                    std::vector<double> sysCentroid;          // true domain centroid, for face orientation
+                    std::vector<IndexPoint> sysPoints;        // enumerated domain, for orientation + coverage
 
                     struct TapDecl { std::string source; std::vector<std::vector<int>> A; std::vector<int> b; };
                     struct EqDecl {
@@ -422,16 +422,10 @@ namespace sw {
                         std::vector<LinCon> cons = parseConstraints(indexNames);
                         expectPunct(")");
                         systemDomain = buildDomain(indexNames, cons, sysLo, sysHi);
-                        // the centroid of the actual (constraint-filtered) domain: used to
-                        // orient face planes, since a box midpoint can lie exactly on a
-                        // diagonal face plane of a triangular domain
-                        std::vector<IndexPoint> pts = systemDomain.enumerate();
-                        if (pts.empty()) fail("system domain is empty");
-                        sysCentroid.assign(indexNames.size(), 0.0);
-                        for (const auto& p : pts)
-                            for (std::size_t d = 0; d < indexNames.size(); ++d)
-                                sysCentroid[d] += static_cast<double>(p[d]);
-                        for (auto& c : sysCentroid) c /= static_cast<double>(pts.size());
+                        // the enumerated (constraint-filtered) domain: used to orient
+                        // face planes as supporting hyperplanes and for coverage checks
+                        sysPoints = systemDomain.enumerate();
+                        if (sysPoints.empty()) fail("system domain is empty");
                         expectPunct("{");
                         while (!atPunct("}")) parseEquation();
                         expectPunct("}");
@@ -589,17 +583,32 @@ namespace sw {
                         }
                         if (!eq) failAt(line, "a face region needs exactly one equality to pin the face plane");
 
-                        // orientation: the equality plane a.x = rhs, oriented away from
-                        // the domain interior (centroid side test)
-                        double side = static_cast<double>(-eq->rhs);
-                        for (std::size_t d = 0; d < indexNames.size(); ++d)
-                            side += static_cast<double>(eq->a[d]) * sysCentroid[d];
-                        if (std::abs(side) < 1e-9)
+                        // the equality must have index terms (a constant equality like
+                        // 0 = 1 has no plane to pin)
+                        bool nonzero = false;
+                        for (long a : eq->a) nonzero |= (a != 0);
+                        if (!nonzero) failAt(line, "the face equality has no index terms");
+
+                        // orientation: the plane a.x = rhs must be a supporting
+                        // hyperplane of the domain -- classify every domain point and
+                        // reject planes with points on both strict sides; the outward
+                        // normal points away from the occupied side
+                        bool hasNeg = false, hasPos = false;
+                        for (const auto& p : sysPoints) {
+                            long side = -eq->rhs;
+                            for (std::size_t d = 0; d < indexNames.size(); ++d)
+                                side += eq->a[d] * p[d];
+                            hasNeg |= (side < 0);
+                            hasPos |= (side > 0);
+                        }
+                        if (hasNeg && hasPos)
                             failAt(line, "the face plane cuts the domain interior; a face must lie on or outside the domain surface");
+                        if (!hasNeg && !hasPos)
+                            failAt(line, "face orientation is ambiguous: the entire domain lies on the face plane");
                         normal.clear();
                         for (std::size_t d = 0; d < indexNames.size(); ++d) {
                             long a = eq->a[d];
-                            normal.push_back(static_cast<int>(side < 0 ? a : -a));
+                            normal.push_back(static_cast<int>(hasPos ? -a : a));
                         }
 
                         std::vector<long> lo, hi;
@@ -832,6 +841,21 @@ namespace sw {
                         inFaceExpr = false;
                         if (!scratch.taps.empty())
                             failAt(line, "input expressions may not read recurrence variables");
+                        // bind the metadata to the tensor actually read: a named input
+                        // must read exactly its declared tensor, a constant input none
+                        std::vector<std::string> reads;
+                        collectArrays(*face.expr, reads);
+                        if (face.tensor.empty()) {
+                            if (!reads.empty())
+                                failAt(line, "a constant input may not read tensors (reads '" + reads.front() + "')");
+                        } else {
+                            if (reads.empty())
+                                failAt(line, "input expression must read its declared tensor '" + face.tensor + "'");
+                            for (const auto& r : reads)
+                                if (r != face.tensor)
+                                    failAt(line, "input expression may only read its declared tensor '" +
+                                                 face.tensor + "' (reads '" + r + "')");
+                        }
                         expectPunct(";");
                         inFaces.push_back(std::move(face));
                     }
@@ -878,6 +902,23 @@ namespace sw {
                     void assemble() {
                         spec.indexNames = indexNames;
                         if (outFaces.empty()) fail("no output(...) declaration found");
+
+                        // every tap must read a declared recurrence variable; without
+                        // this, an in-domain tap to a typo would only fail at eval time
+                        auto isVar = [this](const std::string& n) {
+                            for (const auto& e : eqs) if (e.name == n) return true;
+                            return false;
+                        };
+                        for (const auto& eq : eqs)
+                            for (const auto& t : eq.taps)
+                                if (!isVar(t.source))
+                                    failAt(eq.line, "equation for '" + eq.name +
+                                                    "' reads unknown recurrence variable '" + t.source + "'");
+                        for (const auto& f : outFaces)
+                            for (const auto& t : f.taps)
+                                if (!isVar(t.source))
+                                    failAt(f.line, "output '" + f.tensor +
+                                                   "' reads unknown recurrence variable '" + t.source + "'");
                         if (!spec.tau.empty() && spec.tau.size() != indexNames.size())
                             fail("tau has " + std::to_string(spec.tau.size()) + " components, expected " +
                                  std::to_string(indexNames.size()));
@@ -933,10 +974,9 @@ namespace sw {
 
                         // coverage: every out-of-domain tap image lands on exactly one
                         // input face of its variable (equation taps and output taps)
-                        std::vector<IndexPoint> domainPoints = systemDomain.enumerate();
                         for (const auto& eq : eqs)
                             for (const auto& t : eq.taps)
-                                checkCoverage(t, domainPoints, eq.line, "equation for '" + eq.name + "'");
+                                checkCoverage(t, sysPoints, eq.line, "equation for '" + eq.name + "'");
                         for (const auto& f : outFaces) {
                             std::vector<IndexPoint> facePoints = f.region.enumerate();
                             if (facePoints.empty()) failAt(f.line, "output face region of '" + f.tensor + "' is empty");
@@ -1024,6 +1064,29 @@ namespace sw {
                 };
 
             } // namespace suredetail
+
+            // flux consistency of a schedule vector against the declared confluences:
+            // with outward normal n, an input face needs tau.n < 0 (influx) and an
+            // output face tau.n > 0 (outflux).  The parser enforces this for the
+            // program's own tau; callers overriding the schedule (e.g. dfactl --tau)
+            // must revalidate with the effective vector.
+            inline void validateSureFlux(const SureSpec& spec, const std::vector<int>& tau) {
+                auto flux = [&tau](const std::vector<int>& n) {
+                    long s = 0;
+                    for (std::size_t d = 0; d < n.size() && d < tau.size(); ++d)
+                        s += static_cast<long>(tau[d]) * n[d];
+                    return s;
+                };
+                for (const auto& in : spec.inputs)
+                    if (flux(in.normal) >= 0)
+                        throw std::runtime_error("sure: input face " +
+                            (in.tensor.empty() ? std::string("(const)") : in.tensor) + " -> " + in.var +
+                            " has non-negative flux (tau.n >= 0) under the requested tau");
+                for (const auto& out : spec.outputs)
+                    if (flux(out.normal) <= 0)
+                        throw std::runtime_error("sure: output face " + out.tensor +
+                            " has non-positive flux (tau.n <= 0) under the requested tau");
+            }
 
             inline SureSpec parseSureString(const std::string& src) {
                 return suredetail::Parser(src).parse();
