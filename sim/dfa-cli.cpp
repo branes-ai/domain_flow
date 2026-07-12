@@ -159,7 +159,7 @@ namespace {
         for (std::size_t i = 0; i < sure.indexNames.size(); ++i)
             os << sure.indexNames[i] << (i + 1 < sure.indexNames.size() ? "," : "");
         os << ")  variables:";
-        for (const auto& [name, eq] : sure.system.equations()) os << " " << name;
+        for (const auto& kv : sure.system.equations()) os << " " << kv.first;
         os << "\n";
 
         SureSimulator<double> sim(sure.system);
@@ -252,6 +252,10 @@ int main(int argc, char** argv) {
     if (surePath.empty() && specName.size() > 5 && specName.substr(specName.size() - 5) == ".sure") {
         surePath = specName;
         specName.clear();
+    }
+    if (!dfgPath.empty() && !surePath.empty()) {
+        std::cerr << "error: --dfg and --sure are mutually exclusive\n";
+        return 2;
     }
     if (!dfgPath.empty()) return runDfg(dfgPath, std::cout, quiet);
     if (!surePath.empty()) return runSure(surePath, std::cout, quiet, schedKind, tauOverride, haveTau);

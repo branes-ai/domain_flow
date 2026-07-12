@@ -121,7 +121,9 @@ namespace sw {
                         case '+': return a + b;
                         case '-': return a - b;
                         case '*': return a * b;
-                        default:  return b != 0.0 ? a / b : 0.0;
+                        default:
+                            if (b == 0.0) throw std::runtime_error("sure: division by zero in an expression");
+                            return a / b;
                         }
                     }
                     case Expr::Kind::Call: {
@@ -241,6 +243,7 @@ namespace sw {
                     };
                     std::vector<EqDecl> eqs;
                     SureSpec spec;
+                    bool inBoundary = false;   // arrays are legal only in boundary expressions
 
                     // ---- token helpers ------------------------------------
                     const Token& cur() const { return toks[pos]; }
@@ -606,7 +609,11 @@ namespace sw {
                                 return n;
                             }
                             if (atPunct("(")) return parseTapRef(eq, id);
-                            if (atPunct("[")) return parseArrayRef(id);
+                            if (atPunct("[")) {
+                                if (!inBoundary)
+                                    fail("input arrays may only be read in boundary expressions ('" + id + "')");
+                                return parseArrayRef(id);
+                            }
                             auto it = params.find(id);
                             if (it != params.end()) {
                                 auto n = std::make_shared<Expr>();
@@ -677,7 +684,9 @@ namespace sw {
                         expectPunct(")");
                         expectPunct("=");
                         EqDecl scratch;             // boundary bodies may not contain taps
+                        inBoundary = true;
                         ExprPtr body = parseExpr(scratch);
+                        inBoundary = false;
                         if (!scratch.taps.empty()) fail("boundary expressions may not read recurrence variables");
                         expectPunct(";");
                         for (auto& eq : eqs) {
