@@ -19,6 +19,7 @@
 #include <dfa/sim/specs.hpp>
 #include <dfa/sim/legality.hpp>
 #include <dfa/sim/dfg_import.hpp>
+#include <dfa/sim/sure_parser.hpp>
 
 using namespace sw::dfa;
 using namespace sw::dfa::sim;
@@ -32,7 +33,8 @@ namespace {
             "Usage:\n"
             "  dfactl <spec> [--schedule free|linear] [--tau t0,t1,...] [--quiet]\n"
             "  dfactl --dfg <file.dfg>      import a Domain Flow Graph and run it\n"
-            "  dfactl <file.dfg>           (same; positional .dfg is auto-detected)\n"
+            "  dfactl --sure <file.sure>    parse and run a SURE DSL program (docs/SURE notation)\n"
+            "  dfactl <file.dfg|file.sure> (same; positional files are auto-detected)\n"
             "  dfactl --list\n"
             "  dfactl --help\n"
             "\n"
@@ -142,11 +144,66 @@ namespace {
         return (observed == r.peakLiveValues) ? 0 : 2;
     }
 
+    // Parse a .sure DSL program (the docs/SURE notation), evaluate its outputs,
+    // and analyze the requested schedule.
+    int runSure(const std::string& path, std::ostream& os, bool quiet,
+                const std::string& schedKind, const std::vector<int>& tauOverride, bool haveTau) {
+        SureSpec sure;
+        try { sure = parseSureFile(path); }
+        catch (const std::exception& e) {
+            std::cerr << "error: " << e.what() << "\n";
+            return 2;
+        }
+        os << "sure program: " << path << "\n";
+        os << "  system indices: (";
+        for (std::size_t i = 0; i < sure.indexNames.size(); ++i)
+            os << sure.indexNames[i] << (i + 1 < sure.indexNames.size() ? "," : "");
+        os << ")  variables:";
+        for (const auto& kv : sure.system.equations()) os << " " << kv.first;
+        os << "\n";
+
+        SureSimulator<double> sim(sure.system);
+        if (!quiet) {
+            for (const auto& out : sure.outputs) {
+                for (const auto& p : out.domain.enumerate()) {
+                    double v = sim.eval(out.var, out.map.apply(p));
+                    os << "  " << out.var << "(";
+                    for (std::size_t i = 0; i < p.size(); ++i) os << p[i] << (i + 1 < p.size() ? "," : "");
+                    os << ") = " << v << "\n";
+                }
+            }
+        }
+
+        int rc = 0;
+        std::vector<int> tau = haveTau ? tauOverride : sure.tau;
+        if (schedKind == "free" || tau.empty()) {
+            if (schedKind != "free" && tau.empty())
+                os << "\nnote: program declares no tau; using free.\n";
+            os << "\nschedule: free (ASAP)\n";
+            ExplicitSchedule s = sim.computeFreeSchedule();
+            rc = analyzeAndRun(sim, sure.system, s, os);
+        } else {
+            os << "\nschedule: linear tau=[";
+            for (std::size_t i = 0; i < tau.size(); ++i) os << tau[i] << (i + 1 < tau.size() ? "," : "");
+            os << "]\n";
+            try {
+                LinearSchedule s(tau);
+                rc = analyzeAndRun(sim, sure.system, s, os);
+            } catch (const std::exception& e) {
+                os << "\n" << e.what() << "\n";   // run() rejected an illegal schedule
+                rc = 1;
+            }
+        }
+        os << "\n" << (rc == 0 ? "OK" : "FAILED") << "\n";
+        return rc;
+    }
+
 } // namespace
 
 int main(int argc, char** argv) {
     std::string specName;
     std::string dfgPath;
+    std::string surePath;
     std::string schedKind = "free";
     std::vector<int> tauOverride;
     bool haveTau = false;
@@ -160,6 +217,11 @@ int main(int argc, char** argv) {
         if (a == "--dfg") {
             if (++i >= argc) { std::cerr << "error: --dfg needs a file path\n"; return 2; }
             dfgPath = argv[i];
+            continue;
+        }
+        if (a == "--sure") {
+            if (++i >= argc) { std::cerr << "error: --sure needs a file path\n"; return 2; }
+            surePath = argv[i];
             continue;
         }
         if (a == "--schedule") {
@@ -182,12 +244,21 @@ int main(int argc, char** argv) {
         std::cerr << "error: unexpected argument '" << a << "'\n"; return 2;
     }
 
-    // A positional argument ending in .dfg is an import request.
+    // A positional argument ending in .dfg or .sure is a file request.
     if (dfgPath.empty() && specName.size() > 4 && specName.substr(specName.size() - 4) == ".dfg") {
         dfgPath = specName;
         specName.clear();
     }
+    if (surePath.empty() && specName.size() > 5 && specName.substr(specName.size() - 5) == ".sure") {
+        surePath = specName;
+        specName.clear();
+    }
+    if (!dfgPath.empty() && !surePath.empty()) {
+        std::cerr << "error: --dfg and --sure are mutually exclusive\n";
+        return 2;
+    }
     if (!dfgPath.empty()) return runDfg(dfgPath, std::cout, quiet);
+    if (!surePath.empty()) return runSure(surePath, std::cout, quiet, schedKind, tauOverride, haveTau);
 
     if (specName.empty()) { usage(std::cerr); return 2; }
 
