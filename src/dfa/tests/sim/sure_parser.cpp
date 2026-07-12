@@ -18,33 +18,12 @@
 using namespace sw::dfa;
 using namespace sw::dfa::sim;
 
-static const char* kMatmul = R"(
-// canonical systolic matmul, C = A*B
-M = 2; N = 2; K = 3;
-
-input A[2][3] = {  1,  2,  3,
-                   4,  5,  6 };
-input B[3][2] = {  7,  8,
-                   9, 10,
-                  11, 12 };
-
-system ((i,j,k) | 0 <= i < M, 0 <= j < N, 0 <= k < K) {
-    a(i,j,k) = a(i,j-1,k);
-    b(i,j,k) = b(i-1,j,k);
-    c(i,j,k) = c(i,j,k-1) + a(i,j-1,k) * b(i-1,j,k);
-}
-
-boundary a(i,j,k) = A[i][k];
-boundary b(i,j,k) = B[k][j];
-boundary c(i,j,k) = 0;
-
-tau = [1, 1, 1];
-
-output ((i,j) | 0 <= i < M, 0 <= j < N) c(i, j, K-1);
-)";
+// The canonical example is docs/SURE/matmul.sure -- loaded from the source
+// tree (SURE_DOCS_DIR is set by CMake) so the executable doc is the single
+// source of truth exercised by this test.
 
 static bool checkMatmul() {
-    SureSpec spec = parseSureString(kMatmul);
+    SureSpec spec = parseSureFile(std::string(SURE_DOCS_DIR) + "/matmul.sure");
     bool ok = true;
 
     ok &= (spec.indexNames == std::vector<std::string>{ "i", "j", "k" });
@@ -186,6 +165,12 @@ static bool checkDiagnostics() {
         "boundary c(i,j) = d(i,j);\n"
         "output ((i) | 0 <= i < N) c(i, 0);\n",
         "boundary expressions may not read recurrence variables");
+    ok &= expectParseError("array read in an equation body",
+        "N = 2;\n"
+        "input W[2] = { 1, 2 };\n"
+        "system ((i,j) | 0 <= i,j < N) { c(i,j) = c(i-1,j) + W[i]; }\n"
+        "output ((i) | 0 <= i < N) c(i, 0);\n",
+        "boundary expressions");
     ok &= expectParseError("missing output",
         "N = 2;\n"
         "system ((i,j) | 0 <= i,j < N) { c(i,j) = c(i-1,j); }\n",
