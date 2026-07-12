@@ -1,0 +1,37 @@
+// Executable version of the canonical systolic matmul SURE from matmul.md:
+//
+//   system((i,j,k) | 0 <= i < M, 0 <= j < N, 0 <= k < K) {
+//       a(i,j,k) = a(i,j-1,k);
+//       b(i,j,k) = b(i-1,j,k);
+//       c(i,j,k) = c(i,j,k-1) + a(i,j-1,k)*b(i-1,j,k);
+//   }
+//
+// a propagates A(i,k) along +j, b propagates B(k,j) along +i, and c
+// accumulates the products along +k.  The boundary conditions from the doc
+// ("a(i,j,-1) = A(i,0)", "c(i,j,-1) = 0") are the boundary declarations below.
+//
+// Run it:   dfactl --sure docs/SURE/matmul.sure
+//           dfactl --sure docs/SURE/matmul.sure --tau 1,1,0   (ILLEGAL schedule demo)
+
+M = 2; N = 2; K = 3;
+
+input A[2][3] = {  1,  2,  3,
+                   4,  5,  6 };
+input B[3][2] = {  7,  8,
+                   9, 10,
+                  11, 12 };
+
+system ((i,j,k) | 0 <= i < M, 0 <= j < N, 0 <= k < K) {
+    a(i,j,k) = a(i,j-1,k);                              // propagate A along +j
+    b(i,j,k) = b(i-1,j,k);                              // propagate B along +i
+    c(i,j,k) = c(i,j,k-1) + a(i,j-1,k) * b(i-1,j,k);    // accumulate along +k
+}
+
+boundary a(i,j,k) = A[i][k];    // j < 0 face: seed with A(i,k)
+boundary b(i,j,k) = B[k][j];    // i < 0 face: seed with B(k,j)
+boundary c(i,j,k) = 0;          // k < 0 face: accumulator init
+
+tau = [1, 1, 1];                // canonical legal wavefront schedule
+
+// C(i,j) = c(i,j,K-1):  C = A*B = { 58, 64, 139, 154 }
+output ((i,j) | 0 <= i < M, 0 <= j < N) c(i, j, K-1);
