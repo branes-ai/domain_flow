@@ -8,6 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Fused MATMUL output-face epilogue** (issue #1, PR #13): a `MATMUL` node can
+  declare a pointwise activation via `attribute["activation"]` (e.g. `"relu"`),
+  recorded as an epilogue on the terminal `k = K-1` output-face `Confluence`;
+  bias enters via the existing 3rd operand `Cin`. `Confluence` gained an
+  optional epilogue field, MATMUL elaboration now populates the input/output
+  face confluences (previously constructed and discarded), and the simulator
+  importer executes the fused form `n(i,j) = act(c(i,j,K-1) + Cin(i,j))`.
+  Attributes already round-trip through `.dfg` serialization.
+- **`FUSED_MATMUL_BIAS_ACT` operator** (issue #2, PR #14): dedicated IR operator
+  making the fused `Y = activation(A*B + bias)` semantics explicit — a single
+  `(i,j,k)` domain where, unlike 3-input MATMUL (Cin seeds the accumulator at
+  `k = 0`), the bias confluence sits on the *terminal* face where the epilogue
+  executes. Shares a new `buildMatmulHull()` helper, the MATMUL constraint-set
+  case, and the simulator lowering path. Coexists with the attribute form:
+  attribute for MLIR-imported graphs, dedicated operator for explicit fused-IR
+  construction (KPU simulator path). Verified wavefronts under output-stationary
+  `tau = [1,1,1]`.
 - **Documentation site** (`docs-site/`): Astro + Starlight site published to GitHub
   Pages at https://branes-ai.github.io/domain_flow/ via `.github/workflows/docs.yml`.
   Content is synced from the repo's `docs/` tree by `docs-site/sync-content.mjs`
@@ -38,6 +55,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   flags via the new `llvm-build-config.txt`; concurrency group auto-cancels
   superseded PR runs while protecting main/scheduled cache builds. Issue #10
   tracks the remaining cold-cache duplicate build across ubuntu compiler legs.
+- **CI: LLVM built once per OS** (issue #10, PR #12): a dedicated `llvm` job now
+  owns the cache build/save per OS; the compiler matrix depends on it and does a
+  read-only `actions/cache/restore` with a fail-fast verify, eliminating the
+  cold-cache race where the ubuntu gcc and clang legs each built LLVM (~4h x 2).
+  All cache steps upgraded to `actions/cache@v5`; workflow runs with
+  least-privilege `permissions: contents: read`.
+
+### Security
+
+- **docs-site Dependabot alerts resolved** (PR #11): upgraded astro 5.18 → 7.0.6
+  and @astrojs/starlight 0.34 → 0.41.3, clearing all six open alerts (2 high:
+  Host-header SSRF, reflected XSS via slot names; plus XSS mediums and an
+  esbuild dev-server low, now at 0.28.1). `npm audit`: 0 vulnerabilities.
+  One migration: Starlight 0.39's sidebar `items` syntax.
 
 ### Fixed
 
