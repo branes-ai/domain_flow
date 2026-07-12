@@ -212,19 +212,37 @@ executed.
 
 The recurrence notation used throughout `docs/SURE/` is itself executable
 (`include/dfa/sim/sure_parser.hpp`). A `.sure` file is the documented
-`system((i,j,k) | constraints) { equations }` block plus declarations for what
-the docs express as prose: integer parameters, input data, boundary values,
-an optional canonical `tau`, and the output read. `docs/SURE/matmul.sure` is
-the executable version of `matmul.md`:
+`system((i,j,k) | constraints) { equations }` block plus **confluence
+declarations**: symmetric `input`/`output` statements that bind a tensor to an
+oriented face of the domain. A face region is written in the domain's own
+coordinates — extent from the inequalities, location from exactly one
+equality, orientation derived as the domain's outward normal (inputs are
+influx, outputs are outflux):
+
+```text
+input  A[M][K] ((i,j,k) | 0 <= i < M, 0 <= k < K, j = -1)  : a(i,j,k) = A[i][k];
+input          ((i,j,k) | 0 <= i < M, 0 <= j < N, k = -1)  : c(i,j,k) = 0;
+output C[M][N] ((i,j,k) | 0 <= i < M, 0 <= j < N, k = K-1) : C[i][j] = c(i,j,k);
+data   A = { 1, 2, 3, 4, 5, 6 };
+```
+
+Input faces sit on the one-step halo where boundary values are read
+(`j = -1`); output faces on the domain (`k = K-1`); `data` bindings keep the
+test bench separate from the kernel. `docs/SURE/matmul.sure` is the executable
+version of `matmul.md`:
 
 ```console
 $ dfactl --sure docs/SURE/matmul.sure --schedule linear
 sure program: docs/SURE/matmul.sure
   system indices: (i,j,k)  variables: a b c
-  c(0,0) = 58
-  c(0,1) = 64
-  c(1,0) = 139
-  c(1,1) = 154
+  input  A -> a  normal (0,-1,0)
+  input  B -> b  normal (-1,0,0)
+  input  (const) -> c  normal (0,0,-1)
+  output C <- c  normal (0,0,1)
+  C[0][0] = 58
+  C[0][1] = 64
+  C[1][0] = 139
+  C[1][1] = 154
 
 schedule: linear tau=[1,1,1]
 
@@ -234,14 +252,27 @@ Memory cardinality: peakLiveValues=14  latency=5  work=36
 
 Breaking the accumulation dependency reproduces the doc's legality argument
 numerically: `dfactl --sure docs/SURE/matmul.sure --tau 1,1,0` reports ILLEGAL
-with the violated `c(i,j,k) -> c(i,j,k-1)` edges. Notation rules: recurrence
-variables are read with parentheses (`a(i,j-1,k)`, becoming affine dependency
-taps), input arrays with brackets (`A[i][k]`, boundary expressions only), and
-every index needs constant bounds so the enumeration box is defined.
-Constraints may be chains (`0 <= i,j,k < N`), affine relations (`k <= j`), and
-may use negative bounds (`-1 <= k < 2`). Malformed programs fail with
-line-numbered diagnostics. Current scope: one shared system domain
-(per-equation domains, as QR needs, are a follow-up).
+with the violated `c(i,j,k) -> c(i,j,k-1)` edges.
+
+The parser enforces the spatial contracts of the domain-flow model, each with
+line-numbered diagnostics:
+
+- **coverage** — every out-of-domain tap image must land on exactly one
+  declared input face of its variable (no silent data fabrication)
+- **face well-formedness** — exactly one equality per face; the face plane
+  may not cut the domain interior; every face index has constant bounds
+- **flux consistency** — with a declared `tau` and outward normal `n`:
+  `tau.n < 0` on every input face, `tau.n > 0` on every output face (data
+  flows into the wavefront sweep; results exit ahead of it)
+- **element range** — output tensor indices stay within the declared dims
+
+Notation rules: recurrence variables are read with parentheses (`a(i,j-1,k)`,
+becoming affine dependency taps; equation and output expressions), tensors
+with brackets (`A[i][k]`; input and output expressions only). Constraints may
+be chains (`0 <= i,j,k < N`), affine relations (`k <= j`), equalities pinning
+non-axis-aligned faces (`j - k = -1`), and negative bounds (`-1 <= k < 2`).
+Current scope: one shared system domain (per-equation domains, as QR needs,
+are a follow-up).
 
 ### Authoring a new spec
 

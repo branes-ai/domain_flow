@@ -1,33 +1,46 @@
 #pragma once
 // Text front-end for the SURE simulator: parse the recurrence-system DSL used
-// throughout docs/SURE/ into an executable RecurrenceSystem (issue #15).
+// throughout docs/SURE/ into an executable RecurrenceSystem (issues #15, #17).
 //
-// Accepted grammar (see docs/SURE/matmul.sure for a worked example):
+// v2 grammar (see docs/SURE/matmul.sure for a worked example): data enters and
+// leaves the domain of computation through symmetric input/output confluence
+// declarations -- a tensor associated with an oriented face of the domain.
 //
 //   M = 2; K = 3;                              // integer parameters
-//   input A[2][3] = { 1, 2, 3, 4, 5, 6 };      // row-major data, or scalar fill
 //   system ((i,j,k) | 0 <= i < M, ...) {       // shared iteration domain
 //       a(i,j,k) = a(i,j-1,k);                 // equations: taps are var(affine...)
 //       c(i,j,k) = c(i,j,k-1) + a(i,j-1,k) * b(i-1,j,k);
 //   }
-//   boundary a(i,j,k) = A[i][k];               // value when a tap exits the domain
-//   boundary c(i,j,k) = 0;                     //   (default 0 when omitted)
+//   input  A[M][K] ((i,j,k) | 0 <= i < M, 0 <= k < K, j = -1)  : a(i,j,k) = A[i][k];
+//   input          ((i,j,k) | 0 <= i < M, 0 <= j < N, k = -1)  : c(i,j,k) = 0;
+//   output C[M][N] ((i,j,k) | 0 <= i < M, 0 <= j < N, k = K-1) : C[i][j] = c(i,j,k);
 //   tau = [1, 1, 1];                           // optional canonical linear schedule
-//   output ((i,j) | 0 <= i < M, ...) c(i, j, K-1);
+//   data A = { 1, 2, 3, 4, 5, 6 };             // test-bench binding (row-major, or scalar)
 //
-// Notation notes:
-//   - recurrence variables are read with parentheses: a(i,j-1,k) -- these become
-//     AffineDependency taps; input arrays are read with brackets: A[i][k] and may
-//     only appear in boundary expressions
-//   - constraints are affine: chains over bare indices (0 <= i,j,k < N) or binary
-//     relations between affine expressions (k <= j); every index needs constant
-//     lower and upper bounds so the domain enumeration box is defined
-//   - expression bodies support + - * /, unary minus, parentheses, and
-//     sqrt/exp/abs; the docs' ternary boundary idiom ((k==0) ? ... : ...) is
-//     expressed through the boundary mechanism instead
+// A face region is written in the domain's own coordinates: extent from the
+// inequalities, location from exactly one equality, and orientation *derived*
+// (the equality plane's outward normal w.r.t. the domain; inputs are influx,
+// outputs are outflux).  Input faces sit on the one-step halo where boundary
+// values are actually read (j = -1); output faces on the domain (k = K-1).
 //
-// v1 scope: all equations share the system domain (matches docs/SURE/matmul.md
-// and conv2d.md); per-equation domains (QR) are a follow-up.
+// Validated contracts:
+//   - coverage: every out-of-domain tap image lands on exactly one input face
+//     of its variable (uncovered accesses are hard, located errors)
+//   - face well-formedness: exactly one equality per face; the face plane may
+//     not cut the domain interior; every face index has constant bounds
+//   - flux consistency: with a declared tau, tau.n < 0 on every input face
+//     and tau.n > 0 on every output face (n = outward normal)
+//   - element range: output tensor indices stay within the declared dims
+//
+// Notation rules: recurrence variables are read with parentheses (a(i,j-1,k),
+// affine dependency taps; equation and output expressions), tensors with
+// brackets (A[i][k]; input and output expressions only).  Expression bodies
+// support + - * /, unary minus, parentheses, and sqrt/exp/abs.
+//
+// v1 -> v2: the `boundary` statement, the data-table `input`, and the
+// projected `output` are replaced by the confluence declarations above.
+// Scope: all equations share the system domain (per-equation domains, as QR
+// needs, remain a follow-up).
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -35,6 +48,7 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include <functional>
 #include <cmath>
 #include <cctype>
 #include <limits>
@@ -45,26 +59,36 @@ namespace sw {
     namespace dfa {
         namespace sim {
 
-            // named input data array (row-major)
+            // named tensor data binding (row-major)
             struct SureInput {
                 std::vector<long> dims;
                 std::vector<double> data;
             };
 
-            // one output declaration: enumerate `domain` and read var at map(p)
-            struct SureOutput {
-                std::string var;
-                std::vector<std::string> indexNames;   // output index names, for printing
-                Domain domain;
-                AffineDependency map;                  // output point -> system point
+            // input confluence summary (for reporting)
+            struct SureInputInfo {
+                std::string tensor;         // "" for a constant input
+                std::string var;            // recurrence variable it feeds
+                std::vector<int> normal;    // outward face normal
+            };
 
-                SureOutput() : var{}, indexNames{}, domain{}, map(AffineDependency::shift({})) {}
+            // one output confluence: enumerate `region` (a face of the domain);
+            // each face point maps to a tensor element and a value
+            struct SureOutput {
+                std::string tensor;
+                std::vector<long> dims;
+                std::string var;                       // primary recurrence variable read
+                Domain region;
+                std::vector<int> normal;               // outward face normal
+                std::function<std::vector<long>(const IndexPoint&)> elemIndex;
+                std::function<double(SureSimulator<double>&, const IndexPoint&)> eval;
             };
 
             // a parsed, executable SURE program
             struct SureSpec {
                 RecurrenceSystem<double> system;
                 std::vector<std::string> indexNames;   // system index names, for reporting
+                std::vector<SureInputInfo> inputs;
                 std::vector<SureOutput> outputs;
                 std::vector<int> tau;                  // empty => free schedule only
             };
@@ -80,7 +104,7 @@ namespace sw {
                     Kind kind = Kind::Number;
                     double number = 0.0;
                     std::size_t tapSlot = 0;                    // TapRef
-                    std::string name;                           // ArrayRef array / Call function
+                    std::string name;                           // ArrayRef tensor / Call function
                     std::vector<std::vector<long>> idxCoeffs;   // ArrayRef: per-dim coeffs over system indices
                     std::vector<long> idxConst;                 // ArrayRef: per-dim constants
                     char op = 0;                                // Unary '-', Binary '+','-','*','/'
@@ -94,12 +118,13 @@ namespace sw {
                     switch (e.kind) {
                     case Expr::Kind::Number: return e.number;
                     case Expr::Kind::TapRef:
-                        if (!taps) throw std::runtime_error("sure: tap reference in a boundary expression");
+                        if (!taps) throw std::runtime_error("sure: tap reference in an input expression");
                         return (*taps)[e.tapSlot];
                     case Expr::Kind::ArrayRef: {
-                        if (!p || !inputs) throw std::runtime_error("sure: array reference in an equation body");
+                        if (!p || !inputs) throw std::runtime_error("sure: tensor reference in an equation body");
                         auto it = inputs->find(e.name);
-                        if (it == inputs->end()) throw std::runtime_error("sure: unknown input array '" + e.name + "'");
+                        if (it == inputs->end())
+                            throw std::runtime_error("sure: no data bound for tensor '" + e.name + "'");
                         const SureInput& arr = it->second;
                         long flat = 0;
                         for (std::size_t d = 0; d < arr.dims.size(); ++d) {
@@ -107,7 +132,7 @@ namespace sw {
                             for (std::size_t i = 0; i < e.idxCoeffs[d].size() && i < p->size(); ++i)
                                 v += e.idxCoeffs[d][i] * (*p)[i];
                             if (v < 0 || v >= arr.dims[d])
-                                throw std::runtime_error("sure: index out of range reading input '" + e.name + "'");
+                                throw std::runtime_error("sure: index out of range reading tensor '" + e.name + "'");
                             flat = flat * arr.dims[d] + v;
                         }
                         return arr.data[static_cast<std::size_t>(flat)];
@@ -134,6 +159,12 @@ namespace sw {
                     }
                     }
                     return 0.0;
+                }
+
+                inline void collectArrays(const Expr& e, std::vector<std::string>& names) {
+                    if (e.kind == Expr::Kind::ArrayRef) names.push_back(e.name);
+                    if (e.lhs) collectArrays(*e.lhs, names);
+                    if (e.rhs) collectArrays(*e.rhs, names);
                 }
 
                 // ── tokenizer ──────────────────────────────────────────────
@@ -210,12 +241,12 @@ namespace sw {
 
                     SureSpec parse() {
                         while (!at(Token::Kind::End)) {
-                            if (atIdent("input"))         parseInput();
-                            else if (atIdent("system"))   parseSystem();
-                            else if (atIdent("boundary")) parseBoundary();
-                            else if (atIdent("output"))   parseOutput();
-                            else if (atIdent("tau"))      parseTau();
-                            else                          parseParam();
+                            if (atIdent("input"))       parseInputFace();
+                            else if (atIdent("output")) parseOutputFace();
+                            else if (atIdent("data"))   parseData();
+                            else if (atIdent("system")) parseSystem();
+                            else if (atIdent("tau"))    parseTau();
+                            else                        parseParam();
                         }
                         if (indexNames.empty()) fail("no system(...) block found");
                         assemble();
@@ -227,32 +258,57 @@ namespace sw {
                     std::size_t pos = 0;
 
                     std::map<std::string, long> params;
-                    std::shared_ptr<std::map<std::string, SureInput>> inputs =
+                    std::map<std::string, std::vector<long>> tensors;   // declared tensor dims
+                    std::shared_ptr<std::map<std::string, SureInput>> data =
                         std::make_shared<std::map<std::string, SureInput>>();
 
                     std::vector<std::string> indexNames;      // system index vector
                     Domain systemDomain;
+                    std::vector<long> sysLo, sysHi;           // domain bounding box
+                    std::vector<IndexPoint> sysPoints;        // enumerated domain, for orientation + coverage
 
                     struct TapDecl { std::string source; std::vector<std::vector<int>> A; std::vector<int> b; };
                     struct EqDecl {
                         std::string name;
                         std::vector<TapDecl> taps;
                         ExprPtr body;
-                        ExprPtr boundary;                     // filled from boundary decls; may stay null
+                        int line = 0;
+                    };
+                    struct InFace {
+                        std::string tensor;                   // "" for a constant input
+                        std::string var;
+                        Domain region;
+                        std::vector<int> normal;
+                        ExprPtr expr;
+                        int line = 0;
+                    };
+                    struct OutFace {
+                        std::string tensor;
+                        std::vector<long> dims;
+                        Domain region;
+                        std::vector<int> normal;
+                        std::vector<std::vector<long>> elemA; // tensor index affines over system indices
+                        std::vector<long> elemB;
+                        ExprPtr expr;
+                        std::vector<TapDecl> taps;
                         int line = 0;
                     };
                     std::vector<EqDecl> eqs;
+                    std::vector<InFace> inFaces;
+                    std::vector<OutFace> outFaces;
                     SureSpec spec;
-                    bool inBoundary = false;   // arrays are legal only in boundary expressions
+                    bool inFaceExpr = false;   // tensors are legal only in input/output expressions
+                    const std::vector<std::string> kNoNames{};
 
                     // ---- token helpers ------------------------------------
                     const Token& cur() const { return toks[pos]; }
                     bool at(Token::Kind k) const { return cur().kind == k; }
                     bool atIdent(const char* s) const { return cur().kind == Token::Kind::Ident && cur().text == s; }
                     bool atPunct(const char* s) const { return cur().kind == Token::Kind::Punct && cur().text == s; }
-                    [[noreturn]] void fail(const std::string& msg) const {
-                        throw std::runtime_error("sure parser: line " + std::to_string(cur().line) + ": " + msg);
+                    [[noreturn]] void failAt(int line, const std::string& msg) const {
+                        throw std::runtime_error("sure parser: line " + std::to_string(line) + ": " + msg);
                     }
+                    [[noreturn]] void fail(const std::string& msg) const { failAt(cur().line, msg); }
                     Token next() { Token t = cur(); if (!at(Token::Kind::End)) ++pos; return t; }
                     void expectPunct(const char* s) {
                         if (!atPunct(s)) fail(std::string("expected '") + s + "', got '" + cur().text + "'");
@@ -283,6 +339,14 @@ namespace sw {
                         return -1;
                     }
 
+                    std::string pointToString(const IndexPoint& p) const {
+                        std::ostringstream os;
+                        os << "(";
+                        for (std::size_t i = 0; i < p.size(); ++i) os << p[i] << (i + 1 < p.size() ? "," : "");
+                        os << ")";
+                        return os.str();
+                    }
+
                     // ---- statements ---------------------------------------
                     void parseParam() {
                         std::string name = expectIdent();
@@ -306,21 +370,18 @@ namespace sw {
                         spec.tau = tau;
                     }
 
-                    void parseInput() {
-                        ++pos;                       // 'input'
+                    // data NAME = { csv } ;   |   data NAME = number ;
+                    void parseData() {
+                        ++pos;                       // 'data'
+                        int line = cur().line;
                         std::string name = expectIdent();
-                        SureInput arr;
+                        auto it = tensors.find(name);
+                        if (it == tensors.end()) failAt(line, "data binding for undeclared tensor '" + name + "'");
                         long total = 1;
-                        while (atPunct("[")) {
-                            ++pos;
-                            long d = expectInt();
-                            if (d <= 0) fail("input dimension must be positive");
-                            arr.dims.push_back(d);
-                            total *= d;
-                            expectPunct("]");
-                        }
-                        if (arr.dims.empty()) fail("input '" + name + "' needs at least one [dim]");
+                        for (long d : it->second) total *= d;
                         expectPunct("=");
+                        SureInput arr;
+                        arr.dims = it->second;
                         if (atPunct("{")) {
                             ++pos;
                             while (!atPunct("}")) {
@@ -329,30 +390,48 @@ namespace sw {
                             }
                             expectPunct("}");
                             if (static_cast<long>(arr.data.size()) != total)
-                                fail("input '" + name + "' has " + std::to_string(arr.data.size()) +
-                                     " values, expected " + std::to_string(total));
+                                failAt(line, "tensor '" + name + "' has " + std::to_string(arr.data.size()) +
+                                             " values, expected " + std::to_string(total));
                         } else {
                             double fill = expectNumber();
                             arr.data.assign(static_cast<std::size_t>(total), fill);
                         }
                         expectPunct(";");
-                        (*inputs)[name] = std::move(arr);
+                        (*data)[name] = std::move(arr);
+                    }
+
+                    // TENSOR '[' constAffine ']'+  -- dims may use parameters
+                    std::vector<long> parseTensorDims() {
+                        std::vector<long> dims;
+                        while (atPunct("[")) {
+                            ++pos;
+                            Affine a = parseAffine(indexNames.empty() ? kNoNames : indexNames);
+                            if (!a.isConst() || a.b <= 0) fail("tensor dimensions must be positive constants");
+                            dims.push_back(a.b);
+                            expectPunct("]");
+                        }
+                        if (dims.empty()) fail("tensor needs at least one [dim]");
+                        return dims;
                     }
 
                     void parseSystem() {
                         if (!indexNames.empty()) fail("only one system(...) block is supported");
                         ++pos;                       // 'system'
                         expectPunct("(");
-                        systemDomain = parseDomainHeader(indexNames);
+                        parseIndexHeader(indexNames);
+                        std::vector<LinCon> cons = parseConstraints(indexNames);
                         expectPunct(")");
+                        systemDomain = buildDomain(indexNames, cons, sysLo, sysHi);
+                        // the enumerated (constraint-filtered) domain: used to orient
+                        // face planes as supporting hyperplanes and for coverage checks
+                        sysPoints = systemDomain.enumerate();
+                        if (sysPoints.empty()) fail("system domain is empty");
                         expectPunct("{");
                         while (!atPunct("}")) parseEquation();
                         expectPunct("}");
                     }
 
-                    // parses "(i,j,k) | constraints" given an empty name vector;
-                    // returns the Domain (also used by output declarations)
-                    Domain parseDomainHeader(std::vector<std::string>& names) {
+                    void parseIndexHeader(std::vector<std::string>& names) {
                         expectPunct("(");
                         while (!atPunct(")")) {
                             names.push_back(expectIdent());
@@ -361,13 +440,15 @@ namespace sw {
                         expectPunct(")");
                         if (names.empty()) fail("empty index vector");
                         expectPunct("|");
+                    }
+
+                    std::vector<LinCon> parseConstraints(const std::vector<std::string>& names) {
                         std::vector<LinCon> cons;
                         cons.push_back(parseConstraint(names));
                         while (atPunct(",")) { ++pos; cons.push_back(parseConstraint(names)); }
-                        // chains produce multiple constraints; flatten
                         for (auto& extra : pendingChain) cons.push_back(extra);
                         pendingChain.clear();
-                        return buildDomain(names, cons);
+                        return cons;
                     }
 
                     std::vector<LinCon> pendingChain;    // extra constraints from chained relations
@@ -392,7 +473,6 @@ namespace sw {
                         if (chained && !chainVars.empty()) {
                             std::string rel2 = parseRel();
                             Affine rhs = parseAffine(names);
-                            // lhs REL v  for every v, and v REL2 rhs for every v
                             LinCon first = makeCon(lhs, rel, unitVar(names.size(), chainVars[0]));
                             for (std::size_t i = 1; i < chainVars.size(); ++i)
                                 pendingChain.push_back(makeCon(lhs, rel, unitVar(names.size(), chainVars[i])));
@@ -412,9 +492,10 @@ namespace sw {
                     }
 
                     std::string parseRel() {
-                        if (atPunct("<=") || atPunct("<") || atPunct(">=") || atPunct(">") || atPunct("=="))
+                        if (atPunct("<=") || atPunct("<") || atPunct(">=") || atPunct(">") ||
+                            atPunct("==") || atPunct("="))
                             return next().text;
-                        fail("expected a relation (<=, <, >=, >, ==), got '" + cur().text + "'");
+                        fail("expected a relation (<=, <, >=, >, =, ==), got '" + cur().text + "'");
                     }
 
                     // normalize L REL R into  a . x >= rhs  (or ==)
@@ -431,11 +512,12 @@ namespace sw {
                         LinCon c;
                         c.a = diff.a;
                         c.rhs = -diff.b;
-                        c.isEq = (rel == "==");
+                        c.isEq = (rel == "==" || rel == "=");
                         return c;
                     }
 
-                    Domain buildDomain(const std::vector<std::string>& names, const std::vector<LinCon>& cons) {
+                    Domain buildDomain(const std::vector<std::string>& names, const std::vector<LinCon>& cons,
+                                       std::vector<long>& loOut, std::vector<long>& hiOut) {
                         const std::size_t dim = names.size();
                         std::vector<long> lo(dim, std::numeric_limits<long>::min());
                         std::vector<long> hi(dim, std::numeric_limits<long>::max());
@@ -449,11 +531,15 @@ namespace sw {
                                     nz = static_cast<int>(i);
                                 }
                             }
-                            if (single && nz >= 0 && !c.isEq &&
+                            if (single && nz >= 0 &&
                                 (c.a[static_cast<std::size_t>(nz)] == 1 || c.a[static_cast<std::size_t>(nz)] == -1)) {
                                 std::size_t d = static_cast<std::size_t>(nz);
-                                if (c.a[d] == 1) lo[d] = std::max(lo[d], c.rhs);       //  x >= rhs
-                                else             hi[d] = std::min(hi[d], -c.rhs);      // -x >= rhs  =>  x <= -rhs
+                                if (c.isEq) {                                     //  +-x == rhs: pins the box
+                                    long v = (c.a[d] == 1) ? c.rhs : -c.rhs;
+                                    lo[d] = std::max(lo[d], v);
+                                    hi[d] = std::min(hi[d], v);
+                                } else if (c.a[d] == 1) lo[d] = std::max(lo[d], c.rhs);   //  x >= rhs
+                                else                    hi[d] = std::min(hi[d], -c.rhs);  //  x <= -rhs
                             } else {
                                 extra.push_back(&c);
                             }
@@ -463,6 +549,7 @@ namespace sw {
                             if (lo[d] == std::numeric_limits<long>::min() ||
                                 hi[d] == std::numeric_limits<long>::max())
                                 fail("index '" + names[d] + "' has no constant lower and upper bound");
+                            if (lo[d] > hi[d]) fail("index '" + names[d] + "' has an empty range");
                             dom.axis(static_cast<int>(d), static_cast<int>(lo[d]), static_cast<int>(hi[d]) + 1);
                         }
                         for (const LinCon* c : extra) {
@@ -470,12 +557,65 @@ namespace sw {
                             dom.add(HalfSpace{ a, static_cast<int>(c->rhs),
                                                c->isEq ? HalfSpace::EQ : HalfSpace::GE });
                         }
+                        loOut = lo;
+                        hiOut = hi;
                         return dom;
                     }
 
+                    // face region: "((i,j,k) | extent..., one equality)" in system coordinates;
+                    // returns the Domain and derives the outward face normal
+                    Domain parseFaceRegion(std::vector<int>& normal, int line) {
+                        expectPunct("(");
+                        std::vector<std::string> names;
+                        parseIndexHeader(names);
+                        if (names != indexNames)
+                            failAt(line, "face regions use the system index vector");
+                        std::vector<LinCon> cons = parseConstraints(names);
+                        expectPunct(")");
+
+                        // exactly one equality pins the face plane (codimension 1)
+                        const LinCon* eq = nullptr;
+                        for (const auto& c : cons) {
+                            if (c.isEq) {
+                                if (eq) failAt(line, "a face region needs exactly one equality (found several)");
+                                eq = &c;
+                            }
+                        }
+                        if (!eq) failAt(line, "a face region needs exactly one equality to pin the face plane");
+
+                        // the equality must have index terms (a constant equality like
+                        // 0 = 1 has no plane to pin)
+                        bool nonzero = false;
+                        for (long a : eq->a) nonzero |= (a != 0);
+                        if (!nonzero) failAt(line, "the face equality has no index terms");
+
+                        // orientation: the plane a.x = rhs must be a supporting
+                        // hyperplane of the domain -- classify every domain point and
+                        // reject planes with points on both strict sides; the outward
+                        // normal points away from the occupied side
+                        bool hasNeg = false, hasPos = false;
+                        for (const auto& p : sysPoints) {
+                            long side = -eq->rhs;
+                            for (std::size_t d = 0; d < indexNames.size(); ++d)
+                                side += eq->a[d] * p[d];
+                            hasNeg |= (side < 0);
+                            hasPos |= (side > 0);
+                        }
+                        if (hasNeg && hasPos)
+                            failAt(line, "the face plane cuts the domain interior; a face must lie on or outside the domain surface");
+                        if (!hasNeg && !hasPos)
+                            failAt(line, "face orientation is ambiguous: the entire domain lies on the face plane");
+                        normal.clear();
+                        for (std::size_t d = 0; d < indexNames.size(); ++d) {
+                            long a = eq->a[d];
+                            normal.push_back(static_cast<int>(hasPos ? -a : a));
+                        }
+
+                        std::vector<long> lo, hi;
+                        return buildDomain(names, cons, lo, hi);
+                    }
+
                     // ---- affine index expressions -------------------------
-                    // grammar: aff := term (('+'|'-') term)* ; term := factor ('*' factor)*
-                    // factor := INT | param | index | '-' factor | '(' aff ')'
                     Affine parseAffine(const std::vector<std::string>& names) {
                         Affine acc = parseAffineTerm(names);
                         while (atPunct("+") || atPunct("-")) {
@@ -541,14 +681,7 @@ namespace sw {
                     void parseEquation() {
                         int line = cur().line;
                         std::string name = expectIdent();
-                        expectPunct("(");
-                        for (std::size_t i = 0; i < indexNames.size(); ++i) {
-                            std::string id = expectIdent();
-                            if (id != indexNames[i])
-                                fail("equation LHS indices must match the system index vector (" + id + ")");
-                            if (i + 1 < indexNames.size()) expectPunct(",");
-                        }
-                        expectPunct(")");
+                        expectSystemIndexList();
                         expectPunct("=");
                         EqDecl eq;
                         eq.name = name;
@@ -556,6 +689,17 @@ namespace sw {
                         eq.body = parseExpr(eq);
                         expectPunct(";");
                         eqs.push_back(std::move(eq));
+                    }
+
+                    void expectSystemIndexList() {
+                        expectPunct("(");
+                        for (std::size_t i = 0; i < indexNames.size(); ++i) {
+                            std::string id = expectIdent();
+                            if (id != indexNames[i])
+                                fail("indices must match the system index vector ('" + id + "')");
+                            if (i + 1 < indexNames.size()) expectPunct(",");
+                        }
+                        expectPunct(")");
                     }
 
                     // full arithmetic expression; taps registered into eq
@@ -610,8 +754,8 @@ namespace sw {
                             }
                             if (atPunct("(")) return parseTapRef(eq, id);
                             if (atPunct("[")) {
-                                if (!inBoundary)
-                                    fail("input arrays may only be read in boundary expressions ('" + id + "')");
+                                if (!inFaceExpr)
+                                    fail("tensors may only be read in input/output expressions ('" + id + "')");
                                 return parseArrayRef(id);
                             }
                             auto it = params.find(id);
@@ -639,7 +783,6 @@ namespace sw {
                         expectPunct(")");
                         if (A.size() != indexNames.size())
                             fail("tap '" + source + "' must have " + std::to_string(indexNames.size()) + " indices");
-                        // dedupe identical taps to one slot
                         for (std::size_t s = 0; s < eq.taps.size(); ++s) {
                             if (eq.taps[s].source == source && eq.taps[s].A == A && eq.taps[s].b == b) {
                                 auto n = std::make_shared<Expr>();
@@ -663,93 +806,287 @@ namespace sw {
                             n->idxConst.push_back(aff.b);
                             expectPunct("]");
                         }
-                        auto it = inputs->find(name);
-                        if (it == inputs->end()) fail("unknown input array '" + name + "'");
-                        if (n->idxCoeffs.size() != it->second.dims.size())
-                            fail("input '" + name + "' has " + std::to_string(it->second.dims.size()) + " dimensions");
+                        auto it = tensors.find(name);
+                        if (it == tensors.end()) fail("unknown tensor '" + name + "'");
+                        if (n->idxCoeffs.size() != it->second.size())
+                            fail("tensor '" + name + "' has " + std::to_string(it->second.size()) + " dimensions");
                         return n;
                     }
 
-                    // ---- boundary / output --------------------------------
-                    void parseBoundary() {
-                        ++pos;                       // 'boundary'
-                        if (indexNames.empty()) fail("boundary declared before the system(...) block");
-                        std::string name = expectIdent();
-                        expectPunct("(");
-                        for (std::size_t i = 0; i < indexNames.size(); ++i) {
-                            std::string id = expectIdent();
-                            if (id != indexNames[i]) fail("boundary indices must match the system index vector");
-                            if (i + 1 < indexNames.size()) expectPunct(",");
+                    // ---- confluences --------------------------------------
+                    // input [TENSOR[dims]] ((idx)|cons) : var(idx) = expr ;
+                    void parseInputFace() {
+                        int line = cur().line;
+                        ++pos;                       // 'input'
+                        if (indexNames.empty()) failAt(line, "input declared before the system(...) block");
+                        InFace face;
+                        face.line = line;
+                        if (at(Token::Kind::Ident)) {
+                            face.tensor = expectIdent();
+                            std::vector<long> dims = parseTensorDims();
+                            if (tensors.count(face.tensor)) failAt(line, "tensor '" + face.tensor + "' declared twice");
+                            tensors[face.tensor] = dims;
                         }
-                        expectPunct(")");
-                        expectPunct("=");
-                        EqDecl scratch;             // boundary bodies may not contain taps
-                        inBoundary = true;
-                        ExprPtr body = parseExpr(scratch);
-                        inBoundary = false;
-                        if (!scratch.taps.empty()) fail("boundary expressions may not read recurrence variables");
-                        expectPunct(";");
-                        for (auto& eq : eqs) {
-                            if (eq.name == name) { eq.boundary = body; return; }
-                        }
-                        fail("boundary for unknown recurrence variable '" + name + "'");
-                    }
-
-                    void parseOutput() {
-                        ++pos;                       // 'output'
-                        if (indexNames.empty()) fail("output declared before the system(...) block");
-                        SureOutput out;
-                        expectPunct("(");
-                        out.domain = parseDomainHeader(out.indexNames);
-                        expectPunct(")");
-                        out.var = expectIdent();
+                        face.region = parseFaceRegion(face.normal, line);
+                        expectPunct(":");
+                        face.var = expectIdent();
                         bool known = false;
-                        for (const auto& eq : eqs) known |= (eq.name == out.var);
-                        if (!known) fail("output references unknown recurrence variable '" + out.var + "'");
-                        expectPunct("(");
-                        std::vector<std::vector<int>> A;
-                        std::vector<int> b;
-                        while (!atPunct(")")) {
-                            Affine aff = parseAffine(out.indexNames);
-                            A.push_back(std::vector<int>(aff.a.begin(), aff.a.end()));
-                            b.push_back(static_cast<int>(aff.b));
-                            if (atPunct(",")) ++pos;
+                        for (const auto& eq : eqs) known |= (eq.name == face.var);
+                        if (!known) failAt(line, "input for unknown recurrence variable '" + face.var + "'");
+                        expectSystemIndexList();
+                        expectPunct("=");
+                        EqDecl scratch;             // input expressions may not contain taps
+                        inFaceExpr = true;
+                        face.expr = parseExpr(scratch);
+                        inFaceExpr = false;
+                        if (!scratch.taps.empty())
+                            failAt(line, "input expressions may not read recurrence variables");
+                        // bind the metadata to the tensor actually read: a named input
+                        // must read exactly its declared tensor, a constant input none
+                        std::vector<std::string> reads;
+                        collectArrays(*face.expr, reads);
+                        if (face.tensor.empty()) {
+                            if (!reads.empty())
+                                failAt(line, "a constant input may not read tensors (reads '" + reads.front() + "')");
+                        } else {
+                            if (reads.empty())
+                                failAt(line, "input expression must read its declared tensor '" + face.tensor + "'");
+                            for (const auto& r : reads)
+                                if (r != face.tensor)
+                                    failAt(line, "input expression may only read its declared tensor '" +
+                                                 face.tensor + "' (reads '" + r + "')");
                         }
-                        expectPunct(")");
                         expectPunct(";");
-                        if (A.size() != indexNames.size())
-                            fail("output read must have " + std::to_string(indexNames.size()) + " indices");
-                        out.map = AffineDependency::map(std::move(A), std::move(b));
-                        spec.outputs.push_back(std::move(out));
+                        inFaces.push_back(std::move(face));
                     }
 
-                    // ---- assembly -----------------------------------------
+                    // output TENSOR[dims] ((idx)|cons) : TENSOR[aff]... = expr ;
+                    void parseOutputFace() {
+                        int line = cur().line;
+                        ++pos;                       // 'output'
+                        if (indexNames.empty()) failAt(line, "output declared before the system(...) block");
+                        OutFace face;
+                        face.line = line;
+                        face.tensor = expectIdent();
+                        face.dims = parseTensorDims();
+                        if (tensors.count(face.tensor)) failAt(line, "tensor '" + face.tensor + "' declared twice");
+                        tensors[face.tensor] = face.dims;
+                        face.region = parseFaceRegion(face.normal, line);
+                        expectPunct(":");
+                        std::string lhs = expectIdent();
+                        if (lhs != face.tensor)
+                            failAt(line, "output element must be written to tensor '" + face.tensor + "'");
+                        while (atPunct("[")) {
+                            ++pos;
+                            Affine aff = parseAffine(indexNames);
+                            face.elemA.push_back(std::vector<long>(aff.a.begin(), aff.a.end()));
+                            face.elemB.push_back(aff.b);
+                            expectPunct("]");
+                        }
+                        if (face.elemA.size() != face.dims.size())
+                            failAt(line, "output tensor '" + face.tensor + "' has " +
+                                         std::to_string(face.dims.size()) + " dimensions");
+                        expectPunct("=");
+                        EqDecl scratch;
+                        inFaceExpr = true;
+                        face.expr = parseExpr(scratch);
+                        inFaceExpr = false;
+                        face.taps = std::move(scratch.taps);
+                        if (face.taps.empty())
+                            failAt(line, "output expressions must read at least one recurrence variable");
+                        expectPunct(";");
+                        outFaces.push_back(std::move(face));
+                    }
+
+                    // ---- assembly + validation ----------------------------
                     void assemble() {
                         spec.indexNames = indexNames;
-                        auto ins = inputs;           // shared with all boundary closures
+                        if (outFaces.empty()) fail("no output(...) declaration found");
+
+                        // every tap must read a declared recurrence variable; without
+                        // this, an in-domain tap to a typo would only fail at eval time
+                        auto isVar = [this](const std::string& n) {
+                            for (const auto& e : eqs) if (e.name == n) return true;
+                            return false;
+                        };
+                        for (const auto& eq : eqs)
+                            for (const auto& t : eq.taps)
+                                if (!isVar(t.source))
+                                    failAt(eq.line, "equation for '" + eq.name +
+                                                    "' reads unknown recurrence variable '" + t.source + "'");
+                        for (const auto& f : outFaces)
+                            for (const auto& t : f.taps)
+                                if (!isVar(t.source))
+                                    failAt(f.line, "output '" + f.tensor +
+                                                   "' reads unknown recurrence variable '" + t.source + "'");
+                        if (!spec.tau.empty() && spec.tau.size() != indexNames.size())
+                            fail("tau has " + std::to_string(spec.tau.size()) + " components, expected " +
+                                 std::to_string(indexNames.size()));
+
+                        // every tensor referenced in a face expression needs a data binding
+                        for (const auto& f : inFaces) requireData(*f.expr, f.line);
+                        for (const auto& f : outFaces) requireData(*f.expr, f.line);
+
+                        // flux consistency: tau.n < 0 on input faces, tau.n > 0 on output faces
+                        if (!spec.tau.empty()) {
+                            for (const auto& f : inFaces) {
+                                if (flux(f.normal) >= 0)
+                                    failAt(f.line, "input face of '" + f.var +
+                                                   "' has non-negative flux (tau.n >= 0): data must flow into the wavefront sweep");
+                            }
+                            for (const auto& f : outFaces) {
+                                if (flux(f.normal) <= 0)
+                                    failAt(f.line, "output face of '" + f.tensor +
+                                                   "' has non-positive flux (tau.n <= 0): results must exit ahead of the sweep");
+                            }
+                        }
+
+                        // build equations with face-dispatched boundaries
+                        auto ins = data;
                         for (auto& eq : eqs) {
                             std::vector<Equation<double>::Tap> taps;
                             for (const auto& t : eq.taps)
                                 taps.push_back({ t.source, AffineDependency::map(t.A, t.b) });
+                            std::vector<std::pair<Domain, ExprPtr>> faces;
+                            for (const auto& f : inFaces)
+                                if (f.var == eq.name) faces.push_back({ f.region, f.expr });
                             ExprPtr body = eq.body;
-                            ExprPtr bnd = eq.boundary;
+                            std::string name = eq.name;
                             spec.system.add(Equation<double>{
                                 eq.name, systemDomain, std::move(taps),
                                 [body](const std::vector<double>& t, const IndexPoint&) {
                                     return suredetail::evalExpr(*body, &t, nullptr, nullptr);
                                 },
-                                [bnd, ins](const IndexPoint& p) {
-                                    return bnd ? suredetail::evalExpr(*bnd, nullptr, &p, ins.get()) : 0.0;
+                                [faces, ins, name](const IndexPoint& q) -> double {
+                                    const ExprPtr* hit = nullptr;
+                                    for (const auto& f : faces) {
+                                        if (f.first.isInside(q)) {
+                                            if (hit) throw std::runtime_error(
+                                                "sure: multiple input faces of '" + name + "' cover the same point");
+                                            hit = &f.second;
+                                        }
+                                    }
+                                    if (!hit) throw std::runtime_error(
+                                        "sure: access to '" + name + "' at a boundary point not covered by any input face");
+                                    return suredetail::evalExpr(**hit, nullptr, &q, ins.get());
                                 } });
                         }
-                        if (spec.outputs.empty()) fail("no output(...) declaration found");
-                        if (!spec.tau.empty() && spec.tau.size() != indexNames.size())
-                            fail("tau has " + std::to_string(spec.tau.size()) + " components, expected " +
-                                 std::to_string(indexNames.size()));
+
+                        // coverage: every out-of-domain tap image lands on exactly one
+                        // input face of its variable (equation taps and output taps)
+                        for (const auto& eq : eqs)
+                            for (const auto& t : eq.taps)
+                                checkCoverage(t, sysPoints, eq.line, "equation for '" + eq.name + "'");
+                        for (const auto& f : outFaces) {
+                            std::vector<IndexPoint> facePoints = f.region.enumerate();
+                            if (facePoints.empty()) failAt(f.line, "output face region of '" + f.tensor + "' is empty");
+                            for (const auto& t : f.taps)
+                                checkCoverage(t, facePoints, f.line, "output '" + f.tensor + "'");
+                            // element-map range check
+                            for (const auto& p : facePoints) {
+                                for (std::size_t r = 0; r < f.dims.size(); ++r) {
+                                    long v = f.elemB[r];
+                                    for (std::size_t i = 0; i < p.size(); ++i) v += f.elemA[r][i] * p[i];
+                                    if (v < 0 || v >= f.dims[r])
+                                        failAt(f.line, "output element index of '" + f.tensor +
+                                                       "' out of range at face point " + pointToString(p));
+                                }
+                            }
+                        }
+
+                        // publish the confluence structure
+                        for (const auto& f : inFaces)
+                            spec.inputs.push_back({ f.tensor, f.var, f.normal });
+                        for (const auto& f : outFaces) {
+                            SureOutput out;
+                            out.tensor = f.tensor;
+                            out.dims = f.dims;
+                            out.var = f.taps.front().source;
+                            out.region = f.region;
+                            out.normal = f.normal;
+                            auto elemA = f.elemA;
+                            auto elemB = f.elemB;
+                            out.elemIndex = [elemA, elemB](const IndexPoint& p) {
+                                std::vector<long> idx(elemA.size(), 0);
+                                for (std::size_t r = 0; r < elemA.size(); ++r) {
+                                    idx[r] = elemB[r];
+                                    for (std::size_t i = 0; i < p.size() && i < elemA[r].size(); ++i)
+                                        idx[r] += elemA[r][i] * p[i];
+                                }
+                                return idx;
+                            };
+                            std::vector<std::pair<std::string, AffineDependency>> otaps;
+                            for (const auto& t : f.taps)
+                                otaps.push_back({ t.source, AffineDependency::map(t.A, t.b) });
+                            ExprPtr expr = f.expr;
+                            out.eval = [otaps, expr, ins](SureSimulator<double>& sim, const IndexPoint& p) {
+                                std::vector<double> tv;
+                                tv.reserve(otaps.size());
+                                for (const auto& t : otaps) tv.push_back(sim.eval(t.first, t.second.apply(p)));
+                                return suredetail::evalExpr(*expr, &tv, &p, ins.get());
+                            };
+                            spec.outputs.push_back(std::move(out));
+                        }
+                    }
+
+                    long flux(const std::vector<int>& normal) const {
+                        long s = 0;
+                        for (std::size_t d = 0; d < normal.size() && d < spec.tau.size(); ++d)
+                            s += static_cast<long>(spec.tau[d]) * normal[d];
+                        return s;
+                    }
+
+                    void requireData(const Expr& e, int line) const {
+                        std::vector<std::string> names;
+                        collectArrays(e, names);
+                        for (const auto& n : names)
+                            if (!data->count(n))
+                                failAt(line, "tensor '" + n + "' has no data binding (add: data " + n + " = ...;)");
+                    }
+
+                    void checkCoverage(const TapDecl& tap, const std::vector<IndexPoint>& points,
+                                       int line, const std::string& where) {
+                        AffineDependency map = AffineDependency::map(tap.A, tap.b);
+                        for (const auto& p : points) {
+                            IndexPoint q = map.apply(p);
+                            if (systemDomain.isInside(q)) continue;
+                            int hits = 0;
+                            for (const auto& f : inFaces)
+                                if (f.var == tap.source && f.region.isInside(q)) ++hits;
+                            if (hits == 0)
+                                failAt(line, where + ": access to '" + tap.source + "' at " + pointToString(q) +
+                                             " is not covered by any input face");
+                            if (hits > 1)
+                                failAt(line, where + ": access to '" + tap.source + "' at " + pointToString(q) +
+                                             " is covered by multiple input faces");
+                        }
                     }
                 };
 
             } // namespace suredetail
+
+            // flux consistency of a schedule vector against the declared confluences:
+            // with outward normal n, an input face needs tau.n < 0 (influx) and an
+            // output face tau.n > 0 (outflux).  The parser enforces this for the
+            // program's own tau; callers overriding the schedule (e.g. dfactl --tau)
+            // must revalidate with the effective vector.
+            inline void validateSureFlux(const SureSpec& spec, const std::vector<int>& tau) {
+                auto flux = [&tau](const std::vector<int>& n) {
+                    long s = 0;
+                    for (std::size_t d = 0; d < n.size() && d < tau.size(); ++d)
+                        s += static_cast<long>(tau[d]) * n[d];
+                    return s;
+                };
+                for (const auto& in : spec.inputs)
+                    if (flux(in.normal) >= 0)
+                        throw std::runtime_error("sure: input face " +
+                            (in.tensor.empty() ? std::string("(const)") : in.tensor) + " -> " + in.var +
+                            " has non-negative flux (tau.n >= 0) under the requested tau");
+                for (const auto& out : spec.outputs)
+                    if (flux(out.normal) <= 0)
+                        throw std::runtime_error("sure: output face " + out.tensor +
+                            " has non-positive flux (tau.n <= 0) under the requested tau");
+            }
 
             inline SureSpec parseSureString(const std::string& src) {
                 return suredetail::Parser(src).parse();

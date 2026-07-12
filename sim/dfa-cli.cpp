@@ -162,14 +162,33 @@ namespace {
         for (const auto& kv : sure.system.equations()) os << " " << kv.first;
         os << "\n";
 
+        // confluence structure: tensors bound to oriented faces of the domain
+        auto printNormal = [&os](const std::vector<int>& n) {
+            os << "normal (";
+            for (std::size_t i = 0; i < n.size(); ++i) os << n[i] << (i + 1 < n.size() ? "," : "");
+            os << ")";
+        };
+        for (const auto& in : sure.inputs) {
+            os << "  input  " << (in.tensor.empty() ? "(const)" : in.tensor)
+               << " -> " << in.var << "  ";
+            printNormal(in.normal);
+            os << "\n";
+        }
+        for (const auto& out : sure.outputs) {
+            os << "  output " << out.tensor << " <- " << out.var << "  ";
+            printNormal(out.normal);
+            os << "\n";
+        }
+
         SureSimulator<double> sim(sure.system);
         if (!quiet) {
             for (const auto& out : sure.outputs) {
-                for (const auto& p : out.domain.enumerate()) {
-                    double v = sim.eval(out.var, out.map.apply(p));
-                    os << "  " << out.var << "(";
-                    for (std::size_t i = 0; i < p.size(); ++i) os << p[i] << (i + 1 < p.size() ? "," : "");
-                    os << ") = " << v << "\n";
+                for (const auto& p : out.region.enumerate()) {
+                    std::vector<long> idx = out.elemIndex(p);
+                    double v = out.eval(sim, p);
+                    os << "  " << out.tensor;
+                    for (long ix : idx) os << "[" << ix << "]";
+                    os << " = " << v << "\n";
                 }
             }
         }
@@ -187,10 +206,13 @@ namespace {
             for (std::size_t i = 0; i < tau.size(); ++i) os << tau[i] << (i + 1 < tau.size() ? "," : "");
             os << "]\n";
             try {
+                // an overriding --tau must also respect the declared confluence
+                // flow directions, not just the dependency slacks
+                validateSureFlux(sure, tau);
                 LinearSchedule s(tau);
                 rc = analyzeAndRun(sim, sure.system, s, os);
             } catch (const std::exception& e) {
-                os << "\n" << e.what() << "\n";   // run() rejected an illegal schedule
+                os << "\n" << e.what() << "\n";   // illegal schedule or flux violation
                 rc = 1;
             }
         }
