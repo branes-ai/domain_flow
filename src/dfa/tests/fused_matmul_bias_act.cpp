@@ -189,13 +189,17 @@ static bool checkFused(const std::string& activation, double expected) {
 
 int main() {
     bool ok = true;
+    try {
+        ok &= checkElaboration();
+        ok &= checkSchedule();
 
-    ok &= checkElaboration();
-    ok &= checkSchedule();
-
-    // relu(3 + 1) = 4; negate(3 + 1) = -4 proves the epilogue is applied
-    ok &= checkFused("relu", 4.0);
-    ok &= checkFused("negate", -4.0);
+        // relu(3 + 1) = 4; negate(3 + 1) = -4 proves the epilogue is applied
+        ok &= checkFused("relu", 4.0);
+        ok &= checkFused("negate", -4.0);
+    } catch (const std::exception& e) {
+        std::cout << "EXCEPTION: " << e.what() << "\n";
+        ok = false;
+    }
 
     std::cout << "\n" << (ok ? "PASS" : "FAIL") << "\n";
     return ok ? 0 : 1;

@@ -86,6 +86,60 @@ namespace sw {
 
 			IndexSpace<ConstraintCoefficientType> indexSpace;
 
+			// handles to the tensor-confluence faces of the matmul (i,j,k) polyhedron
+			struct MatmulHullFaces {
+				std::size_t aFace;         // left face: A streams in
+				std::size_t bFace;         // back face: B streams in
+				std::size_t bottomFace;    // k = 0 face: accumulator seed (Cin)
+				std::size_t terminalFace;  // k = K-1 face: output (and fused epilogue)
+			};
+
+			// construct the matmul (i,j,k) polyhedron shared by MATMUL and
+			// FUSED_MATMUL_BIAS_ACT; callers attach their confluences to the
+			// returned face handles
+			//
+			// computational domain is m x k x n
+			// system( (i, j, k) : 0 <= i < m, 0 <= j < n, 0 <= l < k)
+			//
+			//        v3 +--------------+ v4
+			//          /|             /|                k
+			//         / |            / |                ^
+			//        /  |        v7 /  |                |
+			//    v2 +--------------+   |                |
+			//       |   +----------|---+ v5             +-------> n
+			//       |  / v0        |  /                /
+			//       | /            | /                /
+			//       |/             |/                m
+			//       +--------------+
+			//     v1             v6
+			//
+			MatmulHullFaces buildMatmulHull(ConstraintCoefficientType m_,
+			                                ConstraintCoefficientType n_,
+			                                ConstraintCoefficientType k_) {
+				hull.setDimension(3); // 3D convex hull
+				// left face vertex sequence
+				auto v0 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, 0 }));
+				auto v1 = hull.add_vertex(Point<ConstraintCoefficientType>({ m_, 0, 0 }));
+				auto v2 = hull.add_vertex(Point<ConstraintCoefficientType>({ m_, 0, k_ }));
+				auto v3 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, k_ }));
+				// right face vertex sequence
+				auto v4 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, n_, k_ }));
+				auto v5 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, n_, 0 }));
+				auto v6 = hull.add_vertex(Point<ConstraintCoefficientType>({ m_, n_, 0 }));
+				auto v7 = hull.add_vertex(Point<ConstraintCoefficientType>({ m_, n_, k_ }));
+
+				// define the faces: right hand rule pointing out of the volume
+				MatmulHullFaces faces{};
+				faces.aFace        = hull.add_face({ v0, v1, v2, v3 }); // left face, pointing out
+				faces.bFace        = hull.add_face({ v0, v3, v4, v5 }); // back face, pointing out
+				faces.bottomFace   = hull.add_face({ v0, v5, v6, v1 }); // bottom face, pointing out
+				faces.terminalFace = hull.add_face({ v3, v2, v7, v4 }); // top face, pointing out
+				// remaining faces do not have tensor confluences
+				hull.add_face({ v1, v6, v7, v2 }); // front face
+				hull.add_face({ v5, v4, v7, v6 }); // right face
+				return faces;
+			}
+
 		public:
 			// default constructor
 			DomainOfComputation() = default;
@@ -217,56 +271,20 @@ namespace sw {
 
 					// TBD: Do we need to check the Cin tensor shape and the result Cout tensor shape?
 
-					// computational domain is m x k x n
-					// system( (i, j, k) : 0 <= i < m, 0 <= j < n, 0 <= l < k)
-					hull.setDimension(3); // 3D convex hull
-					//
-					//        v3 +--------------+ v4
-					//          /|             /|                k
-					//         / |            / |                ^
-					//        /  |        v7 /  |                |
-					//    v2 +--------------+   |                |
-					//       |   +----------|---+ v5             +-------> n
-					//       |  / v0        |  /                /
-					//       | /            | /                /
-					//       |/             |/                m
-					//       +--------------+
-					//     v1             v6 
-					// 
-					// left face vertex sequence
-					auto v0 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, 0 }));
-					auto v1 = hull.add_vertex(Point<ConstraintCoefficientType>({ m_, 0, 0 }));
-					auto v2 = hull.add_vertex(Point<ConstraintCoefficientType>({ m_, 0, k_ }));
-					auto v3 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, k_ }));
-
-					// right face vertex sequence
-					auto v4 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, n_, k_ }));
-					auto v5 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, n_, 0 }));
-					auto v6 = hull.add_vertex(Point<ConstraintCoefficientType>({ m_, n_, 0 }));
-					auto v7 = hull.add_vertex(Point<ConstraintCoefficientType>({ m_, n_, k_ }));
-
-
-					// define the faces: right hand rule pointing out of the volume
-					// A tensor confluence
-					auto f0 = hull.add_face({ v0, v1, v2, v3 }); // left face, pointing out
-					inputFaces.add(Confluence<ConstraintCoefficientType>(getInput(0), f0));
-					// B tensor confluence
-					auto f1 = hull.add_face({ v0, v3, v4, v5 }); // back face, pointing out
-					inputFaces.add(Confluence<ConstraintCoefficientType>(getInput(1), f1));
-					// input C tensor confluence (only when the 3-input Cout = A*B + Cin form is used)
-					auto f2 = hull.add_face({ v0, v5, v6, v1 }); // bottom face, pointing out
+					auto faces = buildMatmulHull(m_, n_, k_);
+					// A and B tensor confluences on their streaming faces
+					inputFaces.add(Confluence<ConstraintCoefficientType>(getInput(0), faces.aFace));
+					inputFaces.add(Confluence<ConstraintCoefficientType>(getInput(1), faces.bFace));
+					// input C tensor confluence on the k = 0 accumulator-seed face
+					// (only when the 3-input Cout = A*B + Cin form is used)
 					if (inputs.size() == 3) {
-						inputFaces.add(Confluence<ConstraintCoefficientType>(getInput(2), f2));
+						inputFaces.add(Confluence<ConstraintCoefficientType>(getInput(2), faces.bottomFace));
 					}
 					// output C tensor confluence on the terminal k = K-1 face; a fused
 					// pointwise epilogue (issue #1: bias via Cin, activation via node
 					// attribute) is recorded here, as it consumes the matmul result in
 					// place on this face without adding iteration dimensions
-					auto f3 = hull.add_face({ v3, v2, v7, v4 }); // top face, pointing out
-					outputFaces.add(Confluence<ConstraintCoefficientType>(getOutput(0), f3, activation));
-					// remaining faces do not have tensor confluences
-					hull.add_face({ v1, v6, v7, v2 }); // front face
-					hull.add_face({ v5, v4, v7, v6 }); // right face
+					outputFaces.add(Confluence<ConstraintCoefficientType>(getOutput(0), faces.terminalFace, activation));
 				}
 				break;
 				case DomainFlowOperator::FUSED_MATMUL_BIAS_ACT:
@@ -302,30 +320,15 @@ namespace sw {
 
 					// same (i,j,k) polyhedron as MATMUL: the epilogue adds no iteration
 					// dimensions -- it is pointwise on the (i,j) output face
-					hull.setDimension(3);
-					auto v0 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, 0 }));
-					auto v1 = hull.add_vertex(Point<ConstraintCoefficientType>({ m_, 0, 0 }));
-					auto v2 = hull.add_vertex(Point<ConstraintCoefficientType>({ m_, 0, k_ }));
-					auto v3 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, 0, k_ }));
-					auto v4 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, n_, k_ }));
-					auto v5 = hull.add_vertex(Point<ConstraintCoefficientType>({ 0, n_, 0 }));
-					auto v6 = hull.add_vertex(Point<ConstraintCoefficientType>({ m_, n_, 0 }));
-					auto v7 = hull.add_vertex(Point<ConstraintCoefficientType>({ m_, n_, k_ }));
-
-					// A and B stream in on their respective faces
-					auto f0 = hull.add_face({ v0, v1, v2, v3 }); // left face, pointing out
-					inputFaces.add(Confluence<ConstraintCoefficientType>(getInput(0), f0));
-					auto f1 = hull.add_face({ v0, v3, v4, v5 }); // back face, pointing out
-					inputFaces.add(Confluence<ConstraintCoefficientType>(getInput(1), f1));
-					hull.add_face({ v0, v5, v6, v1 }); // bottom face: accumulator init, no tensor confluence
+					auto faces = buildMatmulHull(m_, n_, k_);
+					// A and B stream in on their respective faces; the bottom (k = 0)
+					// face is the accumulator init and carries no tensor confluence
+					inputFaces.add(Confluence<ConstraintCoefficientType>(getInput(0), faces.aFace));
+					inputFaces.add(Confluence<ConstraintCoefficientType>(getInput(1), faces.bFace));
 					// terminal k = K-1 face: bias enters here (broadcast on the (i,j)
 					// face) and Y leaves here with the activation epilogue
-					auto f3 = hull.add_face({ v3, v2, v7, v4 }); // top face, pointing out
-					inputFaces.add(Confluence<ConstraintCoefficientType>(getInput(2), f3));
-					outputFaces.add(Confluence<ConstraintCoefficientType>(getOutput(0), f3, activation));
-					// remaining faces do not have tensor confluences
-					hull.add_face({ v1, v6, v7, v2 }); // front face
-					hull.add_face({ v5, v4, v7, v6 }); // right face
+					inputFaces.add(Confluence<ConstraintCoefficientType>(getInput(2), faces.terminalFace));
+					outputFaces.add(Confluence<ConstraintCoefficientType>(getOutput(0), faces.terminalFace, activation));
 				}
 				break;
 				case DomainFlowOperator::FUNCTION_RETURN:
