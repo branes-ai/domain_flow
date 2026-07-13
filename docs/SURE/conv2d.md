@@ -33,54 +33,72 @@ Let’s define the domain and equations:
 #### Recurrence Equations:
 We’ll accumulate the convolution sum incrementally. The key is to define uniform dependencies, meaning each variable depends on a fixed offset of itself or another variable.
 
-Here’s the SURE:
+The document originally expressed this with a conditional cascade — but the
+cases take *different* dependence shifts in different subdomains, so the
+cascade is not actually uniform, and `I_padded` is read pointwise at every
+domain point, which the Domain Flow discipline forbids (data must *flow* in
+through faces, not be sampled from an oracle). The refined, executable
+formulation ([`conv2d.sure`](conv2d.sure)) uses four total recurrences:
 
-```
-system((i, j, k, l) | 0 <= i, j < N, -1 <= k, l <= 1) {
-    // Input with padding: zero outside [0,N-1]
-    I_padded(i, j) = (i < 0 || i >= N || j < 0 || j >= N) ? 0 : I(i, j);
-    
-    // Partial sum: accumulate contributions from the 3x3 window
-    P(i, j, k, l) = (k == -1 && l == -1) ? 
-                      I_padded(i+k, j+l) * W(k,l) :
-                      P(i, j, k-1, l) + I_padded(i+k, j+l) * W(k,l)  if k > -1,
-                      P(i, j, k, l-1) + I_padded(i+k, j+l) * W(k,l)  if k == -1 && l > -1;
-    
-    // Output: final result when k=1, l=1
-    O(i, j) = P(i, j, 1, 1);
+```text
+N = 4;
+
+system ((i,j,k,l) | 0 <= i < N, 0 <= j < N, -1 <= k < 2, -1 <= l < 2) {
+    x(i,j,k,l) = x(i-1,j,k+1,l);                          // Ipad(i+k, j+l) anti-diagonal flow
+    w(i,j,k,l) = w(i-1,j,k,l);                            // W(k,l) broadcast along +i
+    p(i,j,k,l) = p(i,j,k,l-1) + x(i,j,k,l) * w(i,j,k,l);  // row sum along l
+    s(i,j,k,l) = s(i,j,k-1,l) + p(i,j,k,1);               // add completed rows along k
 }
+
+input Ipad[6][6] ((i,j,k,l) | -1 <= i < 3, 0 <= j < N, -1 <= l < 2, k = 2)  : x(i,j,k,l) = Ipad[i+3][j+l+1];
+input            ((i,j,k,l) | 0 <= j < N, 0 <= k < 2, -1 <= l < 2, i = -1)  : x(i,j,k,l) = Ipad[k][j+l+1];
+input W[3][3]    ((i,j,k,l) | 0 <= j < N, -1 <= k < 2, -1 <= l < 2, i = -1) : w(i,j,k,l) = W[k+1][l+1];
+input            ((i,j,k,l) | 0 <= i < N, 0 <= j < N, -1 <= k < 2, l = -2)  : p(i,j,k,l) = 0;
+input            ((i,j,k,l) | 0 <= i < N, 0 <= j < N, -1 <= l < 2, k = -2)  : s(i,j,k,l) = 0;
+
+output O[N][N] ((i,j,k,l) | 0 <= i < N, 0 <= j < N, 1 <= l < 2, k = 1) : O[i][j] = s(i,j,k,l);
 ```
 
-### Explanation:
-1. **Input Padding (`I_padded`)**:
-   - Defines the padded input: returns `I(i,j)` if within bounds `[0,N-1]`, otherwise `0`.
-   - This handles the [1,1] padding requirement.
+### Explanation
 
-2. **Partial Sum (`P`)**:
-   - `P(i,j,k,l)` represents the partial convolution sum up to kernel position `(k,l)`.
-   - **Base Case**: At `(k=-1, l=-1)` (top-left of the 3x3 kernel), start with the first contribution: `I_padded(i-1,j-1) * W(-1,-1)`.
-   - **Recurrence**:
-     - If `k > -1`, depend on the previous `k` position: `P(i,j,k-1,l)`.
-     - If `k = -1` and `l > -1`, depend on the previous `l` position: `P(i,j,k,l-1)`.
-     - Add the current contribution: `I_padded(i+k,j+l) * W(k,l)`.
+1. **The image is a flow, not an oracle (`x`).** `x(i,j,k,l)` carries the
+   padded-image value `Ipad(i+k, j+l)`. Because `(i-1) + (k+1) = i + k`, the
+   uniform shift `(-1,0,+1,0)` walks an anti-diagonal along which the value
+   is constant — each point simply forwards its neighbor. The walk is seeded
+   from two *disjoint* halo faces that together cover every escape: the
+   `k = 2` plane (rows arriving from above) and the `i = -1` plane restricted
+   to `0 <= k < 2` (the remaining kernel rows). Padding is explicit data: the
+   test bench binds the `(N+2) x (N+2)` image with its zero ring, so
+   "zero outside the valid range" is a property of the bound tensor, not a
+   conditional in the kernel.
 
-3. **Output (`O`)**:
-   - The final output `O(i,j)` is the partial sum when the kernel has been fully traversed, i.e., `P(i,j,1,1)`.
+2. **The kernel weights broadcast (`w`).** `w(i,j,k,l) = w(i-1,j,k,l)`
+   propagates `W(k,l)` across the image rows from the `i = -1` face.
 
-### Uniformity:
-- Dependencies are uniform because:
-  - `P(i,j,k,l)` depends on `P(i,j,k-1,l)` (shift of `(0,0,-1,0)`) or `P(i,j,k,l-1)` (shift of `(0,0,0,-1)`).
-  - `I_padded` and `W` are inputs with no recurrence.
+3. **The reduction is separable and uniform (`p`, `s`).** `p` accumulates a
+   window row along `l` (seeded to zero on the `l = -2` halo face); `s` adds
+   the *completed* rows along `k`, fetching each finished row sum with the
+   affine tap `p(i,j,k,1)`. This replaces the conditional cascade with two
+   total recurrences whose dependences are fixed everywhere — at the cost of
+   carrying `s` over the full `l` extent (uniformization slack).
 
-### Notes:
-- This assumes a row-major traversal of the kernel (left-to-right, then top-to-bottom). You could adjust the dependency order (e.g., column-major) if needed.
-- For multi-channel inputs or outputs, you’d add a channel dimension and sum over it, but this is the single-channel case for simplicity.
-- The `if` conditions in the SURE syntax might need adjustment based on the exact SURE formalism you’re using; some systems use guards or separate equations.
+4. **The output leaves through the terminal `k = 1` face** with outward
+   normal `(0,0,1,0)`: `O(i,j) = s(i,j,1,1)`.
 
-### Verification:
-For `N=2`, output `O(0,0)` would compute:
-- Sum over `k,l ∈ {-1,0,1}` of `I_padded(0+k,0+l) * W(k,l)`.
-- With padding, `I_padded(-1,-1) = 0`, `I_padded(-1,0) = 0`, etc., matching a 3x3 conv with [1,1] padding.
+### Verification
+
+`conv2d.sure` binds a 4x4 ramp image (values 1..16) inside an explicit zero
+ring and the Sobel-x kernel. The test suite verifies all 16 outputs against
+a direct correlation reference, e.g. `O(0,0) = -10`, `O(1,3) = 28`. Run it:
+
+```console
+$ dfactl --sure docs/SURE/conv2d.sure
+  input  Ipad -> x  normal (0,0,1,0)
+  input  Ipad -> x  normal (-1,0,0,0)
+  input  W -> w  normal (-1,0,0,0)
+  ...
+  output O <- s  normal (0,0,1,0)
+```
 
 # Extending it to _C_ channels
 
@@ -112,63 +130,53 @@ The convolution now computes each output `O(i,j)` as the sum over all channels `
 #### Recurrence Equations:
 We’ll accumulate the sum incrementally across channels and kernel positions with uniform dependencies.
 
-```
-system((i, j, c, k, l) | 0 <= i, j < N, 0 <= c < C, -1 <= k, l <= 1) {
-    // Input with padding: zero outside [0,N-1] spatially, valid for all channels
-    I_padded(c, i, j) = (i < 0 || i >= N || j < 0 || j >= N) ? 0 : I(c, i, j);
-    
-    // Partial sum: accumulate contributions across channels and 3x3 window
-    P(i, j, c, k, l) = 
-        // Base case: start of channel 0, top-left of kernel
-        (c == 0 && k == -1 && l == -1) ? 
-            I_padded(c, i+k, j+l) * W(c, k, l) :
-        // Same channel, previous k position
-        (k > -1) ? 
-            P(i, j, c, k-1, l) + I_padded(c, i+k, j+l) * W(c, k, l) :
-        // k = -1, previous l position
-        (k == -1 && l > -1) ? 
-            P(i, j, c, k, l-1) + I_padded(c, i+k, j+l) * W(c, k, l) :
-        // Previous channel, end of kernel
-        (c > 0 && k == -1 && l == -1) ? 
-            P(i, j, c-1, 1, 1) + I_padded(c, i+k, j+l) * W(c, k, l) :
-        0;  // Default case (shouldn’t occur within domain)
-    
-    // Output: final result when c=C-1, k=1, l=1
-    O(i, j) = P(i, j, C-1, 1, 1);
+```text
+system ((i,j,c,k,l) | 0 <= i,j < N, 0 <= c < C, -1 <= k,l <= 1) {
+    x(i,j,c,k,l) = x(i-1,j,c,k+1,l);                            // Ipad(c, i+k, j+l) flow
+    w(i,j,c,k,l) = w(i-1,j,c,k,l);                              // W(c,k,l) broadcast
+    p(i,j,c,k,l) = p(i,j,c,k,l-1) + x(i,j,c,k,l) * w(i,j,c,k,l);   // row sum along l
+    s(i,j,c,k,l) = s(i,j,c,k-1,l) + p(i,j,c,k,1);               // rows along k
+    t(i,j,c,k,l) = t(i,j,c-1,k,l) + s(i,j,c,1,l);               // channels along c
 }
+// output: O(i,j) = t(i,j,C-1,1,1) through the terminal c = C-1 face
 ```
 
 ### Explanation:
-1. **Input Padding (`I_padded`)**:
-   - Extends to channels: `I_padded(c,i,j)` is `I(c,i,j)` if `(i,j)` is within `[0,N-1]`, otherwise `0`.
-   - Padding applies only spatially, not across channels.
+1. **Image and kernel flows (`x`, `w`)**: as in the single-channel case, but
+   with the channel index carried along. `x(i,j,c,k,l)` transports
+   `Ipad(c, i+k, j+l)` on the value-preserving anti-diagonal shift
+   `(-1,0,0,+1,0)`; `w(i,j,c,k,l)` broadcasts `W(c,k,l)` along `+i`. The
+   halo faces bind the `C x (N+2) x (N+2)` padded input and the
+   `C x 3 x 3` kernel per channel.
 
-2. **Partial Sum (`P`)**:
-   - `P(i,j,c,k,l)` accumulates the convolution sum up to channel `c` and kernel position `(k,l)`.
-   - **Base Case**: At `(c=0, k=-1, l=-1)`, start with `I_padded(0,i-1,j-1) * W(0,-1,-1)`.
-   - **Recurrence**:
-     - Within a channel:
-       - If `k > -1`: Depend on `P(i,j,c,k-1,l)` (shift `(0,0,0,-1,0)`).
-       - If `k = -1` and `l > -1`: Depend on `P(i,j,c,k,l-1)` (shift `(0,0,0,0,-1)`).
-     - Across channels:
-       - If `c > 0` and `(k=-1, l=-1)`: Depend on `P(i,j,c-1,1,1)` (shift `(0,0,-1,0,0)`), which is the final sum of the previous channel.
-     - Add the current contribution: `I_padded(c,i+k,j+l) * W(c,k,l)`.
+2. **Three-stage separable reduction (`p`, `s`, `t`)**:
+   - `p` accumulates a window row along `l` (shift `(0,0,0,0,-1)`), seeded
+     to zero on the `l = -2` halo face;
+   - `s` adds the completed rows along `k` (shift `(0,0,0,-1,0)`), reading
+     each finished row sum with the affine tap `p(i,j,c,k,1)`;
+   - `t` adds the completed per-channel window sums along `c` (shift
+     `(0,0,-1,0,0)`), reading each channel's total with the affine tap
+     `s(i,j,c,1,l)` and seeded to zero on the `c = -1` halo face.
 
-3. **Output (`O`)**:
-   - `O(i,j)` is the partial sum when all channels and kernel positions are traversed: `P(i,j,C-1,1,1)`.
+3. **Output (`O`)**: the fully reduced value leaves through the terminal
+   `c = C-1` face: `O(i,j) = t(i,j,C-1,1,1)`.
 
 ### Uniformity:
-- Dependencies are uniform with fixed shifts:
-  - `(0,0,0,-1,0)` for `k`.
-  - `(0,0,0,0,-1)` for `l`.
-  - `(0,0,-1,0,0)` for `c`.
+
+- Every recurrence has a single fixed dependence everywhere in the domain:
+  `(-1,0,0,+1,0)` for `x`, `(-1,0,0,0,0)` for `w`, `(0,0,0,0,-1)` for `p`,
+  `(0,0,0,-1,0)` for `s`, and `(0,0,-1,0,0)` for `t`; the stage hand-offs
+  (`p` at `l = 1`, `s` at `k = 1`) are affine broadcast taps.
 
 ### Example:
-For `N=2`, `C=2`, `O(0,0)` computes:
-- Sum over `c=0..1`, `k=-1..1`, `l=-1..1` of `I_padded(c,0+k,0+l) * W(c,k,l)`.
-- `I_padded(0,-1,-1) = 0`, `I_padded(1,0,0) = I(1,0,0)`, etc., matching a multi-channel Conv2D with [1,1] padding.
+
+For `N=2`, `C=2`, `O(0,0)` computes the sum over `c=0..1`, `k,l=-1..1` of
+`Ipad(c, 0+k, 0+l) * W(c,k,l)`, with the zero ring of the bound padded
+tensor supplying `Ipad(0,-1,-1) = 0` etc. -- matching a multi-channel
+Conv2D with [1,1] padding.
 
 ### Notes:
-- This assumes a single output channel. For `F` output channels, you’d need a filter `F x C x 3 x 3` and an additional index `f` in the SURE, with `O(f,i,j) = P(f,i,j,C-1,1,1)`.
+
+- This assumes a single output channel. For `F` output channels, you’d need a filter `F x C x 3 x 3` and an additional index `f` in the SURE, with `O(f,i,j) = t(f,i,j,C-1,1,1)`.
 - The traversal order here is channel-first, then row-major kernel. You could adjust to kernel-first if preferred.
 

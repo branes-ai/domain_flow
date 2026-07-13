@@ -251,3 +251,30 @@ If `B` were a weight tensor `H x N x O` (shared across batch and sequence), `b(b
 - **Pattern**: Each additional dimension (e.g., `h`, `t`) adds an index to the domain and variables, but the core matmul pattern (`i,j,k` with accumulation over `k`) remains unchanged.
 - **Uniformity**: Dependencies are uniform: `a` shifts by `(0,0,0,0,-1,0)`, `b` by `(0,0,0,-1,0,0)`, `c` by `(0,0,0,0,0,-1)`.
 - **DNN Context**: These align with batched, multi-head, or sequence-based operations in DNNs.
+
+
+---
+
+## Executable form (v2 confluence DSL)
+
+The canonical system above is executable: [`matmul.sure`](matmul.sure)
+expresses it in the v2 DSL, where data enters and leaves through symmetric
+`input`/`output` confluences — equality-pinned face regions with derived
+outward normals (see `docs/sure-simulator.md`, Example 5):
+
+```text
+input  A[M][K] ((i,j,k) | 0 <= i < M, 0 <= k < K, j = -1)  : a(i,j,k) = A[i][k];
+input  B[K][N] ((i,j,k) | 0 <= k < K, 0 <= j < N, i = -1)  : b(i,j,k) = B[k][j];
+input          ((i,j,k) | 0 <= i < M, 0 <= j < N, k = -1)  : c(i,j,k) = 0;
+output C[M][N] ((i,j,k) | 0 <= i < M, 0 <= j < N, k = K-1) : C[i][j] = c(i,j,k);
+tau = [1, 1, 1];
+```
+
+```console
+$ dfactl --sure docs/SURE/matmul.sure --schedule linear
+  C[0][0] = 58 ... C[1][1] = 154
+Schedule legality: LEGAL  edges=32  minSlack(tau.theta)=1
+
+$ dfactl --sure docs/SURE/matmul.sure --tau 1,1,0
+Schedule legality: ILLEGAL ... c(i,j,k) reads c(i,j,k-1)  slack=0 (need >= 1)
+```
