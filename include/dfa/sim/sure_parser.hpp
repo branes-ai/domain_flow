@@ -841,13 +841,20 @@ namespace sw {
                         inFaceExpr = false;
                         if (!scratch.taps.empty())
                             failAt(line, "input expressions may not read recurrence variables");
-                        // bind the metadata to the tensor actually read: a named input
-                        // must read exactly its declared tensor, a constant input none
+                        // bind the metadata to the tensor actually read: a face that
+                        // declares a tensor must read exactly that tensor; a tensorless
+                        // face may read previously declared tensors (a flow variable can
+                        // be seeded from several faces of one tensor, e.g. conv2d's
+                        // image walk) and its metadata reflects what it reads
                         std::vector<std::string> reads;
                         collectArrays(*face.expr, reads);
                         if (face.tensor.empty()) {
-                            if (!reads.empty())
-                                failAt(line, "a constant input may not read tensors (reads '" + reads.front() + "')");
+                            for (const auto& r : reads) {
+                                if (face.tensor.empty()) face.tensor = r;
+                                else if (r != face.tensor)
+                                    failAt(line, "an input face may read only one tensor (reads '" +
+                                                 face.tensor + "' and '" + r + "')");
+                            }
                         } else {
                             if (reads.empty())
                                 failAt(line, "input expression must read its declared tensor '" + face.tensor + "'");

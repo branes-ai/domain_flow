@@ -123,72 +123,113 @@ The index space is:
 - \( j \): Columns of the matrix (\( 0 \leq j < n \)).
 - \( k \): Orthogonalization step (\( 0 \leq k \leq j \)), since we process up to \( j \) projections, and \( k = j \) is used for the norm and normalization.
 
-### Final SURE Formulation
-Combining all parts, the SURE for QR decomposition is:
+### Final SURE Formulation (v2 confluence DSL)
 
+The derivation above sketches the algorithm with case splits (`if i = 0`),
+partial-domain equations (`v(i,j,0) = a(i,j)`, `r(k,j,k) = ...`), and
+mixed-rank outputs (`q(i,j)` is 2D while `v(i,j,k)` is 3D). None of that
+survives contact with the Domain Flow discipline: every equation must be a
+*total* recurrence over the shared domain, base cases must enter through
+oriented input confluences on the halo, and results must leave through
+oriented output confluences on faces of the domain. The refined,
+executable formulation ([`qr.sure`](qr.sure)):
 
-# SURE for QR Decomposition
+```text
+M = 3; N = 3;
 
-**System**: \((i, j, k) \mid 0 \leq i < m, 0 \leq j < n, 0 \leq k \leq j\)
+system ((i,j,k) | 0 <= i < M, 0 <= j < N, 0 <= k < N, k <= j) {
+    v(i,j,k)     = v(i,j,k-1) - srp(M-1,j,k-1) * qhat(i,k-1,k-1);   // orthogonalize
+    srp(i,j,k)   = srp(i-1,j,k) + qhat(i,k,k) * v(i,j,k);           // r_kj reduction
+    snorm(i,j,k) = snorm(i-1,j,k) + v(i,j,k) * v(i,j,k);            // ||v_j||^2 reduction
+    qhat(i,j,k)  = v(i,j,k) / sqrt(snorm(M-1,j,k));                 // normalize
+}
 
-**Equations**:
-1. **Initialize intermediate vector**:
-   \[
-   v(i, j, 0) = a(i, j)
-   \]
+input A[M][N] ((i,j,k) | 0 <= i < M, 0 <= j < N, k = -1)             : v(i,j,k) = A[i][j];
+input         ((i,j,k) | M-1 <= i < M, 0 <= j < N, k = -1)           : srp(i,j,k) = 0;
+input         ((i,j,k) | 0 <= j < N, 0 <= k < N, k <= j, i = -1)     : srp(i,j,k) = 0;
+input         ((i,j,k) | 0 <= j < N, 0 <= k < N, k <= j, i = -1)     : snorm(i,j,k) = 0;
+input         ((i,j,k) | 0 <= i < M, -1 <= k < 0, j = -1)            : qhat(i,j,k) = 0;
 
-2. **Compute partial sum for projection coefficient**:
-   \[
-   s_r(i, j, k) = 
-   \begin{cases} 
-   q(i, k) \cdot v(i, j, k) & \text{if } i = 0 \\
-   s_r(i-1, j, k) + q(i, k) \cdot v(i, j, k) & \text{if } 0 < i < m 
-   \end{cases}
-   \]
+output Q[M][N]    ((i,j,k) | 0 <= i < M, 0 <= j < N, 0 <= k < N, k - j = 0)   : Q[i][j] = qhat(i,j,k);
+output Rdiag[N]   ((i,j,k) | M-1 <= i < M, 0 <= j < N, 0 <= k < N, k - j = 0) : Rdiag[j] = sqrt(snorm(i,j,k));
+output Roff[N][N] ((i,j,k) | 0 <= j < N, 0 <= k < N, k < j, i = M-1)          : Roff[k][j] = srp(i,j,k);
+```
 
-3. **Projection coefficient**:
-   \[
-   r(k, j, k) = s_r(m-1, j, k)
-   \]
+Run it:
 
-4. **Update intermediate vector**:
-   \[
-   v(i, j, k+1) = v(i, j, k) - r(k, j, k) \cdot q(i, k)
-   \]
+```console
+$ dfactl --sure docs/SURE/qr.sure
+  input  A -> v  normal (0,0,-1)
+  ...
+  output Q <- qhat  normal (0,-1,1)
+  output Rdiag <- snorm  normal (0,-1,1)
+  output Roff <- srp  normal (1,0,0)
+  Q[0][0] = 0.857143 ... Rdiag[0] = 14 ... Roff[0][1] = 21 ...
+```
 
-5. **Compute partial sum for norm**:
-   \[
-   s_norm(i, j, j) = 
-   \begin{cases} 
-   v(i, j, j)^2 & \text{if } i = 0 \\
-   s_norm(i-1, j, j) + v(i, j, j)^2 & \text{if } 0 < i < m 
-   \end{cases}
-   \]
+### The refinements, one by one
 
-6. **Norm (diagonal R entry)**:
-   \[
-   r(j, j, j) = \sqrt{s_norm(m-1, j, j)}
-   \]
+1. **Case splits become input confluences.** `v(i,j,0) = a(i,j)` is not a
+   separate equation: the recurrence `v(i,j,k) = v(i,j,k-1) - ...` simply
+   *escapes* the domain at `k = 0`, and the input confluence on the `k = -1`
+   halo face supplies `A[i][j]` there. The subtractive term vanishes on that
+   first step because its own taps escape to zero-valued faces: `srp` on the
+   `k = -1` face, and `qhat` at the corner points `(i,-1,-1)`.
 
-7. **Normalize to get Q column**:
-   \[
-   q(i, j) = v(i, j, j) / r(j, j, j)
-   \]
+2. **The corner escape and the one-equality rule.** A face has exactly one
+   equality (codimension 1). The `qhat` escape lands on the codimension-2
+   set `(i,-1,-1)` — the trick is to pin the second coordinate with
+   *inequalities*: `((i,j,k) | 0 <= i < M, -1 <= k < 0, j = -1)` has the
+   single equality `j = -1` while `-1 <= k < 0` confines `k` exactly.
 
-**Notes**:
-- \( a(i, j) \): Input matrix \( A \) of size \( m \times n \).
-- \( v(i, j, k) \): Intermediate vectors during orthogonalization.
-- \( s_r(i, j, k) \): Partial sums for computing \( r(k, j, k) \).
-- \( r(i, j, k) \): Upper triangular matrix \( R \) entries (only \( i \leq j \)).
-- \( s_norm(i, j, j) \): Partial sums for computing the norm.
-- \( q(i, j) \): Orthogonal matrix \( Q \) of size \( m \times n \).
-- The formulation assumes \( m \geq n \) and uses Modified Gram-Schmidt for stability.
+3. **Reductions are first-class recurrence variables.** The derivation's
+   `s_r` and `s_norm` partial sums become `srp` and `snorm`, seeded to zero
+   through their `i = -1` faces and read where the reduction completes, on
+   the `i = M-1` face. The completed value is fetched with an *affine*
+   (broadcast) tap `srp(M-1, j, k-1)` — a constant row index, which is what
+   makes this a SARE rather than a pure uniform system.
 
+4. **`q` is uniformized as `qhat` over the whole domain.** The 2D output
+   `q(i,j)` of the sketch cannot live in a 3D system. Instead `qhat`
+   normalizes `v` by the running column norm at *every* point; the only
+   points other equations ever tap are the diagonal `(i,k,k)`, where
+   `qhat(i,k,k) = v_k / ||v_k|| = q(i,k)` exactly. The off-diagonal values
+   are uniformization slack: computed, never consumed. This is the classic
+   space-time trade of embedding a lower-dimensional value in the full
+   domain.
 
-### Notes on the Formulation
-- **Uniform Dependencies**: The dependencies are uniform (e.g., \( i-1 \), \( k-1 \), \( k+1 \)), matching the style of the matmul SURE. The reductions are handled via partial sum arrays \( s_r \) and \( s_norm \), which introduce dependencies on \( i-1 \).
-- **Comparison to Matmul**: Like the matmul SURE, this uses a 3D index space and expresses computations as recurrences. However, QR involves reductions (sums) and a non-linear operation (square root), which are handled carefully to maintain uniformity where possible.
-- **DFA Compatibility**: The SURE is designed to be compatible with DFA’s requirement for uniform dependencies, making it suitable for mapping to hardware or parallel execution in a domain flow graph.
-- **Assumptions**: Assumes \( m \geq n \) (tall or square matrix). For \( m < n \), the formulation would need adjustment. The output \( Q \) is \( m \times n \) (thin QR), but can be extended to \( m \times m \) if needed.
+5. **`R` leaves through two oriented faces.** The sketch's `r(k,j,k)`
+   conflates two different results. The off-diagonal projection
+   coefficients `r_kj` (k < j) complete where the reduction ends and exit
+   through the `i = M-1` face with outward normal `(1,0,0)`; the diagonal
+   norms `r_jj` exit through the *diagonal* face `k = j` (outward normal
+   `(0,-1,1)`), the same face `Q` leaves through. Non-axis-aligned output
+   faces are exactly why face regions are equality-pinned constraint sets
+   rather than named box sides.
 
-This formulation captures the essence of QR decomposition in a way that aligns with the DFA methodology and the provided matmul example. 
+6. **No global linear schedule.** The broadcast taps (`srp(M-1,...)`,
+   `snorm(M-1,...)`) and the diagonal taps (`qhat(i,k,k)`) give dependence
+   *vectors that vary with the point*, so no single `tau` satisfies
+   `tau.theta >= 1` everywhere — `qr.sure` declares no `tau` and runs under
+   the free (ASAP) schedule. Index-set splitting (piecewise schedules) is
+   the standard remedy and remains future work.
+
+### Verification
+
+`qr.sure` binds the classic 3x3 example `A = [[12,-51,4],[6,167,-68],[-4,24,-41]]`
+with the exact factorization `R = [[14,21,-14],[0,175,-70],[0,0,35]]`. The
+test suite (`src/dfa/tests/sim/sure_parser.cpp`) checks `R` exactly,
+`Q^T Q = I` and `Q R = A` to machine precision (both residuals < 1e-15),
+and the free-schedule legality of the parsed system.
+
+### Notes
+
+- The reductions are linear chains along `i` (O(m) depth); a balanced
+  reduction tree would shorten the critical path but needs log-indexed
+  dependencies outside the affine form — a representation question for the
+  DFA, not the DSL.
+- The formulation assumes `m >= n` (thin QR) and a full-rank `A` (the
+  normalization divides by the running column norm).
+- Givens-rotation QR (the Gentleman-Kung array) admits a fully *uniform*
+  system with a linear schedule; expressing it in the DSL is a natural
+  companion exercise.

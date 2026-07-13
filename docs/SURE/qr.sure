@@ -1,0 +1,49 @@
+// Executable version of the Modified Gram-Schmidt QR decomposition SURE from
+// QR_decomposition.md, uniformized for the v2 confluence DSL:  A = Q*R.
+//
+// The whole factorization is ONE shared triangular domain
+//   D = ((i,j,k) | 0 <= i < M, 0 <= j < N, k <= j)
+// where i indexes rows, j the column being orthogonalized, and k the
+// projection step.  The document's case-split equations become total
+// recurrences whose base cases enter through input confluences on the halo:
+//
+//   v(i,j,k)     column j after k projection steps; seeded with A on k = -1
+//   srp(i,j,k)   running sum (over i) of q_k . v_j^(k); srp(M-1,j,k) = r_kj
+//   snorm(i,j,k) running sum (over i) of v_j^(k) squared
+//   qhat(i,j,k)  v normalized by the column norm; on the diagonal k = j this
+//                IS q_j -- taps only ever read the diagonal (i,k,k), the
+//                off-diagonal values are uniformization slack
+//
+// Q leaves through the diagonal k = j face; R leaves through two confluences:
+// the off-diagonal entries r_kj (k < j) through the i = M-1 face where the
+// reduction completes, and the diagonal r_jj = ||v_j|| through the k = j face.
+//
+// Run it:   dfactl --sure docs/SURE/qr.sure
+// No global linear tau exists for the affine (broadcast) taps: free schedule.
+
+M = 3; N = 3;
+
+system ((i,j,k) | 0 <= i < M, 0 <= j < N, 0 <= k < N, k <= j) {
+    v(i,j,k)     = v(i,j,k-1) - srp(M-1,j,k-1) * qhat(i,k-1,k-1);   // orthogonalize
+    srp(i,j,k)   = srp(i-1,j,k) + qhat(i,k,k) * v(i,j,k);           // r_kj reduction
+    snorm(i,j,k) = snorm(i-1,j,k) + v(i,j,k) * v(i,j,k);            // ||v_j||^2 reduction
+    qhat(i,j,k)  = v(i,j,k) / sqrt(snorm(M-1,j,k));                 // normalize
+}
+
+// input confluences (halo faces)
+input A[M][N] ((i,j,k) | 0 <= i < M, 0 <= j < N, k = -1)             : v(i,j,k) = A[i][j];
+input         ((i,j,k) | M-1 <= i < M, 0 <= j < N, k = -1)           : srp(i,j,k) = 0;
+input         ((i,j,k) | 0 <= j < N, 0 <= k < N, k <= j, i = -1)     : srp(i,j,k) = 0;
+input         ((i,j,k) | 0 <= j < N, 0 <= k < N, k <= j, i = -1)     : snorm(i,j,k) = 0;
+input         ((i,j,k) | 0 <= i < M, -1 <= k < 0, j = -1)            : qhat(i,j,k) = 0;
+
+// output confluences
+output Q[M][N]     ((i,j,k) | 0 <= i < M, 0 <= j < N, 0 <= k < N, k - j = 0)     : Q[i][j] = qhat(i,j,k);
+output Rdiag[N]    ((i,j,k) | M-1 <= i < M, 0 <= j < N, 0 <= k < N, k - j = 0)   : Rdiag[j] = sqrt(snorm(i,j,k));
+output Roff[N][N]  ((i,j,k) | 0 <= j < N, 0 <= k < N, k < j, i = M-1)            : Roff[k][j] = srp(i,j,k);
+
+// test bench: the classic 3x3 example with exact factors
+//   R = [[14,21,-14],[0,175,-70],[0,0,35]]
+data A = {  12, -51,   4,
+             6, 167, -68,
+            -4,  24, -41 };

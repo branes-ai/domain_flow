@@ -19,4 +19,8 @@ if(DOMAINFLOW_BUILD_TESTING)
     # the executable version of docs/SURE/matmul.md through the DSL front-end
     add_test(NAME dfactl_sure_matmul
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/matmul.sure --schedule linear)
+    add_test(NAME dfactl_sure_qr
+             COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/qr.sure)
+    add_test(NAME dfactl_sure_conv2d
+             COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/conv2d.sure)
 endif()
