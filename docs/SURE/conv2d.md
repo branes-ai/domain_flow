@@ -162,18 +162,21 @@ system ((i,j,c,k,l) | 0 <= i,j < N, 0 <= c < C, -1 <= k,l <= 1) {
    `c = C-1` face: `O(i,j) = t(i,j,C-1,1,1)`.
 
 ### Uniformity:
+
 - Every recurrence has a single fixed dependence everywhere in the domain:
   `(-1,0,0,+1,0)` for `x`, `(-1,0,0,0,0)` for `w`, `(0,0,0,0,-1)` for `p`,
   `(0,0,0,-1,0)` for `s`, and `(0,0,-1,0,0)` for `t`; the stage hand-offs
   (`p` at `l = 1`, `s` at `k = 1`) are affine broadcast taps.
 
 ### Example:
+
 For `N=2`, `C=2`, `O(0,0)` computes the sum over `c=0..1`, `k,l=-1..1` of
 `Ipad(c, 0+k, 0+l) * W(c,k,l)`, with the zero ring of the bound padded
 tensor supplying `Ipad(0,-1,-1) = 0` etc. -- matching a multi-channel
 Conv2D with [1,1] padding.
 
 ### Notes:
+
 - This assumes a single output channel. For `F` output channels, you’d need a filter `F x C x 3 x 3` and an additional index `f` in the SURE, with `O(f,i,j) = t(f,i,j,C-1,1,1)`.
 - The traversal order here is channel-first, then row-major kernel. You could adjust to kernel-first if preferred.
 
