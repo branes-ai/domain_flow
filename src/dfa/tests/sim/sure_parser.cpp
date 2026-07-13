@@ -335,6 +335,14 @@ static bool checkDiagnostics() {
         "input V[2] ((i,j) | 0 <= i < N, j = 2) : c(i,j) = V[0] + W[0];\n"
         "data V = { 1, 2 };\n" + outp,
         "may only read its declared tensor");
+    ok &= expectParseError("tensorless input face reading two tensors",
+        sys +
+        "input W[2] ((i,j) | 0 <= i < N, j = -1) : c(i,j) = W[i];\n"
+        "data W = { 1, 2 };\n"
+        "input V[2] ((i,j) | 0 <= i < N, j = 2) : c(i,j) = V[0];\n"
+        "data V = { 1, 2 };\n"
+        "input ((i,j) | 0 <= i < N, j = 3) : c(i,j) = V[0] + W[0];\n" + outp,
+        "may read only one tensor");
     ok &= expectParseError("undeclared tap source",
         "N = 2;\n"
         "system ((i,j) | 0 <= i,j < N) { c(i,j) = typo(i,j); }\n" + seed + outp,

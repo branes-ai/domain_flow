@@ -271,6 +271,10 @@ tau = [1, 1, 1];
 ```
 
 ```console
-$ dfactl --sure docs/SURE/matmul.sure --schedule linear    # LEGAL, C = A*B
-$ dfactl --sure docs/SURE/matmul.sure --tau 1,1,0          # ILLEGAL: k-accumulation named
+$ dfactl --sure docs/SURE/matmul.sure --schedule linear
+  C[0][0] = 58 ... C[1][1] = 154
+Schedule legality: LEGAL  edges=32  minSlack(tau.theta)=1
+
+$ dfactl --sure docs/SURE/matmul.sure --tau 1,1,0
+Schedule legality: ILLEGAL ... c(i,j,k) reads c(i,j,k-1)  slack=0 (need >= 1)
 ```
