@@ -8,6 +8,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **SURE DSL: executable docs/SURE notation** (issue #15, PR #16; issue #17,
+  PR #18): a header-only text front-end (`include/dfa/sim/sure_parser.hpp`)
+  parses the `system((i,j,k) | constraints) { equations }` notation used in
+  the theory documents into executable `RecurrenceSystem`s, wired into
+  `dfactl --sure <file.sure>` with the existing `--schedule`/`--tau`/`--quiet`
+  flags. A same-day design review (issue #17) replaced the v1
+  boundary/table-input/projected-output statements with **v2 symmetric
+  input/output confluence declarations**: equality-pinned face regions in the
+  domain's own coordinates (extent from inequalities, location from the
+  equality) with the orientation *derived* as the domain's outward normal,
+  validated as a true supporting hyperplane. Machine-checked contracts, all
+  with line-numbered diagnostics: tap-image coverage over declared input
+  faces (face-dispatched boundaries — no silent data fabrication), face
+  well-formedness, flux consistency (`tau.n < 0` influx / `> 0` outflux,
+  revalidated for CLI `--tau` overrides via `validateSureFlux`), element
+  range, and tensor/data binding.
+- **Executable theory documents** (PR #19): all three `docs/SURE/` documents
+  migrated to the v2 DSL with runnable kernels — `matmul.sure` (legality
+  demos), `qr.sure` (Modified Gram-Schmidt uniformized onto one shared
+  triangular domain: reductions as first-class variables, `q` embedded as a
+  diagonal-tapped normalized flow, `R` leaving through two oriented faces
+  including the non-axis-aligned `k = j` diagonal; verified `R` exact,
+  `Q^T*Q = I` and `Q*R = A` to ~1e-15), and `conv2d.sure` (image as a
+  value-preserving anti-diagonal flow seeded from two disjoint halo faces,
+  padding as explicit data; verified against a direct correlation reference).
+  QR_decomposition.md and conv2d.md rewritten around the uniformization
+  decisions; the sim suite grew to 73 tests.
 - **Fused MATMUL output-face epilogue** (issue #1, PR #13): a `MATMUL` node can
   declare a pointwise activation via `attribute["activation"]` (e.g. `"relu"`),
   recorded as an epilogue on the terminal `k = K-1` output-face `Confluence`;
