@@ -30,6 +30,40 @@ So we give the vector a **flow axis**. The length-$N$ vector rides the `i` axis
 (the face extent), and a short pipeline axis `j` turns the elementwise map into a
 two-cell systolic cell whose result exits through a proper terminal face.
 
+## Uniformity: every operand flows, nothing is broadcast
+
+A **uniform** recurrence equation reads its arguments only at **constant offsets**
+of the current index point: $y(p) = g\big(y(p - w_1), \dots\big)$ with the
+dependence vectors $w_i$ *independent of* $p$ (Karp–Miller–Winograd, 1967). The
+temptation with `axpy` is to write
+
+$$
+y(i,j) = y(i,j-1) + \alpha\,x(i,j-1),
+$$
+
+treating $\alpha$ as a literal scalar in the equation body. That is **not** a
+uniform recurrence: a single value $\alpha$ read at every point is a *broadcast*,
+whose dependence on the fixed source $p_0$ is $p - p_0$ — it grows with $p$. That
+is an **affine** dependence, the very thing uniformity forbids, and physically it
+is a fan-out bus rather than a nearest-neighbour connection.
+
+$\alpha$ is an operand of `axpy` — the `a` in `a·x + y` — on equal footing with
+the vectors $x$ and $y$. So, like them, it must enter through a confluence and be
+carried by a uniform recurrence. Because $\alpha$ is a 0-dimensional scalar, we
+**project** it into the index space: inject it on the `i = -1` boundary edge and
+pipeline it across the lanes with the uniform shift
+
+$$
+a(i,j) = a(i-1,j),
+$$
+
+so every lane $i$ receives the same $\alpha$ through constant-offset hops instead
+of a broadcast. This is the standard *uniformization* of a parameter: replace the
+broadcast by a propagation variable seeded on a boundary. The product
+$a(i-1,j)\cdot x(i,j-1)$ is then uniform — both taps are constant offsets of
+$(i,j)$ — exactly as `matmul`'s $a(i,j-1,k)\,b(i-1,j,k)$ is uniform despite being
+nonlinear in the *values*.
+
 ## Domain
 
 $$
@@ -43,26 +77,30 @@ $$
 
 ```
 system ((i,j) | 0 <= i < N, 0 <= j < 2) {
+    a(i,j) = a(i-1,j);                         // coefficient alpha, pipelined across lanes
     x(i,j) = 0;                                // injected value is spent in-domain
-    y(i,j) = y(i,j-1) + alpha * x(i,j-1);      // stream y along +j, pick up alpha*x once
+    y(i,j) = y(i,j-1) + a(i-1,j) * x(i,j-1);   // stream y along +j, pick up alpha*x once
 }
 ```
 
-- `x(i,j)` is the scaled operand's carrier. Its *in-domain* value is `0`; the
-  actual data $x_i$ is **injected on the halo** `j = -1` (see the confluences
-  below). Because in-domain `x` is zero, the contribution $\alpha\,x_i$ is added
-  exactly once — at the front cell `j = 0` — and never again as `y` drains.
+- `a(i,j)` carries the scalar $\alpha$. It is seeded on the `i = -1` edge (see the
+  confluences below) and propagates along `+i` by the uniform shift `a(i-1,j)`, so
+  every lane holds $\alpha$.
+- `x(i,j)` is the vector operand's carrier. Its *in-domain* value is `0`; the
+  actual data $x_i$ is **injected on the halo** `j = -1`. Because in-domain `x` is
+  zero, the contribution $\alpha\,x_i$ is added exactly once — at the front cell
+  `j = 0` — and never again as `y` drains.
 - `y(i,j)` streams along `+j`. It is seeded on the halo `j = -1` with the incoming
   vector $y_i$, accumulates $\alpha\,x_i$ at `j = 0`, and passes through unchanged
   to `j = 1`.
 
-Tracing a fixed `i` (with $x_i$ on the `j=-1` halo of `x` and $y_i$ on the `j=-1`
-halo of `y`):
+Tracing a fixed `i` (with $\alpha$ reaching the lane via `a(i-1,·)`, $x_i$ on the
+`j=-1` halo of `x`, and $y_i$ on the `j=-1` halo of `y`):
 
 | step | value |
 |------|-------|
-| `y(i,0) = y(i,-1) + α·x(i,-1)` | $y_i + \alpha x_i$ |
-| `y(i,1) = y(i,0)  + α·x(i,0)`  | $(y_i + \alpha x_i) + \alpha\cdot 0 = y_i + \alpha x_i$ |
+| `y(i,0) = y(i,-1) + a(i-1,0)·x(i,-1)` | $y_i + \alpha x_i$ |
+| `y(i,1) = y(i,0)  + a(i-1,1)·x(i,0)`  | $(y_i + \alpha x_i) + \alpha\cdot 0 = y_i + \alpha x_i$ |
 
 The result $R_i = \alpha x_i + y_i$ is present at the terminal face `j = 1`.
 
@@ -73,42 +111,50 @@ Faces are equality-pinned in the domain's own coordinates; the outward normal is
 (inputs are influx, `tau·n < 0`; outputs are outflux, `tau·n > 0`).
 
 ```
-input  X[N] ((i,j) | 0 <= i < N, j = -1) : x(i,j) = X[i];   // inject x  -> normal (0,-1)
-input  Y[N] ((i,j) | 0 <= i < N, j = -1) : y(i,j) = Y[i];   // seed y    -> normal (0,-1)
-output R[N] ((i,j) | 0 <= i < N, j = 1)  : R[i] = y(i,j);   // drain R   -> normal (0, 1)
+input  Alpha[1] ((i,j) | i = -1, 0 <= j < 2) : a(i,j) = Alpha[0];  // project alpha -> normal (-1, 0)
+input  X[N]     ((i,j) | 0 <= i < N, j = -1) : x(i,j) = X[i];       // inject x      -> normal (0,-1)
+input  Y[N]     ((i,j) | 0 <= i < N, j = -1) : y(i,j) = Y[i];       // seed y        -> normal (0,-1)
+output R[N]     ((i,j) | 0 <= i < N, j = 1)  : R[i] = y(i,j);       // drain R       -> normal (0, 1)
 ```
 
-Both inputs sit on the one-step halo `j = -1` where the boundary values are
-actually read; the result leaves the terminal `j = 1` face. The derived normals
-are `X, Y → (0,-1)` and `R → (0,1)`.
+The scalar $\alpha$ is projected onto the `i = -1` edge (a codimension-1 face over
+`j`); the vectors `x` and `y` sit on the one-step halo `j = -1` where their
+boundary values are read; the result leaves the terminal `j = 1` face. The derived
+normals are `Alpha → (-1,0)`, `X, Y → (0,-1)`, and `R → (0,1)` — `alpha` fluxes in
+across the lanes, the vectors flux in along the pipeline, and the result fluxes
+out.
 
 ## Schedule
 
-The kernel is embarrassingly parallel across `i`, and the only dependence is the
-one-step `j` carry. The canonical linear schedule
+The kernel is parallel across `i`, with a one-step `j` carry and the lane-to-lane
+`i` carry that pipelines `alpha`. The canonical linear schedule
 
 $$
 \tau = [\,1,\; 1\,]
 $$
 
-is legal (`tau·theta ≥ 1` on the single `j`-carried edge), and so is the
-[free schedule](../simulator/) — the data-flow-earliest firing order — which puts
-all of `j = 0` at one wavefront and all of `j = 1` at the next.
+is legal — every dependence vector (`+j` for the `x`/`y` carries, `+i` for the
+`alpha` pipeline) has `tau·theta = 1 ≥ 1` — and so is the
+[free schedule](../simulator/), the data-flow-earliest firing order.
 
-Flux consistency picks out the legal schedules directly from the geometry: with
-the input normal `(0,-1)` and output normal `(0,1)`, any $\tau = [\tau_i, \tau_j]$
-with $\tau_j > 0$ makes the inputs influx (`tau·n = -τ_j < 0`) and the output
-outflux (`tau·n = +τ_j > 0`). A backward $\tau_j$, e.g. $\tau = [1,-1]$, reverses
-the flow and is rejected by flux revalidation before legality is even consulted.
+Flux consistency picks out the legal schedules directly from the geometry. With
+the derived normals `Alpha → (-1,0)`, `X, Y → (0,-1)`, `R → (0,1)`, any
+$\tau = [\tau_i, \tau_j]$ with $\tau_i > 0$ and $\tau_j > 0$ makes `alpha` flux in
+across the lanes (`tau·n = -τ_i < 0`), the vectors flux in along the pipeline
+(`tau·n = -τ_j < 0`), and the result flux out (`tau·n = +τ_j > 0`). A backward
+component, e.g. $\tau = [1,-1]$, reverses a flow and is rejected by flux
+revalidation before legality is even consulted.
 
 ## Memory cardinality
 
-Under $\tau = [1,1]$ each carrier holds one live value per `i` at a time, so the
-peak resident set is $2N$ (the `x` and `y` wavefronts), with latency 3 and total
-work $2N \cdot 2$. For $N = 4$: `peakLiveValues = 8`, matching the eviction run.
-This is the baseline elementwise footprint; reductions (`dot`, `nrm2`) collapse
-the carrier to a single accumulator, and Level-2/3 operators grow it by the
-reduction extent.
+Under $\tau = [1,1]$ the three carriers (`a`, `x`, `y`) hold a bounded wavefront
+of live values. For $N = 4$ the analysis reports `peakLiveValues = 8` (per
+variable `a = 4, x = 2, y = 2`), latency 5, and work 24, and the eviction run
+realizes the same footprint. The `alpha` pipeline `a` costs a wavefront across the
+lanes; the vector carriers `x` and `y` are the baseline elementwise footprint.
+Reductions (`dot`, `nrm2`) collapse a carrier to a single accumulator, and
+Level-2/3 operators grow it by the reduction extent. (The free schedule trades a
+larger footprint — `peakLiveValues = 10` — for lower latency.)
 
 ## Executable
 
@@ -130,8 +176,10 @@ legality and the memory analysis.
 
 ## Note on the scalar α
 
-The DSL binds integer parameters, so the executable pins $\alpha = 2$ for an exact
-check. Nothing in the derivation depends on that: $\alpha$ is a coefficient in the
-`y` equation, so a real scalar (or a per-lane scalar read on the injection face)
-generalizes the kernel without changing the domain, the confluence structure, or
-the schedule.
+$\alpha$ enters as data on the `Alpha` confluence, not as a literal in an equation
+body, so it is a genuine flowing operand rather than a broadcast constant. The
+executable binds `data Alpha = 2` for an exact integer check, but nothing in the
+derivation depends on the value: the same projection carries any real $\alpha$, and
+a per-lane coefficient (`data Alpha = { ... }` read along the `i = -1` edge)
+generalizes `axpy` to a diagonal scaling without changing the domain, the
+confluence structure, or the schedule.

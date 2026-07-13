@@ -6,11 +6,14 @@
 // i axis and turns the map into a two-cell systolic pipeline on j so the result
 // leaves through an oriented output face:
 //
+//   a(i,j) = a(i-1,j);                         // scalar alpha pipelined across lanes
 //   x(i,j) = 0;                                // injected x is spent in-domain
-//   y(i,j) = y(i,j-1) + alpha * x(i,j-1);      // y streams +j, picks up alpha*x once
+//   y(i,j) = y(i,j-1) + a(i-1,j) * x(i,j-1);   // y streams +j, picks up alpha*x once
 //
-// x enters on the j = -1 halo (input face reads X[i]); y is seeded there with
-// the incoming vector Y[i] and drains to the terminal j = 1 face as R[i].
+// All three operands are uniform flows: alpha is PROJECTED onto the i = -1 edge
+// and pipelined across the lanes (no broadcast constant in any equation body);
+// x enters on the j = -1 halo (reads X[i]); y is seeded there with Y[i] and
+// drains to the terminal j = 1 face as R[i].
 //
 // This test parses the executable doc (the single source of truth) and checks:
 //   - the derived confluence structure (input/output face normals)
@@ -38,18 +41,21 @@ int main() {
         // ---- parsed structure ----
         ok &= (spec.indexNames == std::vector<std::string>{ "i", "j" });
         ok &= (spec.tau == std::vector<int>{ 1, 1 });
-        ok &= (spec.inputs.size() == 2);
+        ok &= (spec.inputs.size() == 3);   // Alpha, X, Y -- all three operands enter through confluences
         ok &= (spec.outputs.size() == 1);
 
         // ---- derived confluence orientation: outward face normals ----
+        // alpha is projected onto the i = -1 edge and pipelined across lanes, so
+        // its influx face points along -i; x and y enter on the -j halo.
         bool nok = true;
         for (const auto& in : spec.inputs) {
-            if (in.tensor == "X")      nok &= (in.normal == std::vector<int>{ 0, -1 });  // inject on j = -1
+            if (in.tensor == "Alpha")  nok &= (in.normal == std::vector<int>{ -1, 0 });  // project on i = -1
+            else if (in.tensor == "X") nok &= (in.normal == std::vector<int>{ 0, -1 });  // inject on j = -1
             else if (in.tensor == "Y") nok &= (in.normal == std::vector<int>{ 0, -1 });  // seed on j = -1
             else                       nok = false;
         }
         nok &= (spec.outputs.front().normal == std::vector<int>{ 0, 1 });                // drain at j = 1
-        std::cout << "derived face normals (X,Y,R): " << (nok ? "PASS" : "FAIL") << "\n";
+        std::cout << "derived face normals (Alpha,X,Y,R): " << (nok ? "PASS" : "FAIL") << "\n";
         ok &= nok;
 
         // ---- numeric result: R = alpha*X + Y (alpha, X, Y mirror the spec) ----
