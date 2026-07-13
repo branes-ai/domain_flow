@@ -2,7 +2,7 @@
 //
 //   system((i,j) | 0 <= i < N, 0 <= j < 2) {
 //       a(i,j) = a(i-1,j);                         // coefficient alpha, pipelined across lanes
-//       x(i,j) = 0;                                // vector x, injected at j=-1, spent in-domain
+//       x(i,j) = 0;                                // one-shot injection (additive identity in-domain)
 //       y(i,j) = y(i,j-1) + a(i-1,j) * x(i,j-1);   // stream y along +j, pick up alpha*x once
 //   }
 //
@@ -16,9 +16,13 @@
 //       on the i = -1 boundary edge and is pipelined across the lanes by the
 //       uniform shift a(i,j) = a(i-1,j), so every lane i sees the same alpha
 //       through nearest-neighbour connections rather than a fan-out bus.
-//     - x is INJECTED on the j = -1 halo (input face reads X[i]); in-domain x is
-//       0, so the scaled contribution alpha*x is added exactly once, at the
-//       front cell j = 0, and never again as y drains.
+//     - x is INJECTED on the j = -1 halo (input face reads X[i]).  The y equation
+//       accumulates alpha*x along j; the datum x_i lives only on the injection
+//       face and the in-domain equation x(i,j) = 0 sets the carrier to the
+//       accumulator's additive identity, so the tap x(i,j-1) reads x_i at the one
+//       step j = 0 that reaches the face and 0 (identity) afterwards -- the
+//       contribution alpha*x_i is added exactly once (see axpy.md, One-shot
+//       injection).  This is a "one-shot injection".
 //     - y streams along +j: seeded with the incoming vector Y[i] on the j = -1
 //       halo, it accumulates alpha*x at j = 0 and passes through to the terminal
 //       j = 1 face where the result R[i] = alpha*X[i] + Y[i] exits.
@@ -37,7 +41,7 @@ N = 4;
 
 system ((i,j) | 0 <= i < N, 0 <= j < 2) {
     a(i,j) = a(i-1,j);                             // alpha pipelined across the lanes (+i)
-    x(i,j) = 0;                                    // injected value lives only on the j = -1 halo
+    x(i,j) = 0;                                    // one-shot injection: additive identity in-domain
     y(i,j) = y(i,j-1) + a(i-1,j) * x(i,j-1);       // accumulate alpha*x once, then drain
 }
 

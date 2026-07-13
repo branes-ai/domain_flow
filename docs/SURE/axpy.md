@@ -78,7 +78,7 @@ $$
 ```
 system ((i,j) | 0 <= i < N, 0 <= j < 2) {
     a(i,j) = a(i-1,j);                         // coefficient alpha, pipelined across lanes
-    x(i,j) = 0;                                // injected value is spent in-domain
+    x(i,j) = 0;                                // one-shot injection: in-domain x is the additive identity
     y(i,j) = y(i,j-1) + a(i-1,j) * x(i,j-1);   // stream y along +j, pick up alpha*x once
 }
 ```
@@ -86,21 +86,51 @@ system ((i,j) | 0 <= i < N, 0 <= j < 2) {
 - `a(i,j)` carries the scalar $\alpha$. It is seeded on the `i = -1` edge (see the
   confluences below) and propagates along `+i` by the uniform shift `a(i-1,j)`, so
   every lane holds $\alpha$.
-- `x(i,j)` is the vector operand's carrier. Its *in-domain* value is `0`; the
-  actual data $x_i$ is **injected on the halo** `j = -1`. Because in-domain `x` is
-  zero, the contribution $\alpha\,x_i$ is added exactly once — at the front cell
-  `j = 0` — and never again as `y` drains.
+- `x(i,j)` is the vector operand's carrier. The datum $x_i$ is **injected on the
+  halo** `j = -1`; the in-domain equation `x(i,j) = 0` is a one-shot injection
+  (defined precisely below).
 - `y(i,j)` streams along `+j`. It is seeded on the halo `j = -1` with the incoming
   vector $y_i$, accumulates $\alpha\,x_i$ at `j = 0`, and passes through unchanged
   to `j = 1`.
 
-Tracing a fixed `i` (with $\alpha$ reaching the lane via `a(i-1,·)`, $x_i$ on the
-`j=-1` halo of `x`, and $y_i$ on the `j=-1` halo of `y`):
+### One-shot injection
+
+The `y` equation is an **accumulation** along `j`: it is the prefix sum of the
+increments $m(i,j) = a(i-1,j)\,x(i,j-1)$ over the pipeline, on top of the seed
+$y(i,-1) = y_i$. Its value at the drain face is
+
+$$
+y(i,1) \;=\; y_i \;+\; \sum_{j=0}^{1} a(i-1,j)\,x(i,j-1)
+        \;=\; y_i \;+\; \alpha \sum_{j=0}^{1} x(i,j-1),
+$$
+
+since $a \equiv \alpha$. For this to equal the target $y_i + \alpha x_i$, the
+increments must contribute $x_i$ **exactly once**, i.e. $\sum_{j} x(i,j-1) = x_i$.
+
+We arrange that by making `x` a **one-shot injection**. Read the accumulation's
+$+$ as the monoid $(\mathbb{R}, +, 0)$ with identity element $0$. The datum $x_i$
+is placed *only* on the injection face (the halo `j = -1`); the in-domain equation
+sets the carrier to that **additive identity**, `x(i,j) = 0`. The tap `x(i,j-1)`
+therefore reads $x_i$ at the single step `j = 0` whose offset reaches the face, and
+the identity $0$ at every later step:
+
+$$
+x(i,j-1) = \begin{cases} x_i & j = 0 \ (\text{taps the halo}) \\[2pt] 0 & j \ge 1 \ (\text{taps in-domain}) \end{cases}
+\qquad\Longrightarrow\qquad \sum_{j} x(i,j-1) = x_i.
+$$
+
+So the accumulation adds $\alpha x_i$ once and the identity thereafter — the
+injected datum is consumed by the one cell that reads the face and leaves no
+residue in the stream. (This is the general convention for a value that must enter
+a reduction exactly once: inject on the boundary, reset in-domain to the
+accumulator's identity element — $0$ for $+$, $1$ for $\times$.)
+
+Tracing a fixed `i` makes the two increments explicit:
 
 | step | value |
 |------|-------|
-| `y(i,0) = y(i,-1) + a(i-1,0)·x(i,-1)` | $y_i + \alpha x_i$ |
-| `y(i,1) = y(i,0)  + a(i-1,1)·x(i,0)`  | $(y_i + \alpha x_i) + \alpha\cdot 0 = y_i + \alpha x_i$ |
+| `y(i,0) = y(i,-1) + a(i-1,0)·x(i,-1)` | $y_i + \alpha x_i$  &nbsp;(`x(i,-1)=x_i`, the injection) |
+| `y(i,1) = y(i,0)  + a(i-1,1)·x(i,0)`  | $(y_i + \alpha x_i) + \alpha\cdot 0 = y_i + \alpha x_i$  &nbsp;(`x(i,0)=0`, the identity) |
 
 The result $R_i = \alpha x_i + y_i$ is present at the terminal face `j = 1`.
 

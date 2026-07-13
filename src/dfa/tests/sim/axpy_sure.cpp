@@ -7,7 +7,7 @@
 // leaves through an oriented output face:
 //
 //   a(i,j) = a(i-1,j);                         // scalar alpha pipelined across lanes
-//   x(i,j) = 0;                                // injected x is spent in-domain
+//   x(i,j) = 0;                                // one-shot injection (additive identity in-domain)
 //   y(i,j) = y(i,j-1) + a(i-1,j) * x(i,j-1);   // y streams +j, picks up alpha*x once
 //
 // All three operands are uniform flows: alpha is PROJECTED onto the i = -1 edge
