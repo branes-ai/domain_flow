@@ -16,7 +16,7 @@ questions must be answerable *before* committing to a spatial mapping:
 2. **What does the schedule cost in memory?** The number of simultaneously live
    values under a schedule is the number of memories the spatial fabric needs.
    Different legal schedules for the same system have different peaks: the free
-   (ASAP) schedule maximizes parallelism but also the resident set; a linear
+   schedule maximizes parallelism but also the resident set; a linear
    wavefront schedule typically trades latency for a smaller footprint.
 3. **Does the theory match execution?** An analytical peak is only trustworthy if
    an actual eviction-based execution of the schedule realizes the same footprint.
@@ -52,7 +52,7 @@ Capabilities:
   operand data and initial conditions enter the system. Input operands are simply
   equations with an empty domain, so they stream without occupying memory.
   Dependency cycles are detected and diagnosed instead of overflowing the stack.
-- **Free (ASAP) schedule** (`computeFreeSchedule`): the data-flow earliest firing
+- **Free schedule** (`computeFreeSchedule`): the data-flow earliest firing
   time of every value — minimum latency, maximum parallelism, widest wavefronts.
 - **Legality checking** (`checkLegality`): validates `time(consumer) - time(producer) >= 1`
   on every dependency edge; reports edge count, minimum slack, and a capped sample
@@ -140,12 +140,12 @@ Schedule is illegal; skipping execution.
 FAILED
 ```
 
-Comparing the default free (ASAP) schedule with the linear one shows the
+Comparing the default free schedule with the linear one shows the
 latency/memory trade-off — the free schedule is one step faster but needs a third
 more memories (12 vs 9):
 
 ```console
-$ dfactl matmul          # free (ASAP) schedule
+$ dfactl matmul          # free schedule
 Schedule legality: LEGAL  edges=20  minSlack(tau.theta)=1
 Memory cardinality: peakLiveValues=12  latency=3  work=24
 ```

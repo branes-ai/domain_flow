@@ -103,7 +103,7 @@ namespace sw {
                 void clearMemo() { memo_.clear(); active_.clear(); }
 
                 // ---------------------------------------------------------------
-                // Free schedule (ASAP): the data-flow earliest time of every value.
+                // Free schedule: the data-flow earliest time of every value.
                 // t = 0 at boundaries, t = 1 + max(producer times) otherwise.
                 // Minimum latency, maximum parallelism (widest wavefronts).
                 // ---------------------------------------------------------------

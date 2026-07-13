@@ -59,7 +59,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   with KaTeX math rendering and a landing page at `docs/site/index.mdx`.
 - **SURE simulator** (`include/dfa/sim/`, PR #3): standalone header-only functional
   simulator for Systems of Uniform/Affine Recurrence Equations — numeric evaluation
-  with boundary/operand semantics, free (ASAP) schedule derivation, schedule
+  with boundary/operand semantics, free schedule derivation, schedule
   legality checking (`tau.theta >= 1` with violation reports), memory-cardinality
   (peak live values) analysis, eviction-based execution, and a `.dfg` import path.
   Includes the `dfactl` CLI (`sim/`) with built-in `matmul`, `matvec`, and `qr`
@@ -73,6 +73,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **Terminology: drop the "ASAP" gloss on the free schedule.** The *free
+  schedule* is the long-established (since the 1960s) term for the
+  unencumbered, data-flow-earliest execution order; the parenthetical "(ASAP)"
+  was inaccurate and has been removed from all docs and code (simulator
+  comments, `dfactl` help/output strings, sim-test comments, and the
+  architecture/simulator/QR theory docs).
 - **CI overhaul** (issue #7, PR #9): docs-only changes (`**.md`, `docs/**`,
   `docs-site/**`) no longer trigger the LLVM build matrix; a weekly scheduled
   run on main keeps the shared LLVM cache warm inside GitHub's 7-day eviction
