@@ -10,7 +10,7 @@
 //
 // The system itself is the canonical buildMatmul3() spec (specs.hpp); this test
 // verifies its numeric output against the reference, then reports the peak
-// live-value cardinality for a free (ASAP) schedule vs the linear schedule
+// live-value cardinality for a free schedule vs the linear schedule
 // tau=[1,1,1], and checks schedule legality including a known-illegal tau.
 
 #include <iostream>
@@ -30,7 +30,7 @@ int main() {
     SureSimulator<double> simom(sys);
     bool ok = spec.printOutputs(simom, std::cout);
 
-    // ---- memory cardinality: free (ASAP) vs linear [1,1,1] ----
+    // ---- memory cardinality: free vs linear [1,1,1] ----
     SureSimulator<double> sim(sys);
     ExplicitSchedule freeSched = sim.computeFreeSchedule();
     LinearSchedule   linSched(spec.tau);   // canonical tau = [1,1,1]

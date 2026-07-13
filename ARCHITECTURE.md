@@ -174,7 +174,7 @@ The `src/dfa/` directory contains only legacy skeleton CMakeLists files (as of 2
 
 A standalone, header-only functional simulator for Systems of Uniform/Affine
 Recurrence Equations: numeric evaluation with boundary/operand semantics,
-free (ASAP) schedule derivation, schedule legality checking (`tau.theta >= 1`),
+free schedule derivation, schedule legality checking (`tau.theta >= 1`),
 memory-cardinality (peak live values) analysis, eviction-based execution, and a
 `.dfg` import path that lowers DomainFlowGraphs into runnable recurrence systems.
 See `docs/sure-simulator.md` for the why/what/how with worked examples.
