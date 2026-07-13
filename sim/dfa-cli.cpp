@@ -39,7 +39,7 @@ namespace {
             "  dfactl --help\n"
             "\n"
             "Options:\n"
-            "  --schedule free|linear   free (ASAP) schedule [default], or the spec's linear tau\n"
+            "  --schedule free|linear   free schedule [default], or the spec's linear tau\n"
             "  --tau t0,t1,...          override the linear scheduling vector (implies --schedule linear)\n"
             "  --quiet                  suppress the numeric output, report schedule/memory only\n";
     }
@@ -198,7 +198,7 @@ namespace {
         if (schedKind == "free" || tau.empty()) {
             if (schedKind != "free" && tau.empty())
                 os << "\nnote: program declares no tau; using free.\n";
-            os << "\nschedule: free (ASAP)\n";
+            os << "\nschedule: free\n";
             ExplicitSchedule s = sim.computeFreeSchedule();
             rc = analyzeAndRun(sim, sure.system, s, os);
         } else {
@@ -299,7 +299,7 @@ int main(int argc, char** argv) {
     // 2. build the requested schedule
     int rc = 0;
     if (schedKind == "free") {
-        std::cout << "\nschedule: free (ASAP)\n";
+        std::cout << "\nschedule: free\n";
         ExplicitSchedule s = sim.computeFreeSchedule();
         rc = analyzeAndRun(sim, spec.system, s, std::cout);
     } else {

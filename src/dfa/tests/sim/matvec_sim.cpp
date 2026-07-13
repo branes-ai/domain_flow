@@ -10,7 +10,7 @@
 // A is supplied as a rank-0 (input) equation: every access is a boundary, so it
 // streams without occupying memory.  The system itself is the canonical
 // buildMatvec() spec (specs.hpp); this test verifies output, reports peak live
-// values for the free (ASAP) schedule vs the linear schedule tau=[1,1] with the
+// values for the free schedule vs the linear schedule tau=[1,1] with the
 // beta[y]=1 stage offset, and checks that the offset-less schedule is rejected.
 
 #include <iostream>
@@ -30,7 +30,7 @@ int main() {
     SureSimulator<double> simom(sys);
     bool ok = spec.printOutputs(simom, std::cout);
 
-    // ---- memory cardinality: free (ASAP) vs linear [1,1] ----
+    // ---- memory cardinality: free vs linear [1,1] ----
     SureSimulator<double> sim(sys);
     ExplicitSchedule freeSched = sim.computeFreeSchedule();
     // y reads xs at the SAME index point (tau.theta = 0), so y needs a +1 stage

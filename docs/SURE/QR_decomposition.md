@@ -211,7 +211,7 @@ $ dfactl --sure docs/SURE/qr.sure
    `snorm(M-1,...)`) and the diagonal taps (`qhat(i,k,k)`) give dependence
    *vectors that vary with the point*, so no single `tau` satisfies
    `tau.theta >= 1` everywhere — `qr.sure` declares no `tau` and runs under
-   the free (ASAP) schedule. Index-set splitting (piecewise schedules) is
+   the free schedule. Index-set splitting (piecewise schedules) is
    the standard remedy and remains future work.
 
 ### Verification

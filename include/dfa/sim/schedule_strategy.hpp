@@ -68,7 +68,7 @@ namespace sw {
                 }
             };
 
-            // Explicit table.  Used to carry the *free* (ASAP) schedule that the
+            // Explicit table.  Used to carry the *free* schedule that the
             // simulator derives by data-flow depth: t = 0 at the boundaries, and
             // t = 1 + max(producer times) for every computed value.  It is the
             // minimum-latency / maximum-parallelism schedule.

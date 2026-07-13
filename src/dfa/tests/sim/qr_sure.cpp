@@ -162,7 +162,7 @@ int main() {
     std::cout << "max|Q^T*Q - I| = " << maxOrtho << "\n";
     ok &= (maxQR < 1e-9) && (maxOrtho < 1e-9);
 
-    // ---- memory cardinality under the free (ASAP) schedule ----
+    // ---- memory cardinality under the free schedule ----
     // A single global linear tau is ill-defined across the heterogeneous index
     // spaces here (v is 3D, q/r/sn 2D, rho 1D), so we use the free schedule, which
     // is well-defined for any recurrence system.
@@ -179,7 +179,7 @@ int main() {
     std::cout << "\n";
     ok &= (freePeak == fr.peakLiveValues);
 
-    // ---- schedule legality: the free (ASAP) schedule is legal by construction ----
+    // ---- schedule legality: the free schedule is legal by construction ----
     std::cout << "\nLegality:\n  free schedule : " << checkLegality(sys, freeSched) << "\n";
     ok &= checkLegality(sys, freeSched).legal;
 
