@@ -49,7 +49,7 @@ propagate the total back down,
 b(i,j) = b(i+1,j);              // pipeline the reduction result back down -i
 ```
 
-but the pipeline must be **seeded from the reduction result** `s(M-1)` — a
+but the pipeline must be **seeded from the reduction result** `srp(M-1,j,k)` — a
 *recurrence variable*, not an input tensor. And here the confluence DSL stops:
 
 ```console

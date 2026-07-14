@@ -27,7 +27,7 @@ and it is decided entirely by the **kind of dependency** that crosses the cut.
 | dependency in the recurrence | at a tile boundary it becomes | cost | tiles? |
 |---|---|---|---|
 | **uniform** — constant-offset, nearest-neighbour (`x(i,j) = x(i-1,j)`) | a **halo / boundary exchange** with the adjacent tile | local, `O(surface)` | **yes, linearly** |
-| **affine / broadcast** — spans the domain (a reduction result fanned out to every cell; a fixed far row read) | a **collective** — all-reduce, broadcast, transpose — on the **Distributed Memory Machine** | global, `O(volume)` and latency-bound | **only after uniformization** |
+| **affine / broadcast** — spans the domain (a reduction result fanned out to every cell; a fixed far row read) | a **collective** — all-reduce, broadcast, transpose — on the **Distributed Memory Machine** | global, payload/topology-dependent, latency-bound | **only after uniformization** |
 
 ```text
    uniform (SURE)                         affine (SARE)
