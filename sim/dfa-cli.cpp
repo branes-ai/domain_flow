@@ -12,10 +12,12 @@
 // <spec> is one of the built-in recurrence systems (matmul, matvec, qr).
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <string>
 #include <vector>
 #include <memory>
+#include <limits>
 #include <dfa/sim/specs.hpp>
 #include <dfa/sim/legality.hpp>
 #include <dfa/sim/dfg_import.hpp>
@@ -41,6 +43,8 @@ namespace {
             "Options:\n"
             "  --schedule free|linear   free schedule [default], or the spec's linear tau\n"
             "  --tau t0,t1,...          override the linear scheduling vector (implies --schedule linear)\n"
+            "  --emit-schedule <file>   (--sure only) write the schedule as JSON for the docs-site\n"
+            "                           3-D wavefront animation, then exit\n"
             "  --quiet                  suppress the numeric output, report schedule/memory only\n";
     }
 
@@ -144,6 +148,100 @@ namespace {
         return (observed == r.peakLiveValues) ? 0 : 2;
     }
 
+    // Emit the schedule as JSON for the docs-site 3-D wavefront animation (issue
+    // #64): every variable's index points tagged with their firing time -- the
+    // domain-flow signature t = tau.p under a linear schedule, or the data-flow-
+    // earliest time under the free schedule -- plus the index-space bounds and the
+    // total latency, so a viewer can sweep the wavefront through the lattice.
+    void emitScheduleJson(std::ostream& js, const SureSpec& sure, const ISchedule& sched,
+                          const std::string& kind, const std::vector<int>& tau,
+                          const std::string& opName) {
+        const std::size_t rank = sure.indexNames.size();
+        std::vector<long> lo(rank, std::numeric_limits<long>::max());
+        std::vector<long> hi(rank, std::numeric_limits<long>::min());
+        long tmin = std::numeric_limits<long>::max(), tmax = std::numeric_limits<long>::min();
+
+        struct VarDump { std::string name; std::vector<std::pair<IndexPoint, long>> pts; };
+        std::vector<VarDump> vars;
+        for (const auto& [name, eq] : sure.system.equations()) {
+            VarDump vd; vd.name = name;
+            for (const auto& p : eq.domain.enumerate()) {
+                long t = sched.time(name, p);
+                vd.pts.emplace_back(p, t);
+                tmin = std::min(tmin, t); tmax = std::max(tmax, t);
+                for (std::size_t d = 0; d < rank && d < p.size(); ++d) {
+                    lo[d] = std::min(lo[d], static_cast<long>(p[d]));
+                    hi[d] = std::max(hi[d], static_cast<long>(p[d]));
+                }
+            }
+            vars.push_back(std::move(vd));
+        }
+        if (tmin > tmax) { tmin = tmax = 0; }
+        for (std::size_t d = 0; d < rank; ++d)
+            if (lo[d] > hi[d]) { lo[d] = 0; hi[d] = 0; }
+
+        auto arr = [&js](const auto& v) {
+            js << "[";
+            for (std::size_t i = 0; i < v.size(); ++i) js << v[i] << (i + 1 < v.size() ? "," : "");
+            js << "]";
+        };
+
+        js << "{\n";
+        js << "  \"operator\": \"" << opName << "\",\n";
+        js << "  \"rank\": " << rank << ",\n";
+        js << "  \"indexNames\": [";
+        for (std::size_t i = 0; i < sure.indexNames.size(); ++i)
+            js << "\"" << sure.indexNames[i] << "\"" << (i + 1 < sure.indexNames.size() ? "," : "");
+        js << "],\n";
+        js << "  \"schedule\": {\"kind\": \"" << kind << "\"";
+        if (kind == "linear") { js << ", \"tau\": "; arr(tau); }
+        js << "},\n";
+        js << "  \"bounds\": {\"lo\": "; arr(lo); js << ", \"hi\": "; arr(hi); js << "},\n";
+        js << "  \"latency\": " << (tmax - tmin + 1) << ",\n";
+        js << "  \"variables\": [\n";
+        for (std::size_t v = 0; v < vars.size(); ++v) {
+            js << "    {\"name\": \"" << vars[v].name << "\", \"points\": [";
+            for (std::size_t k = 0; k < vars[v].pts.size(); ++k) {
+                const IndexPoint& p = vars[v].pts[k].first;
+                js << "{\"p\":[";
+                for (std::size_t d = 0; d < p.size(); ++d) js << p[d] << (d + 1 < p.size() ? "," : "");
+                js << "],\"t\":" << vars[v].pts[k].second << "}" << (k + 1 < vars[v].pts.size() ? "," : "");
+            }
+            js << "]}" << (v + 1 < vars.size() ? "," : "") << "\n";
+        }
+        js << "  ]\n";
+        js << "}\n";
+    }
+
+    // Parse a .sure program and write its schedule JSON (--emit-schedule).
+    int runSureEmit(const std::string& path, const std::string& emitPath,
+                    const std::string& schedKind, const std::vector<int>& tauOverride, bool haveTau) {
+        SureSpec sure;
+        try { sure = parseSureFile(path); }
+        catch (const std::exception& e) { std::cerr << "error: " << e.what() << "\n"; return 2; }
+
+        std::string op = path;
+        auto slash = op.find_last_of("/\\");
+        if (slash != std::string::npos) op = op.substr(slash + 1);
+        if (op.size() > 5 && op.substr(op.size() - 5) == ".sure") op = op.substr(0, op.size() - 5);
+
+        SureSimulator<double> sim(sure.system);
+        std::vector<int> tau = haveTau ? tauOverride : sure.tau;
+
+        std::ofstream out(emitPath);
+        if (!out) { std::cerr << "error: cannot write '" << emitPath << "'\n"; return 2; }
+
+        if (schedKind == "free" || tau.empty()) {
+            ExplicitSchedule s = sim.computeFreeSchedule();
+            emitScheduleJson(out, sure, s, "free", {}, op);
+        } else {
+            LinearSchedule s(tau);
+            emitScheduleJson(out, sure, s, "linear", tau, op);
+        }
+        std::cout << "wrote schedule JSON: " << emitPath << "\n";
+        return 0;
+    }
+
     // Parse a .sure DSL program (the docs/SURE notation), evaluate its outputs,
     // and analyze the requested schedule.
     int runSure(const std::string& path, std::ostream& os, bool quiet,
@@ -227,6 +325,7 @@ int main(int argc, char** argv) {
     std::string dfgPath;
     std::string surePath;
     std::string schedKind = "free";
+    std::string emitPath;
     std::vector<int> tauOverride;
     bool haveTau = false;
     bool quiet = false;
@@ -244,6 +343,11 @@ int main(int argc, char** argv) {
         if (a == "--sure") {
             if (++i >= argc) { std::cerr << "error: --sure needs a file path\n"; return 2; }
             surePath = argv[i];
+            continue;
+        }
+        if (a == "--emit-schedule") {
+            if (++i >= argc) { std::cerr << "error: --emit-schedule needs a file path\n"; return 2; }
+            emitPath = argv[i];
             continue;
         }
         if (a == "--schedule") {
@@ -278,6 +382,10 @@ int main(int argc, char** argv) {
     if (!dfgPath.empty() && !surePath.empty()) {
         std::cerr << "error: --dfg and --sure are mutually exclusive\n";
         return 2;
+    }
+    if (!emitPath.empty()) {
+        if (surePath.empty()) { std::cerr << "error: --emit-schedule requires --sure <file>\n"; return 2; }
+        return runSureEmit(surePath, emitPath, schedKind, tauOverride, haveTau);
     }
     if (!dfgPath.empty()) return runDfg(dfgPath, std::cout, quiet);
     if (!surePath.empty()) return runSure(surePath, std::cout, quiet, schedKind, tauOverride, haveTau);

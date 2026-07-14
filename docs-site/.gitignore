@@ -9,8 +9,9 @@ node_modules/
 # Author content in docs/ (or docs/site/ for MDX pages), never here.
 src/content/docs/
 
-# images copied from docs/images/ by sync-content.mjs
+# assets copied into public/ by sync-content.mjs (source lives in docs/)
 public/images/
+public/schedules/
 
 # environment variables
 .env
