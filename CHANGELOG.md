@@ -49,6 +49,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
     each operand as it *enters* (`x = abs(X[i])`) — the mirror image of `nrm2`'s
     output-face `sqrt` epilogue, with the interior a clean uniform sum in both.
     Verified `Σ|x| = 10` on signed data; O(1) accumulator footprint.
+  - **`scal`** (issue #26): the vector scale — BLAS-1 `x := α·x`
+    (`docs/SURE/scal.sure`, `docs/SURE/scal.md`, CTest `test_scal_sure`,
+    `dfactl_sure_scal`). Exactly `axpy` **specialized to a zero addend**
+    (`α·x = α·x + 0`): the same two-cell systolic map with the projected +
+    pipelined scalar and one-shot injection, but the result stream is seeded with
+    the **additive identity** (no incoming vector) instead of `Y`. Verified
+    `R = α·X = {3,6,9,12}`.
 - **SURE DSL: executable docs/SURE notation** (issue #15, PR #16; issue #17,
   PR #18): a header-only text front-end (`include/dfa/sim/sure_parser.hpp`)
   parses the `system((i,j,k) | constraints) { equations }` notation used in
