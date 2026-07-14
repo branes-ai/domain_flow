@@ -77,6 +77,7 @@ export default defineConfig({
           label: 'Scaling & Distribution',
           items: [
             { label: 'The scale-out problem', slug: 'scaling' },
+            { label: 'Tiling the index space', slug: 'scaling/tiling' },
             { label: 'Uniformization', slug: 'scaling/uniformization' },
           ],
         },

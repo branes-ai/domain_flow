@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Tiling the index space** (issue #70): `docs/scaling/tiling.md` — a blocked-matmul
+  worked example showing that tiling is a **partition of the same index space**, not
+  a new recurrence: because `matmul.sure` is uniform, its `a`/`b`/`c` dependences are
+  constant offsets, so every dependence a tile cut severs is a **halo** (`O(T²)`
+  surface exchange with a neighbour), never a collective — even the `C`-accumulation
+  across `K`-blocks is a `±1` pipelined hand-off. Covers index-set partitioning, the
+  two-level (across-tile + within-tile) schedule, matmul's self-similarity under
+  tiling, and a 4×4-as-2×2-blocks numeric example. The schedule-animation viewer
+  gains a `data-tile` mode that colours each activation by its tile block and draws
+  the tile boundaries, embedded here as a 15³ cube partitioned into a 3×3×3 grid.
 - **QR by Givens rotations** (issue #72, the Scaling & Distribution flagship): an
   executable, verified **Gentleman–Kung** QR — `docs/SURE/qr_givens.sure`, CTest
   `test_qr_givens_sure`, `dfactl_sure_qr_givens`, and a schedule animation on the
