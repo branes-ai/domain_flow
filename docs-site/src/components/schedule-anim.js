@@ -69,44 +69,49 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   axes.position.set(...pad(lo));
   scene.add(axes);
 
-  // ── one sphere per activation (small lattices; instancing is a later step) ─
-  // Each activation gets its OWN material: opacity/emissive are updated per point
-  // per frame, so materials cannot be shared across a variable's points.
-  const geo = new THREE.SphereGeometry(1, 14, 10);
-  const baseR = Math.max(0.06, span * 0.05);
-  const meshes = acts.map((a) => {
-    const color = PALETTE[a.vi % PALETTE.length];
-    const m = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({ color, transparent: true, emissive: 0x000000 }));
-    // jitter coincident variables (e.g. matmul a/b/c share coords) so all read
-    const off = vars.length > 1 ? (a.vi - (vars.length - 1) / 2) * baseR * 0.9 : 0;
-    m.position.set(a.p[0] + off, a.p[1], a.p[2]);
-    m.userData.a = a;
-    scene.add(m);
-    return m;
-  });
+  // ── one instanced sphere per activation — scales to 15^3 lattices (~10k
+  //    activations for matmul's three recurrences) as a single draw call ─────
+  const baseR = Math.min(0.3, Math.max(0.08, span * 0.05));
+  const geo = new THREE.SphereGeometry(1, 8, 6);
+  const inst = new THREE.InstancedMesh(
+    geo, new THREE.MeshLambertMaterial({ transparent: true, opacity: 0.95 }), Math.max(1, acts.length));
+  inst.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  scene.add(inst);
+  // fixed positions (small per-variable jitter so coincident variables, e.g.
+  // matmul's a/b/c, don't perfectly overlap) + a per-activation base colour
+  const jit = vars.length > 1 ? baseR * 0.55 : 0;
+  const positions = acts.map((a) => [
+    a.p[0] + (a.vi - (vars.length - 1) / 2) * jit, a.p[1], a.p[2],
+  ]);
+  const baseColors = acts.map((a) => new THREE.Color(PALETTE[a.vi % PALETTE.length]));
+  const WHITE = new THREE.Color(0xffffff);
 
   // ── per-frame state colouring ─────────────────────────────────────────────
+  const dummy = new THREE.Object3D();
+  const col = new THREE.Color();
   let frame = 0;
   function setFrame(f) {
     frame = Math.max(0, Math.min(frameCount - 1, Math.round(f)));
     const now = tMin + frame;
     let firing = 0, fired = 0;
-    meshes.forEach((m) => {
-      const t = m.userData.a.t;
-      const mat = m.material;
-      if (t < now) {                       // already fired — solid, small
-        m.visible = true; m.scale.setScalar(baseR * 0.7);
-        mat.opacity = 0.9; mat.emissive.setHex(0x000000);
-        fired++;
+    for (let i = 0; i < acts.length; i++) {
+      const t = acts[i].t;
+      let s;
+      if (t < now) {                       // already fired — solid, small, dim
+        s = baseR * 0.72; col.copy(baseColors[i]).multiplyScalar(0.7); fired++;
       } else if (t === now) {              // the firing wavefront — bright, big
-        m.visible = true; m.scale.setScalar(baseR * 1.7);
-        mat.opacity = 1; mat.emissive.setHex(mat.color.getHex());
-        firing++;
-      } else {                             // pending — faint
-        m.visible = true; m.scale.setScalar(baseR * 0.5);
-        mat.opacity = 0.12; mat.emissive.setHex(0x000000);
+        s = baseR * 1.8; col.copy(baseColors[i]).lerp(WHITE, 0.6); firing++;
+      } else {                             // pending — tiny, near-dark
+        s = baseR * 0.5; col.copy(baseColors[i]).multiplyScalar(0.12);
       }
-    });
+      dummy.position.set(positions[i][0], positions[i][1], positions[i][2]);
+      dummy.scale.setScalar(s);
+      dummy.updateMatrix();
+      inst.setMatrixAt(i, dummy.matrix);
+      inst.setColorAt(i, col);
+    }
+    inst.instanceMatrix.needsUpdate = true;
+    if (inst.instanceColor) inst.instanceColor.needsUpdate = true;
     if (hud) {
       hud.innerHTML =
         `<div>${data.operator ?? 'schedule'} · ${data.schedule?.kind ?? ''}` +
@@ -133,10 +138,12 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
     camera.aspect = w / h; camera.updateProjectionMatrix();
   }
 
+  // aim for a ~6 s full sweep regardless of latency (small ops slow, 15^3 brisk)
+  const fps = options.fps ?? Math.max(2, Math.min(18, frameCount / 6));
   let playing = false, raf = 0, last = 0;
   function tick(ts) {
     raf = requestAnimationFrame(tick);
-    if (playing && frameCount > 1 && ts - last > 1000 / (options.fps ?? 1.5)) {
+    if (playing && frameCount > 1 && ts - last > 1000 / fps) {
       last = ts;
       setFrame((frame + 1) % frameCount);
     }
@@ -155,7 +162,10 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
     play() { playing = true; },
     pause() { playing = false; },
     fitView,
-    dispose() { cancelAnimationFrame(raf); ro.disconnect(); controls.dispose(); renderer.dispose(); },
+    dispose() {
+      cancelAnimationFrame(raf); ro.disconnect(); controls.dispose();
+      geo.dispose(); inst.material.dispose(); inst.dispose(); renderer.dispose();
+    },
   };
 }
 

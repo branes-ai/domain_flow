@@ -18,9 +18,12 @@ const REPO = join(import.meta.dirname, '..');
 const OUT = join(REPO, 'docs', 'schedules');
 const SURE = join(REPO, 'docs', 'SURE');
 
-// Operators to render, and which schedules to emit for each.
+// Operators to render, and which schedules to emit for each. `spec` (optional)
+// overrides the source .sure name — matmul uses the 15x15x15 visualization-scale
+// spec so the wavefront geometry materializes, while the output keeps the `op`
+// name the docs page references.
 const OPERATORS = [
-  { op: 'matmul', schedules: ['free', 'linear'] },
+  { op: 'matmul', spec: 'matmul15', schedules: ['free', 'linear'] },
 ];
 
 function findDfactl() {
@@ -45,13 +48,13 @@ if (!dfactl) {
 
 mkdirSync(OUT, { recursive: true });
 let n = 0;
-for (const { op, schedules } of OPERATORS) {
-  const spec = join(SURE, `${op}.sure`);
+for (const { op, spec: specName, schedules } of OPERATORS) {
+  const spec = join(SURE, `${specName ?? op}.sure`);
   if (!existsSync(spec)) { console.error(`  MISSING spec: ${spec}`); continue; }
   for (const kind of schedules) {
     const out = join(OUT, `${op}-${kind}.json`);
     execFileSync(dfactl, ['--sure', spec, '--schedule', kind, '--emit-schedule', out], { stdio: 'pipe' });
-    console.log(`  ${op} (${kind}) → docs/schedules/${op}-${kind}.json`);
+    console.log(`  ${op} (${kind}, ${specName ?? op}.sure) → docs/schedules/${op}-${kind}.json`);
     ++n;
   }
 }
