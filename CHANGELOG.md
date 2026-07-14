@@ -34,6 +34,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
     propagating A/B). Verified `s = X·Y = 20`; the memory analysis confirms the
     reduction signature (`peakLiveValues = 2`, an O(1) accumulator), and the doc
     contrasts the latency-bound linear chain with the tree reduction.
+  - **`nrm2`** (issue #24): the Euclidean norm — BLAS-1 `‖x‖₂ = sqrt(Σ xᵢ²)`
+    (`docs/SURE/nrm2.sure`, `docs/SURE/nrm2.md`, CTest `test_nrm2_sure`,
+    `dfactl_sure_nrm2`). The `dot` sum-of-squares reduction with a **fused
+    output-face `sqrt` epilogue**: the square root is a pointwise op applied once
+    where the result drains (`R[0] = sqrt(s(N-1))`), not an interior recurrence
+    edge — the same confluence pattern as the MATMUL activation epilogue and
+    `qr`'s `Rdiag`. Verified `‖x‖₂ = 5` through the epilogue; O(1) accumulator
+    footprint. The doc notes the scaled/robust (overflow-avoiding) variant as an
+    extension.
 - **SURE DSL: executable docs/SURE notation** (issue #15, PR #16; issue #17,
   PR #18): a header-only text front-end (`include/dfa/sim/sure_parser.hpp`)
   parses the `system((i,j,k) | constraints) { equations }` notation used in
