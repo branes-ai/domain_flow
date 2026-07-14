@@ -24,6 +24,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
     `R = alpha*X + Y` with derived face normals and free/linear legality.
     `SURE_DOCS_DIR` is now directory-scoped in the sim tests so each new
     `<op>_sure.cpp` is a drop-in.
+  - **`dot`** (issue #23): the canonical reduction — BLAS-1 `s = xᵀy`
+    (`docs/SURE/dot.sure`, `docs/SURE/dot.md`, CTest `test_dot_sure`,
+    `dfactl_sure_dot`). The multiply-add chain `s(i,j) = s(i-1,j) +
+    x(i,j-1)*y(i,j-1)` accumulates along `+i`, seeded with the additive identity,
+    and the scalar result leaves through the single terminal point `i = N-1`. The
+    operands are indexed by the reduction coordinate, so they enter on a
+    **depth-1 feed axis** `j` (a reduction reuses no operand, unlike matmul's
+    propagating A/B). Verified `s = X·Y = 20`; the memory analysis confirms the
+    reduction signature (`peakLiveValues = 2`, an O(1) accumulator), and the doc
+    contrasts the latency-bound linear chain with the tree reduction.
 - **SURE DSL: executable docs/SURE notation** (issue #15, PR #16; issue #17,
   PR #18): a header-only text front-end (`include/dfa/sim/sure_parser.hpp`)
   parses the `system((i,j,k) | constraints) { equations }` notation used in
