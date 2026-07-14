@@ -1,0 +1,59 @@
+// Executable version of the BLAS Level-1 axpy SURE from axpy.md:
+//
+//   system((i,j) | 0 <= i < N, 0 <= j < 2) {
+//       a(i,j) = a(i-1,j);                         // coefficient alpha, pipelined across lanes
+//       x(i,j) = 0;                                // one-shot injection (additive identity in-domain)
+//       y(i,j) = y(i,j-1) + a(i-1,j) * x(i,j-1);   // stream y along +j, pick up alpha*x once
+//   }
+//
+//   axpy  y := alpha*x + y   is a fully-parallel elementwise map.  All THREE
+//   operands -- the scalar alpha and the vectors x, y -- must enter through
+//   confluences and flow by uniform (constant-offset) recurrences; nothing is a
+//   broadcast constant baked into an equation body (that would be an affine,
+//   non-uniform dependence).
+//
+//     - alpha is a 0-D scalar: it is PROJECTED into the index space.  It enters
+//       on the i = -1 boundary edge and is pipelined across the lanes by the
+//       uniform shift a(i,j) = a(i-1,j), so every lane i sees the same alpha
+//       through nearest-neighbour connections rather than a fan-out bus.
+//     - x is INJECTED on the j = -1 halo (input face reads X[i]).  The y equation
+//       accumulates alpha*x along j; the datum x_i lives only on the injection
+//       face and the in-domain equation x(i,j) = 0 sets the carrier to the
+//       accumulator's additive identity, so the tap x(i,j-1) reads x_i at the one
+//       step j = 0 that reaches the face and 0 (identity) afterwards -- the
+//       contribution alpha*x_i is added exactly once (see axpy.md, One-shot
+//       injection).  This is a "one-shot injection".
+//     - y streams along +j: seeded with the incoming vector Y[i] on the j = -1
+//       halo, it accumulates alpha*x at j = 0 and passes through to the terminal
+//       j = 1 face where the result R[i] = alpha*X[i] + Y[i] exits.
+//
+// The product a(i-1,j) * x(i,j-1) is a uniform recurrence: both taps are
+// constant offsets of the current point (nonlinear in the VALUES, but the index
+// DEPENDENCES are uniform, exactly as in matmul's a(i,j-1,k)*b(i-1,j,k)).
+//
+// Faces are equality-pinned in the domain's own coordinates; the outward normal
+// is derived (inputs influx, tau.n < 0; outputs outflux, tau.n > 0).
+//
+// Run it:   dfactl --sure docs/SURE/axpy.sure
+//           dfactl --sure docs/SURE/axpy.sure --tau 1,-1   (ILLEGAL flux demo)
+
+N = 4;
+
+system ((i,j) | 0 <= i < N, 0 <= j < 2) {
+    a(i,j) = a(i-1,j);                             // alpha pipelined across the lanes (+i)
+    x(i,j) = 0;                                    // one-shot injection: additive identity in-domain
+    y(i,j) = y(i,j-1) + a(i-1,j) * x(i,j-1);       // accumulate alpha*x once, then drain
+}
+
+// tensor confluences
+input  Alpha[1] ((i,j) | i = -1, 0 <= j < 2) : a(i,j) = Alpha[0];   // project the scalar onto the i = -1 edge
+input  X[N]     ((i,j) | 0 <= i < N, j = -1)  : x(i,j) = X[i];       // inject x on the front halo
+input  Y[N]     ((i,j) | 0 <= i < N, j = -1)  : y(i,j) = Y[i];       // seed the streaming y with the incoming vector
+output R[N]     ((i,j) | 0 <= i < N, j = 1)   : R[i] = y(i,j);       // result leaves the terminal face
+
+tau = [1, 1];                    // canonical legal wavefront schedule
+
+// test-bench data:  R = alpha*X + Y = 2*{1,2,3,4} + {10,20,30,40} = {12,24,36,48}
+data Alpha = 2;
+data X = {  1,  2,  3,  4 };
+data Y = { 10, 20, 30, 40 };
