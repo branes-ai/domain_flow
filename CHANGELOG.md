@@ -34,7 +34,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
     itself — it scales the size parameter and scalar-fills the operand data of a
     throwaway copy of the committed spec (the schedule depends only on the
     domain), so no duplicate `.sure` specs are checked in (the dedicated
-    `matmul15.sure` is retired; `matmul` renders from `matmul.sure` at 15³).
+    `matmul15.sure` is retired; `matmul` renders from `matmul.sure` at 15³). The
+    **QR** page also gets an animation as a stress test of the approach on a
+    genuine SARE — a triangular-prism domain with affine/broadcast taps and no
+    global linear schedule, so the free-schedule wavefront threads the sequential
+    Gram-Schmidt dependencies (M = N = 8, latency 144).
 - **SURE linear-algebra operator catalog** (epic #21): a catalog of executable
   SURE derivations of the key linear-algebra operators (BLAS L1/L2/L3,
   factorizations, solvers), each shipping the established triple — a `.sure`
@@ -193,7 +197,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   derivations (matmul, conv2d, QR). Content still originates in `docs/SURE/`;
   `sync-content.mjs` maps the L1 pages under `sure-algorithms/blas-l1/` and the
   sidebar is defined in `astro.config.mjs`. (Also fixed two `qr` cross-links to
-  reference the source filename so they survive the move.)
+  reference the source filename so they survive the move.) Sidebar section order
+  is now Getting Started → Architecture → Theory → SURE Simulator → SURE
+  Algorithms → Changelog.
 - **Terminology: drop the "ASAP" gloss on the free schedule.** The *free
   schedule* is the long-established (since the 1960s) term for the
   unencumbered, data-flow-earliest execution order; the parenthetical "(ASAP)"
@@ -226,6 +232,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **QR page overclaimed "SURE".** Modified Gram-Schmidt QR is a *System of Affine
+  Recurrence Equations* (SARE), not uniform: the projection coefficients are
+  broadcast reductions and each column reads the previous column's `q` — affine,
+  non-local dependencies. Retitled the page and added an upfront caution; the
+  honest classification (affine, hence no global linear schedule, hence a tiling
+  challenge) is now stated plainly.
+- **Schedule-animation playback rate is tunable** (`data-fps` on the
+  `.schedule-anim` div) and the adaptive default cap was lowered so fine-grained
+  schedules stay legible — the QR animation (144 short steps) now plays at 4 fps
+  instead of flickering past at the old 18 fps cap.
+- **Math not rendering on the QR and tensor-structure Theory pages.** Both docs
+  wrapped their LaTeX in `\( … \)` / `\[ … \]`, which `remark-math` does not
+  recognize (it only handles `$ … $` / `$$ … $$`), so every `\sum`, `\sqrt`,
+  `\begin{cases}`, etc. printed as raw text. Converted the delimiters (and fixed a
+  malformed `\( |k|` on the QR page); the pages now typeset (316 and 459 KaTeX
+  spans). New docs already use the `$` delimiters.
 - **SURE simulator review hardening** (PR #3, 18 CodeRabbit findings): fail-fast
   validation in `Domain` (axis bounds, constraint dimensions), `AffineDependency`
   (ragged matrices), and `RecurrenceSystem` (duplicate equation names); schedule

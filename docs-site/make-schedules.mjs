@@ -30,6 +30,9 @@ const SURE = join(REPO, 'docs', 'SURE');
 // so a modest size and their declared linear schedule suffice.
 const OPERATORS = [
   { op: 'matmul', scale: { M: 15, N: 15, K: 15 }, schedules: ['free', 'linear'] },
+  // QR (Modified Gram-Schmidt): a SARE with affine/broadcast taps over a shared
+  // triangular domain — no global linear tau exists, so only the free schedule.
+  { op: 'qr', scale: { M: 8, N: 8 }, schedules: ['free'] },
   // BLAS L1 reductions — a wavefront point sweeping the accumulation chain
   { op: 'dot',   scale: { N: 16 }, schedules: ['linear'] },
   { op: 'nrm2',  scale: { N: 16 }, schedules: ['linear'] },
