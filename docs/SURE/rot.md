@@ -138,6 +138,6 @@ and confirms free/linear schedule legality and the memory analysis.
 
 ## Watch the schedule
 
-The Givens rotations six flows — two projected scalars, two operands, two result streams — sweep the strip together under `τ = [1,1]`. Shown at N = 12. Press play, or scrub; drag to orbit.
+The six Givens-rotation flows — two projected scalars, two operands, two result streams — sweep the strip together under `τ = [1,1]`. Shown at N = 12. Press play, or scrub; drag to orbit.
 
 <div class="schedule-anim" data-src="schedules/rot-linear.json" data-height="340"></div>

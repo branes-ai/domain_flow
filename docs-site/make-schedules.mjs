@@ -16,7 +16,7 @@
  * Locates dfactl under a build tree's sim/ dir, or via the DFACTL env var.
  */
 import { execFileSync } from 'child_process';
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, unlinkSync } from 'fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 
@@ -45,10 +45,15 @@ const OPERATORS = [
 
 // Scale the size parameter(s) and scalar-fill the braced data bindings. The values
 // are irrelevant to the schedule (which depends only on the domain).
-function scaleSpec(text, scale) {
+function scaleSpec(text, scale, op) {
   let s = text;
-  for (const [p, v] of Object.entries(scale || {}))
-    s = s.replace(new RegExp('\\b' + p + '\\s*=\\s*\\d+;', 'g'), `${p} = ${v};`);
+  for (const [p, v] of Object.entries(scale || {})) {
+    const re = new RegExp('\\b' + p + '\\s*=\\s*\\d+;', 'g');
+    // a scale key that matches no declared parameter would silently leave the
+    // spec at its (tiny) checked size — warn rather than emit a wrong animation
+    if (!re.test(s)) console.warn(`  WARNING: ${op}: scale param '${p}' matches no parameter in the spec`);
+    s = s.replace(re, `${p} = ${v};`);
+  }
   return s.replace(/data\s+(\w+)\s*=\s*\{[\s\S]*?\};/g, 'data $1 = 1;');
 }
 
@@ -77,9 +82,11 @@ let n = 0;
 for (const { op, scale, schedules } of OPERATORS) {
   const src = join(SURE, `${op}.sure`);
   if (!existsSync(src)) { console.error(`  MISSING spec: ${src}`); continue; }
-  // scale a temp copy named <op>.sure so dfactl reports the right operator label
-  const spec = join(tmpdir(), `${op}.sure`);
-  writeFileSync(spec, scaleSpec(readFileSync(src, 'utf8'), scale));
+  // scale a temp copy named <op>.sure (in a private dir) so dfactl reports the
+  // right operator label without a predictable path in the shared tmpdir
+  const specDir = mkdtempSync(join(tmpdir(), 'make-schedules-'));
+  const spec = join(specDir, `${op}.sure`);
+  writeFileSync(spec, scaleSpec(readFileSync(src, 'utf8'), scale, op));
   try {
     for (const kind of schedules) {
       const out = join(OUT, `${op}-${kind}.json`);
@@ -89,7 +96,7 @@ for (const { op, scale, schedules } of OPERATORS) {
       ++n;
     }
   } finally {
-    try { unlinkSync(spec); } catch { /* ignore */ }
+    rmSync(specDir, { recursive: true, force: true });
   }
 }
 console.log(`make-schedules: wrote ${n} schedule file(s) using ${dfactl}`);
