@@ -1,0 +1,21 @@
+---
+// Starlight <Head> override. Renders the default head, then registers a small
+// client script that mounts the SURE schedule animations (issue #64). The viewer
+// (and three.js) are dynamically imported ONLY on pages that actually contain a
+// `<div class="schedule-anim" data-src=...>`, so non-animation pages pay nothing.
+import Default from '@astrojs/starlight/components/Head.astro';
+---
+
+<Default><slot /></Default>
+
+<script>
+  async function mountSchedules() {
+    if (!document.querySelector('.schedule-anim[data-src]:not([data-mounted])')) return;
+    const { mountAll } = await import('./schedule-anim.js');
+    mountAll();
+  }
+  // deferred module scripts run after the DOM is parsed; re-run after Starlight's
+  // client-side navigations (view transitions) too.
+  mountSchedules();
+  document.addEventListener('astro:page-load', mountSchedules);
+</script>
