@@ -1,0 +1,37 @@
+// Executable version of the BLAS Level-1 copy SURE from copy.md:
+//
+//   system((i,j) | 0 <= i < N, 0 <= j < 2) {
+//       x(i,j) = x(i,j-1);                     // value-preserving flow carrying X
+//   }
+//   input  X ... : x(i,j) = X[i];             // one input face
+//   output Y ... : Y[i] = x(i,j);             // one output face
+//
+//   copy  y := x  is the identity flow -- the simplest operator in the catalog.
+//   A single value-preserving recurrence carries X[i] from the j = -1 input halo
+//   to the terminal j = 1 face, where it leaves as Y[i].  No arithmetic, one
+//   tensor in, one tensor out: the minimal confluence pair, and the elementary
+//   building block of every value-preserving flow (cf. swap's two crossed flows
+//   and conv2d's anti-diagonal image flow).
+//
+//   The length-N result rides the i axis and leaves through an oriented terminal
+//   face, so (as for any vector output) the elementwise map uses a two-cell j
+//   pipeline.  Faces are equality-pinned; the outward normal is derived (inputs
+//   influx, tau.n < 0; outputs outflux, tau.n > 0).
+//
+// Run it:   dfactl --sure docs/SURE/copy.sure
+//           dfactl --sure docs/SURE/copy.sure --tau 1,-1   (ILLEGAL flux demo)
+
+N = 4;
+
+system ((i,j) | 0 <= i < N, 0 <= j < 2) {
+    x(i,j) = x(i,j-1);                             // value-preserving flow carrying X
+}
+
+// tensor confluences
+input  X[N] ((i,j) | 0 <= i < N, j = -1) : x(i,j) = X[i];       // inject X on the front halo
+output Y[N] ((i,j) | 0 <= i < N, j = 1)  : Y[i] = x(i,j);       // X leaves the terminal face as Y
+
+tau = [1, 1];                    // canonical legal wavefront schedule
+
+// test-bench data:  Y = X = {1,2,3,4}
+data X = { 1, 2, 3, 4 };
