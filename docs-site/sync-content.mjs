@@ -54,6 +54,10 @@ const FILE_MAP = {
   'SURE/rot.md':                     'sure-algorithms/blas-l1/rot.md',
   'SURE/iamax.md':                   'sure-algorithms/blas-l1/iamax.md',
 
+  // ── Scaling & Distribution: mapping SUREs across tiles and SoCs ─────
+  'scaling/index.md':                'scaling/index.md',
+  'scaling/uniformization.md':       'scaling/uniformization.md',
+
   // ── Theory: background + operator derivations not yet in the catalog ──
   'SURE/matmul.md':                  'theory/matmul.md',
   'SURE/conv2d.md':                  'theory/conv2d.md',
