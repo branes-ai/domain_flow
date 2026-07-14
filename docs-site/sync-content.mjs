@@ -203,6 +203,16 @@ if (existsSync(imgSrc)) {
   console.log('  Copied docs/images/ → public/images/');
 }
 
+// 5. Copy the committed SURE schedule-animation JSON (issue #64) to public/ so the
+// docs build stays toolchain-free (regenerate via `npm run schedules`).
+const schedSrc = join(DOCS, 'schedules');
+const schedDest = join(PUB, 'schedules');
+if (existsSync(schedSrc)) {
+  mkdirSync(schedDest, { recursive: true });
+  cpSync(schedSrc, schedDest, { recursive: true });
+  console.log('  Copied docs/schedules/ → public/schedules/');
+}
+
 if (missingSources > 0) {
   console.error(`FAILED: ${missingSources} mapped source file(s) missing — fix the file map or restore the file(s).`);
   process.exit(1);

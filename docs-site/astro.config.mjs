@@ -30,6 +30,11 @@ export default defineConfig({
         'katex/dist/katex.min.css',
         './src/styles/custom.css',
       ],
+      // Override <Head> to mount the SURE schedule animations (issue #64) — the
+      // viewer + three.js load only on pages that embed a .schedule-anim div.
+      components: {
+        Head: './src/components/Head.astro',
+      },
       sidebar: [
         {
           label: 'Getting Started',

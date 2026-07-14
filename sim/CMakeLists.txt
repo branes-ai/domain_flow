@@ -41,4 +41,11 @@ if(DOMAINFLOW_BUILD_TESTING)
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/rot.sure)
     add_test(NAME dfactl_sure_iamax
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/iamax.sure)
+    # schedule-animation export (issue #64): the emit must succeed for both schedules
+    add_test(NAME dfactl_emit_matmul_linear
+             COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/matmul.sure
+                     --schedule linear --emit-schedule ${CMAKE_CURRENT_BINARY_DIR}/matmul-linear.sched.json)
+    add_test(NAME dfactl_emit_matmul_free
+             COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/matmul.sure
+                     --schedule free --emit-schedule ${CMAKE_CURRENT_BINARY_DIR}/matmul-free.sched.json)
 endif()
