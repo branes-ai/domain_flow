@@ -44,6 +44,27 @@ export default defineConfig({
           items: [{ autogenerate: { directory: 'simulator' } }],
         },
         {
+          label: 'SURE Algorithms',
+          items: [
+            {
+              // Pedagogical order (each operator builds on the previous), not
+              // alphabetical; pages live under content/docs/sure-algorithms/.
+              label: 'BLAS L1',
+              items: [
+                { label: 'axpy — αx + y', slug: 'sure-algorithms/blas-l1/axpy' },
+                { label: 'dot — xᵀy', slug: 'sure-algorithms/blas-l1/dot' },
+                { label: 'nrm2 — ‖x‖₂', slug: 'sure-algorithms/blas-l1/nrm2' },
+                { label: 'asum — Σ|xᵢ|', slug: 'sure-algorithms/blas-l1/asum' },
+                { label: 'scal — αx', slug: 'sure-algorithms/blas-l1/scal' },
+                { label: 'swap — x ↔ y', slug: 'sure-algorithms/blas-l1/swap' },
+                { label: 'copy — y ← x', slug: 'sure-algorithms/blas-l1/copy' },
+                { label: 'rot — Givens', slug: 'sure-algorithms/blas-l1/rot' },
+                { label: 'iamax — argmax|xᵢ|', slug: 'sure-algorithms/blas-l1/iamax' },
+              ],
+            },
+          ],
+        },
+        {
           label: 'Theory',
           items: [{ autogenerate: { directory: 'theory' } }],
         },

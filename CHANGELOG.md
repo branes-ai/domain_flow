@@ -158,6 +158,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **docs-site navigation: new "SURE Algorithms" section.** The nine BLAS Level-1
+  operator derivations moved out of the flat "Theory" list into a two-level
+  **SURE Algorithms → BLAS L1** section, ordered pedagogically (axpy → dot →
+  nrm2 → asum → scal → swap → copy → rot → iamax) rather than alphabetically.
+  Theory now holds the background material and the not-yet-cataloged operator
+  derivations (matmul, conv2d, QR). Content still originates in `docs/SURE/`;
+  `sync-content.mjs` maps the L1 pages under `sure-algorithms/blas-l1/` and the
+  sidebar is defined in `astro.config.mjs`. (Also fixed two `qr` cross-links to
+  reference the source filename so they survive the move.)
 - **Terminology: drop the "ASAP" gloss on the free schedule.** The *free
   schedule* is the long-established (since the 1960s) term for the
   unencumbered, data-flow-earliest execution order; the parenthetical "(ASAP)"
