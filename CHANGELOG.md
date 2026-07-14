@@ -43,6 +43,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
     `qr`'s `Rdiag`. Verified `‖x‖₂ = 5` through the epilogue; O(1) accumulator
     footprint. The doc notes the scaled/robust (overflow-avoiding) variant as an
     extension.
+  - **`asum`** (issue #25): the ℓ₁ norm — BLAS-1 `Σ|xᵢ|` (`docs/SURE/asum.sure`,
+    `docs/SURE/asum.md`, CTest `test_asum_sure`, `dfactl_sure_asum`). The `dot`
+    reduction with a **fused input-face `abs` prologue**: the absolute value maps
+    each operand as it *enters* (`x = abs(X[i])`) — the mirror image of `nrm2`'s
+    output-face `sqrt` epilogue, with the interior a clean uniform sum in both.
+    Verified `Σ|x| = 10` on signed data; O(1) accumulator footprint.
 - **SURE DSL: executable docs/SURE notation** (issue #15, PR #16; issue #17,
   PR #18): a header-only text front-end (`include/dfa/sim/sure_parser.hpp`)
   parses the `system((i,j,k) | constraints) { equations }` notation used in
