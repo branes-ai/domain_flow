@@ -71,6 +71,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
     halo to the terminal face, where it leaves as `Y` — one input face, one
     output face, no arithmetic. The elementary building block of every
     value-preserving flow (`swap` is two crossed `copy` flows). Verified `Y = X`.
+  - **`rot`** (issue #29): the Givens rotation — BLAS-1 `(x,y) := (c·x+s·y,
+    −s·x+c·y)` (`docs/SURE/rot.sure`, `docs/SURE/rot.md`, CTest `test_rot_sure`,
+    `dfactl_sure_rot`). `axpy` **generalized to a 2×2 linear map**: two projected +
+    pipelined scalars `(c,s)` in place of the single `α`, two one-shot-injected
+    operands `(x,y)`, and two additive-identity-seeded result streams
+    (`rx = c·x+s·y`, `ry = −s·x+c·y`). Six input confluences and two output
+    confluences — the widest L1 structure. Verified against the rotation matrix
+    and the norm-preserving invariant (`rx²+ry² = x²+y²` when `c²+s²=1`). The
+    catalog's rotation primitive, reused by the Jacobi/Givens sweeps in QR, SVD,
+    and the symmetric eigensolvers.
 - **SURE DSL: executable docs/SURE notation** (issue #15, PR #16; issue #17,
   PR #18): a header-only text front-end (`include/dfa/sim/sure_parser.hpp`)
   parses the `system((i,j,k) | constraints) { equations }` notation used in
