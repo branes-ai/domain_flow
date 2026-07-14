@@ -232,6 +232,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **Math not rendering on the QR and tensor-structure Theory pages.** Both docs
+  wrapped their LaTeX in `\( … \)` / `\[ … \]`, which `remark-math` does not
+  recognize (it only handles `$ … $` / `$$ … $$`), so every `\sum`, `\sqrt`,
+  `\begin{cases}`, etc. printed as raw text. Converted the delimiters (and fixed a
+  malformed `\( |k|` on the QR page); the pages now typeset (316 and 459 KaTeX
+  spans). New docs already use the `$` delimiters.
 - **SURE simulator review hardening** (PR #3, 18 CodeRabbit findings): fail-fast
   validation in `Domain` (axis bounds, constraint dimensions), `AffineDependency`
   (ragged matrices), and `RecurrenceSystem` (duplicate equation names); schedule
