@@ -5,6 +5,7 @@ Understanding the "shape" of a tensor like `tensor<4x256x256x16xf32>` is key to 
 ---
 
 ### 1. What is a Tensor and its Shape?
+
 A **tensor** is a generalized multidimensional array that can store data in any number of dimensions. The **shape** of a tensor describes the size (extent) of each dimension. For example:
 
 - `tensor<4x256x256x16xf32>` is a **4-dimensional tensor** where:
@@ -30,9 +31,11 @@ Each element can be accessed using a 4-tuple index `[i, j, k, l]`, where:
 ---
 
 ### 2. Matrix Slices vs. Tensor Dimensions
+
 You asked whether tensor dimensions are "matrix slice based" or if there’s a better way to think about them. Let’s explore this:
 
 #### Matrix Slices
+
 A **matrix** is a 2D tensor (e.g., `tensor<256x256xf32>`). You can think of a matrix as a grid where each element is accessed by a row index `i` and column index `j`. A "slice" of a matrix might refer to a subset, like a specific row (`matrix[i, :]`) or column (`matrix[:, j]`).
 
 For a 4D tensor like `tensor<4x256x256x16xf32>`, you can interpret it as a collection of matrices by fixing some dimensions:
@@ -57,6 +60,7 @@ So, the tensor can be thought of as:
 This "matrix slice" perspective is useful, especially in contexts like deep learning (e.g., a batch of images or feature maps), but it’s not the only way to conceptualize a tensor.
 
 #### Limitations of Matrix Slices
+
 - **Overly Restrictive**: Focusing on 2D slices may oversimplify the tensor’s structure. A 4D tensor is more than just a collection of matrices—it’s a higher-dimensional object where all dimensions interact.
 - **Context-Dependent**: The meaning of each dimension depends on the application (e.g., batch size, height, width, channels in images; or time, spatial dimensions, features in your domain flow graph).
 - **Indexing Complexity**: Slicing helps, but you still need to reason about all four indices to fully understand the data’s organization.
@@ -64,9 +68,11 @@ This "matrix slice" perspective is useful, especially in contexts like deep lear
 ---
 
 ### 3. A Better Way to Think About Tensor Shapes
+
 To move beyond matrix slices, here are intuitive ways to conceptualize a 4D tensor like `tensor<4x256x256x16xf32>`:
 
 #### 1. **Nested Arrays**
+
 Think of a tensor as a **nested hierarchy of arrays**:
 - A 1D tensor (e.g., `tensor<4xf32>`) is a vector: `[a, b, c, d]`.
 - A 2D tensor (e.g., `tensor<4x3xf32>`) is a matrix, or an array of vectors: `[[a1, a2, a3], [b1, b2, b3], ...]`.
@@ -83,6 +89,7 @@ For `tensor<4x256x256x16xf32>`:
 This nested perspective is precise and aligns with how tensors are stored in memory (often as flattened arrays with strides).
 
 #### 2. **Geometric Interpretation**
+
 Visualize the tensor as a **multidimensional grid** or **hypercube**:
 - A 1D tensor is a line.
 - A 2D tensor is a plane (grid).
@@ -103,6 +110,7 @@ While 4D is hard to visualize, you can project it to lower dimensions:
 - Fix `i` to get a 3D cube (like a stack of 256x256x16 voxels).
 
 #### 3. **Application-Specific Semantics**
+
 The best way to understand a tensor’s shape is to map its dimensions to the problem domain. The dimensions often have specific meanings. For example:
 
 - **In Deep** (deep learning):
@@ -126,6 +134,7 @@ The best way to understand a tensor’s shape is to map its dimensions to the pr
 By assigning semantic meaning, the shape becomes more intuitive. For example, if this tensor stores outputs of a 2D stencil computation, you might think of it as 4 time steps of a 256x256 grid with 16 values per grid point (e.g., different physical quantities).
 
 #### 4. **Index Space Analogy**
+
 Since you’re working with domain flow graphs and SUREs, think of the tensor’s shape as an **index space** (like the polyhedral sets in your earlier question):
 - The shape `(4, 256, 256, 16)` defines a 4D index space `{[i, j, k, l] : 0 ≤ i < 4, 0 ≤ j < 256, 0 ≤ k < 256, 0 ≤ l < 16}`.
 - Each index point `[i, j, k, l]` corresponds to a single `f32` value.
@@ -136,6 +145,7 @@ This aligns with your project’s focus on index spaces and scheduling, making t
 ---
 
 ### 4. Practical Implications for Your Project
+
 In the context of your domain flow graph and SUREs:
 - **Index Space Connection**: The tensor’s shape likely corresponds to the index space of an operator’s computation. For example, if an operator computes over `{[i, j] : 0 ≤ i, j < 256}` for 4 iterations with 16 output channels, the tensor `tensor<4x256x256x16xf32>` could store the results.
 - **SURE Dependencies**: The SURE defines how tensor elements depend on each other. For example, a stencil operator might define:
@@ -159,6 +169,7 @@ In the context of your domain flow graph and SUREs:
 ---
 
 ### 5. Visualizing the Tensor
+
 To make the shape more concrete, here’s how you might visualize `tensor<4x256x256x16xf32>`:
 - **As a 4D array**:
   - 4 "blocks" (one for each `i`).
@@ -181,6 +192,7 @@ To make the shape more concrete, here’s how you might visualize `tensor<4x256x
 ---
 
 ### 6. Matrix Slices vs. Holistic View
+
 To address your question directly:
 - **Are tensors matrix slice-based?**
   - They *can* be viewed as collections of matrix slices (e.g., fixing two dimensions to get 256x256 matrices). This is common in deep learning (e.g., extracting feature maps) or when parallelizing computations (e.g., assigning 256x256 slices to threads).
@@ -194,6 +206,7 @@ To address your question directly:
 ---
 
 ### 7. Practical Tips for Your Project
+
 - **Define Dimension Semantics**: Decide what each dimension (4, 256, 256, 16) represents in your DFG (e.g., iterations, grid size, channels). This will guide your SURE definitions and scheduling.
 - **Use a Tensor Library**: Libraries like **Eigen**, **Armadillo**, or **PyTorch** (if you interface with Python) can manage tensor shapes efficiently and provide operations like slicing or reshaping.
 - **Validate Shapes in Tests**: In your tests (from your earlier question), ensure the tensor shapes match the index spaces of operators. For example:
@@ -210,6 +223,7 @@ To address your question directly:
 ---
 
 ### 8. Example in Context
+
 Suppose your DFG represents a 2D stencil computation over a 256x256 grid for 4 time steps, with 16 output values per point (e.g., different physical quantities). The tensor `tensor<4x256x256x16xf32>` might store the results:
 - **Shape**: `(4, 256, 256, 16)`.
 - **Meaning**:
@@ -226,6 +240,7 @@ Suppose your DFG represents a 2D stencil computation over a 256x256 grid for 4 t
 ---
 
 ### 9. Conclusion
+
 The shape of `tensor<4x256x256x16xf32>` is a 4D structure that can be viewed as:
 - A **collection of matrix slices** (e.g., 256x256 matrices for fixed `i` and `l`), but this is a partial view.
 - A **nested array** or **4D grid** for a general understanding.
@@ -242,6 +257,7 @@ To interpret a matrix multiplication (matmul) operation on 3D tensors, such as `
 ---
 
 ### 1. Background: 2D Matrix Multiplication
+
 For 2D matrices:
 - Let $ A $ be a matrix of shape $(m, k)$, i.e., $ m $ rows and $ k $ columns.
 - Let $ B $ be a matrix of shape $(k, n)$, i.e., $ k $ rows and $ n $ columns.
@@ -260,12 +276,14 @@ The key requirement is that the inner dimensions match: the number of columns of
 ---
 
 ### 2. 3D Tensor Matrix Multiplication
+
 Now, let’s extend this to 3D tensors:
 - **Tensor $ A $**: Shape `(batchSize, m, k)`, a 3D tensor.
 - **Tensor $ B $**: Shape `(batchSize, k, n)`, a 3D tensor.
 - **Operation**: $ C = \text{matmul}(A, B) $.
 
 #### Interpretation
+
 A 3D tensor with a batch dimension can be thought of as a **stack of 2D matrices**:
 - **Tensor $ A $**: Contains `batchSize` matrices, each of shape $(m, k)$.
   - Think of $ A[b, :, :] $ as the $ b $-th matrix of shape $(m, k)$, for $ b = 0 $ to `batchSize-1`.
@@ -294,6 +312,7 @@ The matrix multiplication on these 3D tensors is a **batched matrix multiplicati
     - $ p $: Summation index, $ 0 \leq p < k $.
 
 #### Key Points
+
 - **Batch Independence**: The matrix multiplications for each batch index $ b $ are independent. This makes batched matmul highly parallelizable (e.g., across GPUs or threads).
 - **Dimension Matching**: The inner dimensions must match ($ k $ in $ A $’s shape `(batchSize, m, k)` and $ B $’s shape `(batchSize, k, n)`), just like in 2D matmul.
 - **Shape Transformation**:
@@ -304,6 +323,7 @@ The matrix multiplication on these 3D tensors is a **batched matrix multiplicati
 ---
 
 ### 3. Visualizing the Operation
+
 To make this concrete, let’s visualize with example shapes, say `batchSize=4`, `m=2`, `k=3`, `n=5`:
 - **Tensor $ A $**: Shape `(4, 2, 3)`:
   - A stack of 4 matrices, each $ 2 \times 3 $.
@@ -335,9 +355,11 @@ To make this concrete, let’s visualize with example shapes, say `batchSize=4`,
 ---
 
 ### 4. Application-Specific Interpretation
+
 The batch dimension often has a specific meaning depending on the context. In your domain flow graph project, let’s consider possible interpretations:
 
 #### In Deep Learning
+
 - **Tensor $ A $**: Shape `(batchSize, m, k)` might represent:
   - `batchSize`: Number of samples (e.g., 4 images or data points).
   - `m`: Number of output features or rows in a linear transformation.
@@ -352,6 +374,7 @@ The batch dimension often has a specific meaning depending on the context. In yo
 - Example: In a neural network layer, this could be a batched fully-connected layer or a transformation of feature maps.
 
 #### In Your Domain Flow Graph and SURE Context
+
 Since you’re working with domain flow graphs, index spaces, and SUREs, the 3D tensor matmul likely represents a computation over a batched index space. Let’s map it to your project:
 - **Tensor $ A $**: Shape `(batchSize, m, k)`:
   - `batchSize`: Could represent:
@@ -391,6 +414,7 @@ Since you’re working with domain flow graphs, index spaces, and SUREs, the 3D 
 ---
 
 ### 5. Implementation in C++
+
 To implement this batched matmul in C++, you can:
 - Use a **tensor library** like **Eigen**, **Armadillo**, or **PyTorch** (via C++ API) for efficient computation.
 - Write a manual implementation for clarity or integration with your DFG.
@@ -476,6 +500,7 @@ Eigen::Tensor<float, 3> batchedMatmul(const Eigen::Tensor<float, 3>& A,
 ---
 
 ### 6. Testing the Matmul
+
 To test this in your DFG framework (as per your earlier question), you can create test cases for the matmul operator:
 
 ```cpp
@@ -515,6 +540,7 @@ TEST(Matmul3D, BatchedMatmul) {
 ---
 
 ### 7. Practical Tips for Your Project
+
 - **Index Space**: Represent the matmul’s index space in your DFG:
   $$
   \{[b, i, j] : 0 \leq b < \text{batchSize}, 0 \leq i < m, 0 \leq j < n\}
@@ -533,6 +559,7 @@ TEST(Matmul3D, BatchedMatmul) {
 ---
 
 ### 8. Conclusion
+
 The matmul of 3D tensors `tensor<batchSize, m, k>` and `tensor<batchSize, k, n>` is a **batched matrix multiplication**:
 - It performs a 2D matmul for each of the `batchSize` pairs of matrices.
 - Input shapes: `(batchSize, m, k)` and `(batchSize, k, n)`.

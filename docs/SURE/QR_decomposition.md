@@ -17,10 +17,12 @@ uniform-vs-affine distinction is not academic: it is exactly what decides whethe
 an operator **tiles** across KPUs without global communication.
 :::
 
-### Understanding QR Decomposition
-QR decomposition factorizes a matrix $ A $ (of size $ m \times n $, where $ m \geq n $) into an orthogonal matrix $ Q $ (size $ m \times m $) and an upper triangular matrix $ R $ (size $ m \times n $), such that $ A = QR $. A common algorithm for QR decomposition is the Gram-Schmidt process, particularly the Modified Gram-Schmidt (MGS) variant, which is more numerically stable and can be expressed with uniform dependencies suitable for a SURE formulation. We’ll focus on MGS for an $ m \times n $ matrix, as it lends itself to a regular computational structure.
+## Understanding QR Decomposition
 
-### Modified Gram-Schmidt Overview
+QR decomposition factorizes a matrix $ A $ (of size $ m \times n $, where $ m \geq n $) into a matrix $ Q $ with orthonormal columns and an upper triangular matrix $ R $, such that $ A = QR $. Modified Gram-Schmidt (MGS) — the numerically stable Gram-Schmidt variant used here — computes the **reduced (thin)** factorization: $ Q \in \mathbb{R}^{m \times n} $ (the $ n $ orthonormal vectors $ q_j $) and $ R \in \mathbb{R}^{n \times n} $ upper triangular. (Completing $ Q $ to a full $ m \times m $ orthogonal matrix is a separate step MGS does not perform.) We focus on MGS for an $ m \times n $ matrix, as it lends itself to a regular computational structure.
+
+## Modified Gram-Schmidt Overview
+
 For an input matrix $ A = [a_1, a_2, \ldots, a_n] $ with columns $ a_j $, MGS iteratively computes:
 - Orthogonal vectors $ q_j $ (columns of $ Q $).
 - Upper triangular entries $ r_{ij} $ (elements of $ R $).
@@ -34,14 +36,16 @@ The process can be summarized as:
    - Compute $ r_{jj} = \| v_j \|_2 $.
    - Normalize $ q_j = v_j / r_{jj} $.
 
-### Formulating SURE for QR Decomposition
-To express this as a SURE, we need:
+## Formulating a Recurrence System for QR Decomposition
+
+To express this as a recurrence system, we need:
 - **Index space**: Define the iteration domain over indices, similar to $ (i,j,k) $ in matmul.
 - **Variables**: Define arrays for inputs ($ A $), intermediate results ($ V $), and outputs ($ Q $, $ R $).
-- **Equations**: Express computations with uniform dependencies (e.g., referencing previous indices like $ j-1 $).
+- **Equations**: Express computations as recurrence equations. (Note: some MGS dependencies are *affine*, not uniform — the reduction broadcasts and the previous-column read — as the caution above explains.)
 - **Domain constraints**: Specify bounds for indices, e.g., $ 0 \leq i < m $, $ 0 \leq j < n $.
 
-#### Step 1: Define the Index Space
+### Step 1: Define the Index Space
+
 The MGS algorithm involves:
 - Iterating over columns $ j = 0 $ to $ n-1 $ (for each column of $ A $).
 - For each $ j $, iterating over rows $ i = 0 $ to $ m-1 $ (for vector elements).
@@ -54,7 +58,8 @@ The primary computation involves three indices:
 
 This suggests a 3D index space $ (i, j, k) $, similar to the matmul SURE, but we’ll adjust the role of $ k $.
 
-#### Step 2: Define Variables
+### Step 2: Define Variables
+
 We define the following arrays:
 - **Input**: $ a(i, j) $, the input matrix $ A $ of size $ m \times n $.
 - **Intermediates**:
@@ -64,8 +69,9 @@ We define the following arrays:
   - $ q(i, j) $: Orthogonal matrix $ Q $ (columns $ q_j $).
   - $ r(i, j) $: Upper triangular matrix $ R $.
 
-#### Step 3: Express Computations as Uniform Recurrence Equations
-We break down the MGS steps into equations with uniform dependencies.
+### Step 3: Express Computations as Recurrence Equations
+
+We break down the MGS steps into recurrence equations (with the affine dependencies noted above).
 
 1. **Initialize $ v_j = a_j $**:
    For each column $ j $, the initial vector is the column of $ A $.
@@ -100,7 +106,8 @@ We break down the MGS steps into equations with uniform dependencies.
    q(i, j) = v(i, j, j) / r(j, j, j)
    $$
 
-#### Step 4: Handle Reductions
+### Step 4: Handle Reductions
+
 The reductions (sums for $ r_{ij} $ and $ r_{jj} $) require iterating over $ i $. To make dependencies uniform, we introduce partial sum arrays:
 - $ s_r(i, j, k) $: Partial sum for $ r(k, j, k) $.
 - $ s_norm(i, j, j) $: Partial sum for the norm computation.
@@ -129,7 +136,8 @@ $$
 r(j, j, j) = \sqrt{s_norm(m-1, j, j)}
 $$
 
-#### Step 5: Define the Domain
+### Step 5: Define the Domain
+
 The index space is:
 $$
 (i, j, k) \mid 0 \leq i < m, 0 \leq j < n, 0 \leq k \leq j
@@ -138,7 +146,7 @@ $$
 - $ j $: Columns of the matrix ($ 0 \leq j < n $).
 - $ k $: Orthogonalization step ($ 0 \leq k \leq j $), since we process up to $ j $ projections, and $ k = j $ is used for the norm and normalization.
 
-### Final SURE Formulation (v2 confluence DSL)
+## Final Formulation (v2 confluence DSL)
 
 The derivation above sketches the algorithm with case splits (`if i = 0`),
 partial-domain equations (`v(i,j,0) = a(i,j)`, `r(k,j,k) = ...`), and
@@ -182,7 +190,7 @@ $ dfactl --sure docs/SURE/qr.sure
   Q[0][0] = 0.857143 ... Rdiag[0] = 14 ... Roff[0][1] = 21 ...
 ```
 
-### The refinements, one by one
+## The refinements, one by one
 
 1. **Case splits become input confluences.** `v(i,j,0) = a(i,j)` is not a
    separate equation: the recurrence `v(i,j,k) = v(i,j,k-1) - ...` simply
@@ -229,7 +237,7 @@ $ dfactl --sure docs/SURE/qr.sure
    the free schedule. Index-set splitting (piecewise schedules) is
    the standard remedy and remains future work.
 
-### Verification
+## Verification
 
 `qr.sure` binds the classic 3x3 example `A = [[12,-51,4],[6,167,-68],[-4,24,-41]]`
 with the exact factorization `R = [[14,21,-14],[0,175,-70],[0,0,35]]`. The
@@ -237,11 +245,11 @@ test suite (`src/dfa/tests/sim/sure_parser.cpp`) checks `R` exactly,
 `Q^T Q = I` and `Q R = A` to machine precision (both residuals < 1e-15),
 and the free-schedule legality of the parsed system.
 
-### Watch the schedule
+## Watch the schedule
 
 QR is a far harder animation than `matmul`, and a good stress test of the
-approach. It is a genuine SARE: **affine (broadcast) taps** — `srp(M-1,j,k)`, the
-completed reduction, and `qhat(i,k-1,k-1)`, the previous column's `q` — mean **no
+approach. It is a genuine SARE: **affine (broadcast) taps** — `srp(M-1,j,k-1)`,
+the completed reduction, and `qhat(i,k-1,k-1)`, the previous column's `q` — mean **no
 global linear schedule exists**, so this is the *free* (data-flow-earliest)
 schedule. The domain is a **triangular prism** (`k ≤ j`), and the four flowing
 variables (`v` orthogonalization, `srp` and `snorm` reductions, `qhat`
@@ -252,7 +260,7 @@ M = N = 8 (latency 144). Press play, or scrub; drag to orbit.
 
 <div class="schedule-anim" data-src="schedules/qr-free.json" data-height="460" data-fps="4"></div>
 
-### Notes
+## Notes
 
 - The reductions are linear chains along `i` (O(m) depth); a balanced
   reduction tree would shorten the critical path but needs log-indexed
