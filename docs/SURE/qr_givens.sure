@@ -1,0 +1,48 @@
+// QR by Givens rotations (the Gentleman-Kung systolic array), issue #72 —
+// the *uniform-in-hardware* alternative to the Modified Gram-Schmidt qr.sure.
+//
+// Each row i of A is merged into the accumulating upper-triangular R by a sweep
+// of Givens rotations, one per pivot p = 0..N-1: the rotation zeros the working
+// element a[p] against the diagonal R[p][p], and is then applied to the rest of
+// the row (columns q > p). A flows in row by row; R accumulates over rows.
+//
+//   for pivot p, with rold = R[p][p], ain = a[p], den = sqrt(rold^2 + ain^2):
+//     R[p][q] =  (rold*R[p][q] + ain*a[q]) / den        // c*R + s*a  (diagonal: = den)
+//     a[q]    =  (rold*a[q]    - ain*R[p][q]) / den      // -s*R + c*a (diagonal: = 0)
+//
+// Index space (i, p, q) with p <= q: i = the row being merged (0..M-1), p = the
+// pivot, q = the column updated. R[p][q] after row i is r(i,p,q); the working row
+// a[q] after pivot p is a(i,p,q).
+//
+// Unlike MGS, there is NO reduction: the rotations are nearest-neighbour. The two
+// diagonal taps r(i-1,p,p), a(i,p-1,p) are AFFINE in this DSL (they read the
+// pivot column q = p), which is the rotation broadcast along the row — a
+// propagation the confluence DSL cannot yet seed from a computed value, so this
+// is still a SARE. But those taps are pure diagonal BROADCASTS (no serial
+// reduction, unlike MGS's srp(M-1,...)), so they are nearest-neighbour along +q
+// and tile with LOCAL communication. See docs/scaling/uniformization.md.
+//
+// The `+ 1e-9`-style term (written out, the DSL has no scientific notation) guards
+// the 0/0 at pivots with no data yet (p > i): there rold = ain = 0, the numerator
+// is 0, and 0/sqrt(eps) = 0 keeps R[p][q] = 0 as it should be.
+//
+// Run it:   dfactl --sure docs/SURE/qr_givens.sure     (free schedule)
+
+M = 3; N = 3;
+
+system ((i,p,q) | 0 <= i < M, 0 <= p < N, 0 <= q < N, p <= q) {
+    r(i,p,q) = (r(i-1,p,p)*r(i-1,p,q) + a(i,p-1,p)*a(i,p-1,q))
+             / sqrt(r(i-1,p,p)*r(i-1,p,p) + a(i,p-1,p)*a(i,p-1,p) + 0.000000001);   // c*R + s*a
+    a(i,p,q) = (r(i-1,p,p)*a(i,p-1,q) - a(i,p-1,p)*r(i-1,p,q))
+             / sqrt(r(i-1,p,p)*r(i-1,p,p) + a(i,p-1,p)*a(i,p-1,p) + 0.000000001);   // -s*R + c*a
+}
+
+input         ((i,p,q) | i = -1, 0 <= p < N, 0 <= q < N, p <= q) : r(i,p,q) = 0;      // R starts empty
+input A[M][N] ((i,p,q) | 0 <= i < M, p = -1, 0 <= q < N)         : a(i,p,q) = A[i][q]; // rows of A stream in
+output R[N][N] ((i,p,q) | i = M-1, 0 <= p < N, 0 <= q < N, p <= q) : R[p][q] = r(i,p,q); // R after the last row
+
+// classic 3x3:  A = [[12,-51,4],[6,167,-68],[-4,24,-41]]
+//   Givens gives the exact R = [[14,21,-14],[0,175,-70],[0,0,35]]
+data A = { 12, -51,   4,
+            6, 167, -68,
+           -4,  24, -41 };

@@ -70,14 +70,43 @@ why QR is a genuine SARE rather than a SURE we merely wrote carelessly.
    axis. This is a representation question for the DFA, tracked separately; it
    would make the up-sweep / down-sweep (Blelloch-style) uniformization of *any*
    reduction-broadcast expressible.
-2. **Change the algorithm so there is no broadcast to pipeline.** The
+2. **Change the algorithm so there is no reduction to broadcast.** The
    **Gentleman–Kung Givens-rotation QR array** computes QR by a wavefront of
-   Givens rotations that propagate **nearest-neighbour** through a triangular
-   array — it never forms a reduction-then-broadcast, so it is **uniform by
-   construction** with a linear schedule, and it tiles. This is the executable
-   uniform QR the [flagship issue](https://github.com/branes-ai/domain_flow/issues/72)
-   targets; deriving and verifying it in the confluence DSL (with the rotation
-   `c = a/r`, `s = b/r`, `r = √(a²+b²)`) is the substantial remaining work.
+   Givens rotations — nearest-neighbour, no reduction. This is executable *today*
+   (below), and it is the right target for uniformization.
+
+## The Givens QR — executable, verified, near-uniform
+
+`docs/SURE/qr_givens.sure` merges each row of `A` into the
+accumulating upper-triangular `R` by a sweep of Givens rotations over `(i,p,q)`,
+`p ≤ q` (row `i`, pivot `p`, updated column `q`):
+
+```text
+r(i,p,q) = (rold·R + ain·a) / √(rold² + ain² + ε)     // c·R + s·a
+a(i,p,q) = (rold·a − ain·R) / √(rold² + ain² + ε)     // −s·R + c·a
+```
+
+with `rold = r(i-1,p,p)`, `ain = a(i,p-1,p)`. It produces the exact factor for the
+classic 3×3 (`R = [[14,21,-14],[0,175,-70],[0,0,35]]`) and satisfies the sign-robust
+invariant `RᵀR = AᵀA` on general/tall inputs — see `test_qr_givens_sure`.
+
+Where does it sit on the uniform↔affine line? The two diagonal taps `r(i-1,p,p)`
+and `a(i,p-1,p)` read the **pivot column `q = p`**, so they are still **affine** —
+this remains a SARE. But the difference from MGS is decisive:
+
+| | MGS-QR (`qr.sure`) | Givens-QR (`qr_givens.sure`) |
+|---|---|---|
+| affine dependence | `srp(M-1,…)` — a **reduction result** (`Σ_i`) broadcast to all `i` | `r(i-1,p,p)` — a **single diagonal value** broadcast along the row `+q` |
+| at a tile boundary | an **all-reduce across `i`** — global collective | a **nearest-neighbour propagation along `q`** — a halo |
+| to reach a pure SURE | remove the reduction *and* pipeline it | just pipeline the diagonal along `+q` |
+
+So Givens's affine-ness is a **pure diagonal broadcast with no reduction** — a
+propagation the DSL merely cannot *seed* yet (the [internal-confluence](#two-ways-forward)
+extension would let `c(i,p,q) = c(i,p,q-1)` be seeded at `q = p` from the computed
+rotation, making it a true SURE). It already **tiles with local communication**;
+MGS does not.
+
+<div class="schedule-anim" data-src="schedules/qr_givens-free.json" data-height="440" data-fps="4"></div>
 
 ## Why this matters for scaling
 
