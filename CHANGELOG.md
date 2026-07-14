@@ -8,6 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **"Scaling & Distribution" docs section** (epic #68): a new top-level section on
+  mapping SUREs across KPU tiles and SoCs. The **landing page** (#69) frames the
+  scale-out problem and its organizing thesis — *uniform* deps become halo
+  exchanges and tile linearly, *affine/broadcast* deps become collectives on the
+  Distributed Memory Machine and only tile after uniformization. The
+  **Uniformization** page (#72) works the affine→uniform transform on the two
+  broadcast flavours the catalog contains and reports an honest finding: a
+  broadcast of a *known input* (`axpy`'s `α`) is uniformizable in the confluence
+  DSL (the pipeline is seeded from data), but a broadcast of a *computed reduction*
+  (QR's `r_kj`) is **not** — an input confluence cannot seed a propagation axis
+  from a recurrence variable — so QR is a genuine SARE, and its executable uniform
+  form is the Gentleman–Kung Givens array (a tracked follow-on) rather than a
+  pipelined MGS.
 - **Interactive schedule animations in the docs-site** (issue #64, Phase 1): a
   SURE's schedule can now be *watched* — the wavefront sweeping through the index
   lattice, one timestep at a time, so parallelism (wavefront width) and latency

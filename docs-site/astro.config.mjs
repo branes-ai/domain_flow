@@ -74,6 +74,13 @@ export default defineConfig({
           ],
         },
         {
+          label: 'Scaling & Distribution',
+          items: [
+            { label: 'The scale-out problem', slug: 'scaling' },
+            { label: 'Uniformization', slug: 'scaling/uniformization' },
+          ],
+        },
+        {
           label: 'Changelog',
           link: '/changelog/',
         },
