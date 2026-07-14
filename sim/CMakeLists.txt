@@ -27,4 +27,6 @@ if(DOMAINFLOW_BUILD_TESTING)
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/axpy.sure)
     add_test(NAME dfactl_sure_dot
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/dot.sure)
+    add_test(NAME dfactl_sure_nrm2
+             COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/nrm2.sure)
 endif()
