@@ -102,3 +102,9 @@ The regression test `src/dfa/tests/sim/copy_sure.cpp` (CTest `test_copy_sure`)
 parses this document's spec, checks the input and output face normals, verifies the
 identity result ($Y = X$), and confirms free/linear schedule legality and the memory
 analysis.
+
+## Watch the schedule
+
+The identity flow sweeps across the lanes — the simplest wavefront in the catalog. Shown at N = 12. Press play, or scrub; drag to orbit.
+
+<div class="schedule-anim" data-src="schedules/copy-linear.json" data-height="340"></div>

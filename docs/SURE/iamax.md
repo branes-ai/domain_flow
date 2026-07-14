@@ -131,3 +131,9 @@ parses this document's spec and checks the confluence normals, the argmax result
 and — on inline specs — the `gt`/`select` semantics that matter for a pivot rule:
 strict tie-breaking to the earliest index, magnitude (not signed) comparison, a
 last-element winner, and the all-zeros case.
+
+## Watch the schedule
+
+The argmax select-reduction carries its `(value, index)` pair down the chain, one cell per step. Shown at N = 16. Press play, or scrub; drag to orbit.
+
+<div class="schedule-anim" data-src="schedules/iamax-linear.json" data-height="340"></div>

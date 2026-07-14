@@ -105,3 +105,9 @@ The regression test `src/dfa/tests/sim/swap_sure.cpp` (CTest `test_swap_sure`)
 parses this document's spec, checks the two input and two output face normals,
 verifies the crossed result ($\mathrm{Xout} = Y$, $\mathrm{Yout} = X$), and confirms
 free/linear schedule legality and the memory analysis.
+
+## Watch the schedule
+
+Two value-preserving flows sweep the strip together and leave crossed. Shown at N = 12. Press play, or scrub; drag to orbit.
+
+<div class="schedule-anim" data-src="schedules/swap-linear.json" data-height="340"></div>
