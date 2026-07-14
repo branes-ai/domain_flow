@@ -49,8 +49,11 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   // accept a tile spec only if it is exactly one size (broadcast to every axis)
   // or three positive finite sizes — reject anything malformed (e.g. "5,,10")
   // rather than silently mis-applying a size to the wrong axis.
+  // tile sizes are index-space block lengths → positive integers. Requiring
+  // Number.isInteger(n) && n >= 1 also rejects subnormals/fractions like 5e-324
+  // that would otherwise make ceil(span/ts) overflow to Infinity in tileOf().
   const tileValid = (t) => Array.isArray(t) && (t.length === 1 || t.length === 3)
-    && t.every((n) => Number.isFinite(n) && n > 0);
+    && t.every((n) => Number.isInteger(n) && n >= 1);
   // a bare number is the documented "broadcast to every axis" form → normalize to
   // the one-element array the rest of the code (ts(d) = tileSizes[d] ?? [0]) expects
   const tileArg = typeof options.tile === 'number' ? [options.tile] : options.tile;
