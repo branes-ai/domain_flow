@@ -1,0 +1,65 @@
+// Executable version of the BLAS Level-1 rot (Givens rotation) SURE from rot.md:
+//
+//   system((i,j) | 0 <= i < N, 0 <= j < 2) {
+//       c(i,j)  = c(i-1,j);                                          // cosine, pipelined across lanes
+//       s(i,j)  = s(i-1,j);                                          // sine,   pipelined across lanes
+//       x(i,j)  = 0;                                                 // one-shot injection (additive identity)
+//       y(i,j)  = 0;                                                 // one-shot injection (additive identity)
+//       rx(i,j) = rx(i,j-1) + c(i-1,j)*x(i,j-1) + s(i-1,j)*y(i,j-1); //  c*x + s*y
+//       ry(i,j) = ry(i,j-1) - s(i-1,j)*x(i,j-1) + c(i-1,j)*y(i,j-1); // -s*x + c*y
+//   }
+//
+//   rot applies a plane (Givens) rotation to a vector pair:
+//     ( Xout )   ( c  s ) ( x )
+//     ( Yout ) = (-s  c ) ( y )   elementwise, for each i.
+//   It is axpy generalized to a 2x2 linear map: TWO projected scalars (c, s) in
+//   place of the single alpha, TWO injected operands (x, y), and TWO result
+//   streams (rx, ry).  This is the catalog's rotation primitive -- the
+//   elementwise kernel of the Jacobi/Givens sweeps in QR, SVD, and the symmetric
+//   eigensolvers.
+//
+//   The two scalars c, s are 0-D operands: each is PROJECTED onto the i = -1 edge
+//   and pipelined across the lanes (no broadcast constant).  x and y are injected
+//   on the j = -1 halo and consumed once (in-domain 0 = additive identity, so
+//   each product is added exactly once).  Both result streams are seeded with the
+//   additive identity and carry the rotated values to the terminal j = 1 face.
+//
+//   Every product tap is a constant offset, so the recurrences are uniform.
+//   Faces are equality-pinned; the outward normal is derived (inputs influx,
+//   tau.n < 0; outputs outflux, tau.n > 0).
+//
+// Run it:   dfactl --sure docs/SURE/rot.sure
+//           dfactl --sure docs/SURE/rot.sure --tau 1,-1   (ILLEGAL flux demo)
+
+N = 4;
+
+system ((i,j) | 0 <= i < N, 0 <= j < 2) {
+    c(i,j)  = c(i-1,j);                                              // cosine pipelined across the lanes
+    s(i,j)  = s(i-1,j);                                              // sine   pipelined across the lanes
+    x(i,j)  = 0;                                                     // injected x lives only on the j = -1 halo
+    y(i,j)  = 0;                                                     // injected y lives only on the j = -1 halo
+    rx(i,j) = rx(i,j-1) + c(i-1,j)*x(i,j-1) + s(i-1,j)*y(i,j-1);     //  c*x + s*y, accumulated once
+    ry(i,j) = ry(i,j-1) - s(i-1,j)*x(i,j-1) + c(i-1,j)*y(i,j-1);     // -s*x + c*y, accumulated once
+}
+
+// scalar rotation coefficients, projected onto the i = -1 edge
+input  C[1] ((i,j) | i = -1, 0 <= j < 2) : c(i,j) = C[0];
+input  S[1] ((i,j) | i = -1, 0 <= j < 2) : s(i,j) = S[0];
+// operand vectors, injected on the j = -1 halo
+input  X[N] ((i,j) | 0 <= i < N, j = -1) : x(i,j) = X[i];
+input  Y[N] ((i,j) | 0 <= i < N, j = -1) : y(i,j) = Y[i];
+// result streams seeded with the additive identity
+input       ((i,j) | 0 <= i < N, j = -1) : rx(i,j) = 0;
+input       ((i,j) | 0 <= i < N, j = -1) : ry(i,j) = 0;
+// rotated pair leaves the terminal face
+output Xout[N] ((i,j) | 0 <= i < N, j = 1) : Xout[i] = rx(i,j);
+output Yout[N] ((i,j) | 0 <= i < N, j = 1) : Yout[i] = ry(i,j);
+
+tau = [1, 1];                    // canonical legal wavefront schedule
+
+// test-bench data:  rotate by (c,s) = (0.6, 0.8), a proper rotation (c^2+s^2=1)
+//   Xout =  0.6*X + 0.8*Y ,   Yout = -0.8*X + 0.6*Y   (norm-preserving per lane)
+data C = 0.6;
+data S = 0.8;
+data X = {  1,  2,  3,  4 };
+data Y = {  5,  6,  7,  8 };
