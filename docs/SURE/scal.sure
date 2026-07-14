@@ -1,0 +1,46 @@
+// Executable version of the BLAS Level-1 scal SURE from scal.md:
+//
+//   system((i,j) | 0 <= i < N, 0 <= j < 2) {
+//       a(i,j) = a(i-1,j);                         // scalar alpha pipelined across lanes
+//       x(i,j) = 0;                                // one-shot injection (additive identity in-domain)
+//       r(i,j) = r(i,j-1) + a(i-1,j) * x(i,j-1);   // scaled result, computed once then drained
+//   }
+//
+//   scal  r := alpha*x  is a fully-parallel elementwise scale.  It is exactly
+//   axpy  y := alpha*x + y  specialized to a ZERO addend: the result stream r is
+//   seeded with the accumulator's additive identity 0 (there is no incoming
+//   vector to add), so r(i,0) = 0 + alpha*X[i] at the front cell and carries
+//   unchanged to the terminal face.  Same two-cell systolic map as axpy, one
+//   operand lighter.
+//
+//   All operands are uniform flows: alpha is PROJECTED onto the i = -1 edge and
+//   pipelined across the lanes (no broadcast constant in an equation body); x is
+//   INJECTED on the j = -1 halo and consumed once (in-domain x is the additive
+//   identity 0, so alpha*x is added exactly once); the length-N result rides the
+//   i axis and leaves through the terminal j = 1 face.
+//
+//   Faces are equality-pinned; the outward normal is derived (inputs influx,
+//   tau.n < 0; outputs outflux, tau.n > 0).
+//
+// Run it:   dfactl --sure docs/SURE/scal.sure
+//           dfactl --sure docs/SURE/scal.sure --tau 1,-1   (ILLEGAL flux demo)
+
+N = 4;
+
+system ((i,j) | 0 <= i < N, 0 <= j < 2) {
+    a(i,j) = a(i-1,j);                             // alpha pipelined across the lanes (+i)
+    x(i,j) = 0;                                    // injected value lives only on the j = -1 halo
+    r(i,j) = r(i,j-1) + a(i-1,j) * x(i,j-1);       // accumulate alpha*x once, then drain
+}
+
+// tensor confluences
+input  Alpha[1] ((i,j) | i = -1, 0 <= j < 2) : a(i,j) = Alpha[0];   // project the scalar onto the i = -1 edge
+input  X[N]     ((i,j) | 0 <= i < N, j = -1)  : x(i,j) = X[i];       // inject x on the front halo
+input           ((i,j) | 0 <= i < N, j = -1)  : r(i,j) = 0;          // result seed: additive identity (no addend)
+output R[N]     ((i,j) | 0 <= i < N, j = 1)   : R[i] = r(i,j);       // scaled vector leaves the terminal face
+
+tau = [1, 1];                    // canonical legal wavefront schedule
+
+// test-bench data:  R = alpha*X = 3*{1,2,3,4} = {3,6,9,12}
+data Alpha = 3;
+data X = { 1, 2, 3, 4 };
