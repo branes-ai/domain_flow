@@ -50,6 +50,7 @@ const FILE_MAP = {
   'SURE/scal.md':                    'theory/scal.md',
   'SURE/swap.md':                    'theory/swap.md',
   'SURE/copy.md':                    'theory/copy.md',
+  'SURE/rot.md':                     'theory/rot.md',
   'SURE/conv2d.md':                  'theory/conv2d.md',
   'SURE/QR_decomposition.md':        'theory/qr-decomposition.md',
   'tensor_structure.md':             'theory/tensor-structure.md',
