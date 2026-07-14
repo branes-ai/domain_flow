@@ -21,6 +21,12 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 // echoing the classic domain-flow linear-schedule picture.
 const PALETTE = [0x4fd1ff, 0xff9f0a, 0x35c759, 0xbf5af2, 0xffd60a, 0xff6482, 0x64d2ff];
 
+// Escape values that originate in the fetched schedule JSON before they reach the
+// HUD's innerHTML — data-src may be an arbitrary (even https) URL, so a compromised
+// schedule must not be able to inject markup into the docs origin.
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => (
+  { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
 /**
  * Mount the viewer.
  * @param {{canvas:HTMLCanvasElement, hud?:HTMLElement, data:object, options?:object}} cfg
@@ -40,10 +46,13 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   //    per-dim block size (a single number is broadcast to every axis). The
   //    recurrence is unchanged — tiling is a partition of the SAME index space,
   //    which is exactly why a uniform operator tiles. ──────────────────────────
-  const tileSizes = Array.isArray(options.tile) && options.tile.length
-    ? options.tile.filter((n) => Number.isFinite(n) && n > 0)
-    : null;
-  const tileMode = !!(tileSizes && tileSizes.length);
+  // accept a tile spec only if it is exactly one size (broadcast to every axis)
+  // or three positive finite sizes — reject anything malformed (e.g. "5,,10")
+  // rather than silently mis-applying a size to the wrong axis.
+  const tileValid = (t) => Array.isArray(t) && (t.length === 1 || t.length === 3)
+    && t.every((n) => Number.isFinite(n) && n > 0);
+  const tileSizes = tileValid(options.tile) ? options.tile : null;
+  const tileMode = !!tileSizes;
   const ts = (d) => tileSizes[d] ?? tileSizes[0];
   const nTiles = [0, 1, 2].map((d) => tileMode ? Math.max(1, Math.ceil(((hi[d] ?? 0) - (lo[d] ?? 0) + 1) / ts(d))) : 1);
   const tileOf = (p) => [0, 1, 2].map((d) => Math.floor(((p[d] ?? 0) - (lo[d] ?? 0)) / ts(d)));
@@ -87,8 +96,11 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   scene.add(axes);
 
   // tile-block boundaries: a faint wireframe box per block so the partition of
-  // the index space into tile-sized chunks is visible under the wavefront.
-  if (tileMode) {
+  // the index space into tile-sized chunks is visible under the wavefront. Cap
+  // the box count so a pathological tile size (e.g. T=1 on a large domain) can't
+  // spawn thousands of Box3Helpers — colour-by-block still conveys the partition.
+  const totalBlocks = nTiles[0] * nTiles[1] * nTiles[2];
+  if (tileMode && totalBlocks <= 512) {
     for (let K = 0; K < nTiles[2]; K++)
       for (let J = 0; J < nTiles[1]; J++)
         for (let I = 0; I < nTiles[0]; I++) {
@@ -145,9 +157,13 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
     inst.instanceMatrix.needsUpdate = true;
     if (inst.instanceColor) inst.instanceColor.needsUpdate = true;
     if (hud) {
+      // tau is coerced to numbers so it can never carry markup; operator/kind are
+      // escaped as they come straight from the fetched JSON.
+      const tauTxt = Array.isArray(data.schedule?.tau)
+        ? ` τ=[${data.schedule.tau.map((n) => Number(n)).join(',')}]` : '';
       hud.innerHTML =
-        `<div>${data.operator ?? 'schedule'} · ${data.schedule?.kind ?? ''}` +
-        (data.schedule?.tau ? ` τ=[${data.schedule.tau.join(',')}]` : '') + `</div>` +
+        `<div>${esc(data.operator ?? 'schedule')} · ${esc(data.schedule?.kind ?? '')}` +
+        tauTxt + `</div>` +
         `<div>step ${frame + 1} / ${frameCount}` +
         `&nbsp; latency ${data.latency ?? frameCount}</div>` +
         `<div>wavefront: <b>${firing}</b> firing (parallelism)</div>` +
@@ -222,9 +238,11 @@ export async function mountAll(root = document) {
     const height = el.getAttribute('data-height') || '460';
     const fpsAttr = Number(el.getAttribute('data-fps'));     // 0 / non-finite → adaptive default
     const fps = Number.isFinite(fpsAttr) && fpsAttr > 0 ? fpsAttr : 0;
-    // data-tile="T" or "Tx,Ty,Tz" → colour activations by tile block (issue #70)
-    const tile = (el.getAttribute('data-tile') || '')
-      .split(',').map((s) => Number(s.trim())).filter((n) => Number.isFinite(n) && n > 0);
+    // data-tile="T" or "Tx,Ty,Tz" → colour activations by tile block (issue #70).
+    // Keep every parsed entry (don't drop blanks) so a malformed tuple like
+    // "5,,10" is rejected wholesale by the viewer rather than mis-aligned to [5,10].
+    const tileRaw = el.getAttribute('data-tile');
+    const tile = tileRaw ? tileRaw.split(',').map((s) => Number(s.trim())) : [];
     el.style.height = `${height}px`;
 
     const canvas = document.createElement('canvas');

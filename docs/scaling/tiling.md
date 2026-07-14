@@ -85,9 +85,14 @@ All three are **nearest-neighbour, `O(T²)` surface exchanges** — halos. None 
 reduction fanned out to the whole grid; none needs the Distributed Memory Machine's
 collectives. The `C`-accumulation across `K`-blocks *looks* like a reduction, but it
 is a **pipelined** one: each `K`-block passes its partial to the single next block,
-a `±1` hand-off, not an all-reduce. **Matmul tiles linearly.** This is the
-concrete, best-case instance of the [halo-vs-collective](index.md) dichotomy — and
-the baseline against which the affine operators are measured.
+a `±1` hand-off, not an all-reduce. **Matmul tiles with purely local
+communication** — every cross-tile edge is a neighbour halo, so there is no
+collective to serialize on. (That is a statement about *communication structure*,
+not a linear-speedup guarantee: end-to-end scaling is still shaped by the
+surface-to-volume ratio, the `+K` accumulation chain's latency, the interconnect
+topology, and tile reuse.) This is the concrete, best-case instance of the
+[halo-vs-collective](index.md) dichotomy — and the baseline against which the
+affine operators are measured.
 
 ## The partition, animated
 
