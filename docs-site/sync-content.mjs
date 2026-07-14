@@ -41,17 +41,21 @@ const FILE_MAP = {
   // ── SURE Simulator ──────────────────────────────────────────────
   'sure-simulator.md':               'simulator/index.md',
 
-  // ── Theory: operators as recurrence systems ─────────────────────
+  // ── SURE Algorithms: BLAS Level 1 (executable operator derivations) ──
+  // Order in the sidebar is set explicitly in astro.config.mjs (pedagogical,
+  // not alphabetical).
+  'SURE/axpy.md':                    'sure-algorithms/blas-l1/axpy.md',
+  'SURE/dot.md':                     'sure-algorithms/blas-l1/dot.md',
+  'SURE/nrm2.md':                    'sure-algorithms/blas-l1/nrm2.md',
+  'SURE/asum.md':                    'sure-algorithms/blas-l1/asum.md',
+  'SURE/scal.md':                    'sure-algorithms/blas-l1/scal.md',
+  'SURE/swap.md':                    'sure-algorithms/blas-l1/swap.md',
+  'SURE/copy.md':                    'sure-algorithms/blas-l1/copy.md',
+  'SURE/rot.md':                     'sure-algorithms/blas-l1/rot.md',
+  'SURE/iamax.md':                   'sure-algorithms/blas-l1/iamax.md',
+
+  // ── Theory: background + operator derivations not yet in the catalog ──
   'SURE/matmul.md':                  'theory/matmul.md',
-  'SURE/axpy.md':                    'theory/axpy.md',
-  'SURE/dot.md':                     'theory/dot.md',
-  'SURE/nrm2.md':                    'theory/nrm2.md',
-  'SURE/asum.md':                    'theory/asum.md',
-  'SURE/scal.md':                    'theory/scal.md',
-  'SURE/swap.md':                    'theory/swap.md',
-  'SURE/copy.md':                    'theory/copy.md',
-  'SURE/rot.md':                     'theory/rot.md',
-  'SURE/iamax.md':                   'theory/iamax.md',
   'SURE/conv2d.md':                  'theory/conv2d.md',
   'SURE/QR_decomposition.md':        'theory/qr-decomposition.md',
   'tensor_structure.md':             'theory/tensor-structure.md',
