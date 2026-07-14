@@ -1,0 +1,42 @@
+// Executable version of the BLAS Level-1 Euclidean-norm SURE from nrm2.md:
+//
+//   system((i,j) | 0 <= i < N, 0 <= j < 1) {
+//       x(i,j) = x(i,j-1);                         // operand X enters at the j=-1 feed halo
+//       s(i,j) = s(i-1,j) + x(i,j-1) * x(i,j-1);   // running sum of squares along +i
+//   }
+//   output ... : R[0] = sqrt(s(i,j));              // terminal-face sqrt epilogue
+//
+//   nrm2  ||x||_2 = sqrt(sum_i X[i]^2)  is a REDUCTION with a pointwise epilogue.
+//   The sum of squares accumulates along +i exactly like the dot product (a
+//   single operand squared, s(i) = s(i-1) + X[i]^2, seeded 0 at i = -1), and the
+//   scalar norm leaves through the single terminal point i = N-1 -- but the
+//   output face applies sqrt as it reads the accumulator.  This is the
+//   fused-epilogue confluence pattern: a pointwise op on the output face (cf.
+//   the MATMUL activation epilogue and qr.sure's Rdiag = sqrt(snorm)).
+//
+//   The operand X is indexed by the reduction coordinate i, so it enters on a
+//   depth-1 FEED axis j (X[i] injected on the j = -1 halo, consumed once at its
+//   multiply-add cell).  The square x(i,j-1)*x(i,j-1) reads one tap at the
+//   constant offset (0,-1), so s is a uniform recurrence.  Faces are
+//   equality-pinned; the outward normal is derived (inputs influx, tau.n < 0;
+//   outputs outflux, tau.n > 0).
+//
+// Run it:   dfactl --sure docs/SURE/nrm2.sure
+//           dfactl --sure docs/SURE/nrm2.sure --tau -1,1   (ILLEGAL flux demo)
+
+N = 4;
+
+system ((i,j) | 0 <= i < N, 0 <= j < 1) {
+    x(i,j) = x(i,j-1);                             // operand X, fed from the j = -1 halo
+    s(i,j) = s(i-1,j) + x(i,j-1) * x(i,j-1);       // accumulate X[i]^2 along +i
+}
+
+// tensor confluences
+input  X[N] ((i,j) | 0 <= i < N, j = -1)  : x(i,j) = X[i];          // feed X[i] into cell i
+input       ((i,j) | i = -1, 0 <= j < 1)  : s(i,j) = 0;             // accumulator seed (additive identity)
+output R[1] ((i,j) | i = N-1, 0 <= j < 1) : R[0] = sqrt(s(i,j));    // sqrt epilogue on the terminal face
+
+tau = [1, 1];                    // canonical legal wavefront schedule
+
+// test-bench data:  ||x||_2 = sqrt(1 + 4 + 4 + 16) = sqrt(25) = 5
+data X = { 1, 2, 2, 4 };
