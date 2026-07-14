@@ -8,6 +8,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **SURE linear-algebra operator catalog** (epic #21): a catalog of executable
+  SURE derivations of the key linear-algebra operators (BLAS L1/L2/L3,
+  factorizations, solvers), each shipping the established triple — a `.sure`
+  spec, a regression test, and a docs-site Theory page.
+  - **`axpy`** (issue #22): the first entry — BLAS-1 `y := alpha*x + y` as a
+    two-cell systolic map (`docs/SURE/axpy.sure`, `docs/SURE/axpy.md`, CTest
+    `test_axpy_sure`, `dfactl_sure_axpy`). The fully-parallel vector map rides
+    the length-N result on the `i` axis and injects `x` on a `j = -1` halo so
+    the scaled contribution is added once as `y` streams to the terminal face.
+    All three operands are uniform flows — in particular the scalar `alpha` is
+    **projected** onto the `i = -1` edge and pipelined across the lanes
+    (`a(i,j) = a(i-1,j)`) rather than baked into an equation body as a broadcast
+    constant (which would be an affine, non-uniform dependence). Verified
+    `R = alpha*X + Y` with derived face normals and free/linear legality.
+    `SURE_DOCS_DIR` is now directory-scoped in the sim tests so each new
+    `<op>_sure.cpp` is a drop-in.
 - **SURE DSL: executable docs/SURE notation** (issue #15, PR #16; issue #17,
   PR #18): a header-only text front-end (`include/dfa/sim/sure_parser.hpp`)
   parses the `system((i,j,k) | constraints) { equations }` notation used in
