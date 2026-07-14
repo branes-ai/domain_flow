@@ -48,6 +48,7 @@ const FILE_MAP = {
   'SURE/nrm2.md':                    'theory/nrm2.md',
   'SURE/asum.md':                    'theory/asum.md',
   'SURE/scal.md':                    'theory/scal.md',
+  'SURE/swap.md':                    'theory/swap.md',
   'SURE/conv2d.md':                  'theory/conv2d.md',
   'SURE/QR_decomposition.md':        'theory/qr-decomposition.md',
   'tensor_structure.md':             'theory/tensor-structure.md',
