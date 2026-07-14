@@ -34,6 +34,23 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   const ctr = [0, 1, 2].map((k) => ((lo[k] ?? 0) + (hi[k] ?? 0)) / 2);
   const span = Math.max(1, ...[0, 1, 2].map((k) => (hi[k] ?? 0) - (lo[k] ?? 0)));
 
+  // ── tiling overlay (issue #70): when options.tile is given, colour each
+  //    activation by the tile block it lands in and draw the block boundaries,
+  //    so a domain-exceeds-the-fabric partition reads at a glance. tile is a
+  //    per-dim block size (a single number is broadcast to every axis). The
+  //    recurrence is unchanged — tiling is a partition of the SAME index space,
+  //    which is exactly why a uniform operator tiles. ──────────────────────────
+  const tileSizes = Array.isArray(options.tile) && options.tile.length
+    ? options.tile.filter((n) => Number.isFinite(n) && n > 0)
+    : null;
+  const tileMode = !!(tileSizes && tileSizes.length);
+  const ts = (d) => tileSizes[d] ?? tileSizes[0];
+  const nTiles = [0, 1, 2].map((d) => tileMode ? Math.max(1, Math.ceil(((hi[d] ?? 0) - (lo[d] ?? 0) + 1) / ts(d))) : 1);
+  const tileOf = (p) => [0, 1, 2].map((d) => Math.floor(((p[d] ?? 0) - (lo[d] ?? 0)) / ts(d)));
+  const tileId = (p) => { const [I, J, K] = tileOf(p); return I + J * nTiles[0] + K * nTiles[0] * nTiles[1]; };
+  // one well-separated hue per block via the golden-angle sequence
+  const tileColor = (id) => new THREE.Color().setHSL((id * 0.6180339887) % 1, 0.62, 0.56);
+
   // ── flatten activations, find the time range ──────────────────────────────
   const vars = data.variables ?? [];
   const acts = [];
@@ -69,6 +86,20 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   axes.position.set(...pad(lo));
   scene.add(axes);
 
+  // tile-block boundaries: a faint wireframe box per block so the partition of
+  // the index space into tile-sized chunks is visible under the wavefront.
+  if (tileMode) {
+    for (let K = 0; K < nTiles[2]; K++)
+      for (let J = 0; J < nTiles[1]; J++)
+        for (let I = 0; I < nTiles[0]; I++) {
+          const t = [I, J, K];
+          const blo = [0, 1, 2].map((d) => (lo[d] ?? 0) + t[d] * ts(d) - 0.5);
+          const bhi = [0, 1, 2].map((d) => Math.min((hi[d] ?? 0) + 0.5, (lo[d] ?? 0) + (t[d] + 1) * ts(d) - 0.5));
+          const b = new THREE.Box3(new THREE.Vector3(...blo), new THREE.Vector3(...bhi));
+          scene.add(new THREE.Box3Helper(b, 0x586074));
+        }
+  }
+
   // ── one instanced sphere per activation — scales to 15^3 lattices (~10k
   //    activations for matmul's three recurrences) as a single draw call ─────
   const baseR = Math.min(0.3, Math.max(0.08, span * 0.05));
@@ -83,7 +114,8 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   const positions = acts.map((a) => [
     a.p[0] + (a.vi - (vars.length - 1) / 2) * jit, a.p[1], a.p[2],
   ]);
-  const baseColors = acts.map((a) => new THREE.Color(PALETTE[a.vi % PALETTE.length]));
+  const baseColors = acts.map((a) =>
+    tileMode ? tileColor(tileId(a.p)) : new THREE.Color(PALETTE[a.vi % PALETTE.length]));
   const WHITE = new THREE.Color(0xffffff);
 
   // ── per-frame state colouring ─────────────────────────────────────────────
@@ -119,7 +151,8 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
         `<div>step ${frame + 1} / ${frameCount}` +
         `&nbsp; latency ${data.latency ?? frameCount}</div>` +
         `<div>wavefront: <b>${firing}</b> firing (parallelism)</div>` +
-        `<div>fired ${fired} / ${acts.length}</div>`;
+        `<div>fired ${fired} / ${acts.length}</div>` +
+        (tileMode ? `<div>tiles: ${nTiles[0]}×${nTiles[1]}×${nTiles[2]} (T=${tileSizes.join('×')})</div>` : '');
     }
     options.onFrame?.(frame);
   }
@@ -162,6 +195,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
 
   return {
     frameCount,
+    tileMode,
     setFrame,
     play() { playing = true; },
     pause() { playing = false; },
@@ -188,6 +222,9 @@ export async function mountAll(root = document) {
     const height = el.getAttribute('data-height') || '460';
     const fpsAttr = Number(el.getAttribute('data-fps'));     // 0 / non-finite → adaptive default
     const fps = Number.isFinite(fpsAttr) && fpsAttr > 0 ? fpsAttr : 0;
+    // data-tile="T" or "Tx,Ty,Tz" → colour activations by tile block (issue #70)
+    const tile = (el.getAttribute('data-tile') || '')
+      .split(',').map((s) => Number(s.trim())).filter((n) => Number.isFinite(n) && n > 0);
     el.style.height = `${height}px`;
 
     const canvas = document.createElement('canvas');
@@ -213,12 +250,17 @@ export async function mountAll(root = document) {
     let playing = false;
     const viewer = createScheduleViewer({
       canvas, hud, data,
-      options: { fps, onFrame: (i) => { if (playing) scrub.value = String(i); } },
+      options: { fps, tile, onFrame: (i) => { if (playing) scrub.value = String(i); } },
     });
     scrub.max = String(Math.max(0, viewer.frameCount - 1));
 
-    // variable legend
-    if (Array.isArray(data.variables) && data.variables.length) {
+    // variable legend — suppressed in tile mode, where colour encodes the block
+    // (one hue per tile) rather than the recurrence variable.
+    if (viewer.tileMode) {
+      const leg = Object.assign(document.createElement('div'), { className: 'sa-legend' });
+      leg.innerHTML = `<span>colour = tile block · box = tile boundary · white = firing wavefront</span>`;
+      el.append(leg);
+    } else if (Array.isArray(data.variables) && data.variables.length) {
       const leg = Object.assign(document.createElement('div'), { className: 'sa-legend' });
       const cols = ['#4fd1ff', '#ff9f0a', '#35c759', '#bf5af2', '#ffd60a', '#ff6482', '#64d2ff'];
       data.variables.forEach((v, i) => {
