@@ -51,7 +51,10 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   // rather than silently mis-applying a size to the wrong axis.
   const tileValid = (t) => Array.isArray(t) && (t.length === 1 || t.length === 3)
     && t.every((n) => Number.isFinite(n) && n > 0);
-  const tileSizes = tileValid(options.tile) ? options.tile : null;
+  // a bare number is the documented "broadcast to every axis" form → normalize to
+  // the one-element array the rest of the code (ts(d) = tileSizes[d] ?? [0]) expects
+  const tileArg = typeof options.tile === 'number' ? [options.tile] : options.tile;
+  const tileSizes = tileValid(tileArg) ? tileArg : null;
   const tileMode = !!tileSizes;
   const ts = (d) => tileSizes[d] ?? tileSizes[0];
   const nTiles = [0, 1, 2].map((d) => tileMode ? Math.max(1, Math.ceil(((hi[d] ?? 0) - (lo[d] ?? 0) + 1) / ts(d))) : 1);
