@@ -133,3 +133,9 @@ The regression test `src/dfa/tests/sim/nrm2_sure.cpp` (CTest `test_nrm2_sure`)
 parses this document's spec, checks the derived face normals, verifies
 $\lVert x \rVert_2$ *through the sqrt epilogue* against a direct reference, confirms
 free/linear schedule legality, and asserts the $O(1)$ accumulator footprint.
+
+## Watch the schedule
+
+The sum-of-squares reduction sweeps as a single point down the chain; the `sqrt` epilogue fires once at the terminal cell. Shown at N = 16. Press play, or scrub; drag to orbit.
+
+<div class="schedule-anim" data-src="schedules/nrm2-linear.json" data-height="340"></div>

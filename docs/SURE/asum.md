@@ -120,3 +120,9 @@ parses this document's spec, checks the derived face normals, verifies
 $\sum_i |x_i|$ *through the abs prologue* (signed input data) against a direct
 reference, confirms free/linear schedule legality, and asserts the $O(1)$
 accumulator footprint.
+
+## Watch the schedule
+
+The ℓ₁ reduction sweeps as a single point down the chain — the `abs` prologue rectifies each operand as it enters. Shown at N = 16. Press play, or scrub; drag to orbit.
+
+<div class="schedule-anim" data-src="schedules/asum-linear.json" data-height="340"></div>
