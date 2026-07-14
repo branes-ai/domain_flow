@@ -43,6 +43,8 @@ if(DOMAINFLOW_BUILD_TESTING)
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/iamax.sure)
     add_test(NAME dfactl_sure_qr_givens
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/qr_givens.sure)
+    add_test(NAME dfactl_sure_qr_givens_tall
+             COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/qr_givens_tall.sure)
     # schedule-animation export (issue #64): the emit must succeed for both schedules
     add_test(NAME dfactl_emit_matmul_linear
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/matmul.sure

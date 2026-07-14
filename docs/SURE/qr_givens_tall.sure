@@ -1,0 +1,27 @@
+// QR by Givens rotations — TALL case (M > N), issue #72.
+//
+// Same Gentleman-Kung array as qr_givens.sure, on a tall 4x3 A so the
+// regression test can verify the sign-robust invariant R^T R == A^T A on a
+// genuinely rectangular (over-determined) input, not just the square 3x3.
+// R is N x N = 3 x 3 upper-triangular; all four rows of A are merged in.
+//
+// See qr_givens.sure for the full derivation and docs/scaling/uniformization.md.
+
+M = 4; N = 3;
+
+system ((i,p,q) | 0 <= i < M, 0 <= p < N, 0 <= q < N, p <= q) {
+    r(i,p,q) = (r(i-1,p,p)*r(i-1,p,q) + a(i,p-1,p)*a(i,p-1,q))
+             / sqrt(r(i-1,p,p)*r(i-1,p,p) + a(i,p-1,p)*a(i,p-1,p) + 0.000000001);   // c*R + s*a
+    a(i,p,q) = (r(i-1,p,p)*a(i,p-1,q) - a(i,p-1,p)*r(i-1,p,q))
+             / sqrt(r(i-1,p,p)*r(i-1,p,p) + a(i,p-1,p)*a(i,p-1,p) + 0.000000001);   // -s*R + c*a
+}
+
+input         ((i,p,q) | i = -1, 0 <= p < N, 0 <= q < N, p <= q) : r(i,p,q) = 0;      // R starts empty
+input A[M][N] ((i,p,q) | 0 <= i < M, p = -1, 0 <= q < N)         : a(i,p,q) = A[i][q]; // rows of A stream in
+output R[N][N] ((i,p,q) | i = M-1, 0 <= p < N, 0 <= q < N, p <= q) : R[p][q] = r(i,p,q); // R after the last row
+
+// tall 4x3 A (over-determined) — R^T R must equal A^T A
+data A = { 12, -51,   4,
+            6, 167, -68,
+           -4,  24, -41,
+            1,   2,   3 };
