@@ -8,6 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **QR by Givens rotations** (issue #72, the Scaling & Distribution flagship): an
+  executable, verified **Gentleman–Kung** QR — `docs/SURE/qr_givens.sure`, CTest
+  `test_qr_givens_sure`, `dfactl_sure_qr_givens`, and a schedule animation on the
+  uniformization page. Each row of `A` is merged into the accumulating
+  upper-triangular `R` by a nearest-neighbour sweep of Givens rotations over
+  `(i,p,q)`, `p ≤ q` — **no reduction**. Verified: exact `R` for the classic 3×3
+  and the sign-robust `RᵀR = AᵀA` on tall inputs. It is still a SARE in the DSL
+  (the two diagonal taps `r(i-1,p,p)`, `a(i,p-1,p)` read the pivot column), **but**
+  those are pure diagonal broadcasts along `+q` with no reduction — nearest-
+  neighbour, so they **tile with local communication**, unlike MGS-QR's global
+  `Σ_i` all-reduce. A pure SURE needs only the internal-confluence extension to
+  seed the rotation propagation. The `docs/scaling/uniformization.md` page carries
+  the full MGS-vs-Givens comparison.
 - **"Scaling & Distribution" docs section** (epic #68): a new top-level section on
   mapping SUREs across KPU tiles and SoCs. The **landing page** (#69) frames the
   scale-out problem and its organizing thesis — *uniform* deps become halo
