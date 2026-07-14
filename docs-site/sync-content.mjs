@@ -56,6 +56,7 @@ const FILE_MAP = {
 
   // ── Scaling & Distribution: mapping SUREs across tiles and SoCs ─────
   'scaling/index.md':                'scaling/index.md',
+  'scaling/tiling.md':               'scaling/tiling.md',
   'scaling/uniformization.md':       'scaling/uniformization.md',
 
   // ── Theory: background + operator derivations not yet in the catalog ──

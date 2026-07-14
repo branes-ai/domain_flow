@@ -50,8 +50,9 @@ dependencies are removed. Uniform-vs-affine *is* the tiling criterion.
 
 The rest of this section works through each piece:
 
-- **Tiling the index space** — index-set partitioning and the two-level (across-tile
-  + within-tile) schedule, with **blocked matmul** as the clean example.
+- **[Tiling the index space](tiling.md)** — index-set partitioning and the two-level
+  (across-tile + within-tile) schedule, with **blocked matmul** as the clean example:
+  because it is uniform, every severed dependence is a halo, never a collective.
 - **Halo vs collective** — the dependency dichotomy above, worked out concretely.
 - **[Uniformization](uniformization.md)** — turning affine dependencies into uniform
   ones so an operator tiles: pipeline the broadcast, or change algorithm (the
