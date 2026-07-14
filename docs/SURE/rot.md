@@ -12,7 +12,7 @@ $$
 
 with a shared cosine/sine pair $(c,s)$, $c^2 + s^2 = 1$. It is the catalog's
 **rotation primitive** — the elementwise kernel of the Jacobi/Givens sweeps that
-drive [`qr`](qr-decomposition.md), the SVD, and the symmetric eigensolvers — and,
+drive [`qr`](QR_decomposition.md), the SVD, and the symmetric eigensolvers — and,
 structurally, it is [`axpy`](axpy.md) promoted from a scalar multiply-add to a
 $2\times2$ linear map.
 

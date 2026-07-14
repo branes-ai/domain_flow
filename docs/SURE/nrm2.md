@@ -60,7 +60,7 @@ applies `sqrt` as it writes `R[0]`.
 
 The output confluence is more than a read: its expression may apply a pointwise
 function of the value(s) it taps. Here it is $\sqrt{\,\cdot\,}$; in a fused MATMUL
-it is an activation `act(c + bias)`; in [`qr`](qr-decomposition.md) the diagonal of
+it is an activation `act(c + bias)`; in [`qr`](QR_decomposition.md) the diagonal of
 `R` leaves as `Rdiag = sqrt(snorm)`. In each case the epilogue
 
 - executes **once per output element**, at the drain — not at every interior point,
