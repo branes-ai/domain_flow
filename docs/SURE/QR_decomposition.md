@@ -222,6 +222,21 @@ test suite (`src/dfa/tests/sim/sure_parser.cpp`) checks `R` exactly,
 `Q^T Q = I` and `Q R = A` to machine precision (both residuals < 1e-15),
 and the free-schedule legality of the parsed system.
 
+### Watch the schedule
+
+QR is a far harder animation than `matmul`, and a good stress test of the
+approach. It is a genuine SARE: **affine (broadcast) taps** — `srp(M-1,j,k)`, the
+completed reduction, and `qhat(i,k-1,k-1)`, the previous column's `q` — mean **no
+global linear schedule exists**, so this is the *free* (data-flow-earliest)
+schedule. The domain is a **triangular prism** (`k ≤ j`), and the four flowing
+variables (`v` orthogonalization, `srp` and `snorm` reductions, `qhat`
+normalization) light up as the wavefront threads the sequential Gram-Schmidt
+dependencies — column `j` cannot start until the earlier columns' `q`s exist — so
+the front is markedly less regular than matmul's flat diagonal plane. Shown at
+M = N = 8 (latency 144). Press play, or scrub; drag to orbit.
+
+<div class="schedule-anim" data-src="schedules/qr-free.json" data-height="460"></div>
+
 ### Notes
 
 - The reductions are linear chains along `i` (O(m) depth); a balanced

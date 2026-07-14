@@ -45,6 +45,10 @@ export default defineConfig({
           items: [{ autogenerate: { directory: 'architecture' } }],
         },
         {
+          label: 'Theory',
+          items: [{ autogenerate: { directory: 'theory' } }],
+        },
+        {
           label: 'SURE Simulator',
           items: [{ autogenerate: { directory: 'simulator' } }],
         },
@@ -68,10 +72,6 @@ export default defineConfig({
               ],
             },
           ],
-        },
-        {
-          label: 'Theory',
-          items: [{ autogenerate: { directory: 'theory' } }],
         },
         {
           label: 'Changelog',

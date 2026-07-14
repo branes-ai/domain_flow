@@ -34,7 +34,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
     itself — it scales the size parameter and scalar-fills the operand data of a
     throwaway copy of the committed spec (the schedule depends only on the
     domain), so no duplicate `.sure` specs are checked in (the dedicated
-    `matmul15.sure` is retired; `matmul` renders from `matmul.sure` at 15³).
+    `matmul15.sure` is retired; `matmul` renders from `matmul.sure` at 15³). The
+    **QR** page also gets an animation as a stress test of the approach on a
+    genuine SARE — a triangular-prism domain with affine/broadcast taps and no
+    global linear schedule, so the free-schedule wavefront threads the sequential
+    Gram-Schmidt dependencies (M = N = 8, latency 144).
 - **SURE linear-algebra operator catalog** (epic #21): a catalog of executable
   SURE derivations of the key linear-algebra operators (BLAS L1/L2/L3,
   factorizations, solvers), each shipping the established triple — a `.sure`
@@ -193,7 +197,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   derivations (matmul, conv2d, QR). Content still originates in `docs/SURE/`;
   `sync-content.mjs` maps the L1 pages under `sure-algorithms/blas-l1/` and the
   sidebar is defined in `astro.config.mjs`. (Also fixed two `qr` cross-links to
-  reference the source filename so they survive the move.)
+  reference the source filename so they survive the move.) Sidebar section order
+  is now Getting Started → Architecture → Theory → SURE Simulator → SURE
+  Algorithms → Changelog.
 - **Terminology: drop the "ASAP" gloss on the free schedule.** The *free
   schedule* is the long-established (since the 1960s) term for the
   unencumbered, data-flow-earliest execution order; the parenthetical "(ASAP)"
