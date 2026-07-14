@@ -64,6 +64,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
     a multi-tensor confluence, two input faces in, two output faces out. Verified
     `(Xout,Yout) = (Y,X)`; shows that data-movement operators are pure confluence
     routing, no interior compute.
+  - **`copy`** (issue #28): the identity flow — BLAS-1 `y := x`
+    (`docs/SURE/copy.sure`, `docs/SURE/copy.md`, CTest `test_copy_sure`,
+    `dfactl_sure_copy`). The catalog's simplest operator: a single
+    value-preserving recurrence `x(i,j) = x(i,j-1)` carries `X` from the input
+    halo to the terminal face, where it leaves as `Y` — one input face, one
+    output face, no arithmetic. The elementary building block of every
+    value-preserving flow (`swap` is two crossed `copy` flows). Verified `Y = X`.
 - **SURE DSL: executable docs/SURE notation** (issue #15, PR #16; issue #17,
   PR #18): a header-only text front-end (`include/dfa/sim/sure_parser.hpp`)
   parses the `system((i,j,k) | constraints) { equations }` notation used in
