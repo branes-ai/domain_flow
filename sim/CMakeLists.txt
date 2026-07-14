@@ -31,4 +31,6 @@ if(DOMAINFLOW_BUILD_TESTING)
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/nrm2.sure)
     add_test(NAME dfactl_sure_asum
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/asum.sure)
+    add_test(NAME dfactl_sure_scal
+             COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/scal.sure)
 endif()
