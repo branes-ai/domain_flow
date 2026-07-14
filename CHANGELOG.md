@@ -81,6 +81,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
     and the norm-preserving invariant (`rx²+ry² = x²+y²` when `c²+s²=1`). The
     catalog's rotation primitive, reused by the Jacobi/Givens sweeps in QR, SVD,
     and the symmetric eigensolvers.
+  - **`iamax`** (issue #30): the argmax — BLAS-1 `argmaxᵢ|xᵢ|`
+    (`docs/SURE/iamax.sure`, `docs/SURE/iamax.md`, CTest `test_iamax_sure`,
+    `dfactl_sure_iamax`) — **completes BLAS Level-1** (9 operators). A **select
+    reduction** carrying an `(index, value)` pair: the fold *chooses* the larger
+    magnitude rather than accumulating. This required two exact selection
+    built-ins added to the DSL — `gt(a,b)` (strict `>` indicator) and
+    `select(c,x,y)` — which stay pointwise value ops, so the recurrence remains
+    uniform. Magnitude enters via the `abs` prologue; the index enters as data
+    (`Idx[i]=i` projected onto the feed halo, since bodies cannot read the loop
+    index). Strict `gt` keeps the earliest index on ties (BLAS convention);
+    verified against tie/sign/last-element/all-zeros cases. The pivot-selection
+    primitive behind LU partial pivoting, LP simplex, and eigensolver thresholds.
 - **SURE DSL: executable docs/SURE notation** (issue #15, PR #16; issue #17,
   PR #18): a header-only text front-end (`include/dfa/sim/sure_parser.hpp`)
   parses the `system((i,j,k) | constraints) { equations }` notation used in

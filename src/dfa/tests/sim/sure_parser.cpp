@@ -304,6 +304,15 @@ static bool checkDiagnostics() {
         "N = 2;\n"
         "system ((i,j) | 0 <= i,j < N) { c(i,j) = c(i,j-1) + W[i]; }\n" + seed + outp,
         "input/output expressions");
+    // selection built-ins: gt(a,b) is binary, select(c,x,y) is ternary
+    ok &= expectParseError("gt with too few arguments",
+        "N = 2;\n"
+        "system ((i,j) | 0 <= i,j < N) { c(i,j) = gt(c(i,j-1)); }\n" + seed + outp,
+        "expected ','");
+    ok &= expectParseError("select with too few arguments",
+        "N = 2;\n"
+        "system ((i,j) | 0 <= i,j < N) { c(i,j) = select(gt(c(i,j-1), 0), c(i,j-1)); }\n" + seed + outp,
+        "expected ','");
     ok &= expectParseError("input before the system block",
         "N = 2;\n"
         "input W[2] ((i,j) | 0 <= i < N, j = -1) : c(i,j) = W[i];\n",
