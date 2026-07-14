@@ -70,9 +70,10 @@ tile 0 produces a partial `P₀`, tile 1 produces `P₁`, … and the result is
 
 - If the sum has a **single consumer** (dot's scalar output), that combine is a
   **reduce/gather** — a tree of depth `O(log P)`.
-- If the result is **read back by every cell** (nrm2 normalizes each element by
-  `‖x‖`; QR's `srp` is fanned to every row), it is a full **all-reduce**: the tree
-  combine *plus* a broadcast back down. This is exactly the reduction-broadcast that
+- If the result is **read back by every cell** — a downstream **normalization**
+  `x/‖x‖` reads `nrm2`'s scalar `‖x‖` into every element; QR's `srp` is fanned to
+  every row — it is a full **all-reduce**: the tree combine *plus* a broadcast back
+  down. This is exactly the reduction-broadcast that
   [uniformization](uniformization.md) shows the DSL cannot yet pipeline — it is a
   genuine collective, not a halo.
 
