@@ -33,4 +33,6 @@ if(DOMAINFLOW_BUILD_TESTING)
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/asum.sure)
     add_test(NAME dfactl_sure_scal
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/scal.sure)
+    add_test(NAME dfactl_sure_swap
+             COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/swap.sure)
 endif()

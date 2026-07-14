@@ -56,6 +56,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
     pipelined scalar and one-shot injection, but the result stream is seeded with
     the **additive identity** (no incoming vector) instead of `Y`. Verified
     `R = α·X = {3,6,9,12}`.
+  - **`swap`** (issue #27): the vector exchange — BLAS-1 `(x,y) := (y,x)`
+    (`docs/SURE/swap.sure`, `docs/SURE/swap.md`, CTest `test_swap_sure`,
+    `dfactl_sure_swap`). No arithmetic: two value-preserving flows carry `X` and
+    `Y` straight through, and the swap is realized entirely in the **crossed
+    output confluences** (the `X`-named face reads the `y`-flow and vice versa) —
+    a multi-tensor confluence, two input faces in, two output faces out. Verified
+    `(Xout,Yout) = (Y,X)`; shows that data-movement operators are pure confluence
+    routing, no interior compute.
 - **SURE DSL: executable docs/SURE notation** (issue #15, PR #16; issue #17,
   PR #18): a header-only text front-end (`include/dfa/sim/sure_parser.hpp`)
   parses the `system((i,j,k) | constraints) { equations }` notation used in

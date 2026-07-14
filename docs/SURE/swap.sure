@@ -1,0 +1,42 @@
+// Executable version of the BLAS Level-1 swap SURE from swap.md:
+//
+//   system((i,j) | 0 <= i < N, 0 <= j < 2) {
+//       x(i,j) = x(i,j-1);                     // carry X across the pipeline
+//       y(i,j) = y(i,j-1);                     // carry Y across the pipeline
+//   }
+//   output Xout ... : Xout[i] = y(i,j);        // X-slot receives Y  (crossed)
+//   output Yout ... : Yout[i] = x(i,j);        // Y-slot receives X  (crossed)
+//
+//   swap  (x, y) := (y, x)  exchanges two vectors.  There is no arithmetic: two
+//   value-preserving flows carry X and Y straight through, and the swap is
+//   realized entirely in the OUTPUT confluences -- the X-named face reads the
+//   y-flow and the Y-named face reads the x-flow.  It is the multi-tensor,
+//   crossed-routing confluence: two input faces in, two output faces out.
+//
+//   Both length-N results ride the i axis and leave through the terminal j = 1
+//   face, so (as for any vector output) the elementwise map needs a two-cell j
+//   pipeline to give the outputs an oriented face.  Faces are equality-pinned;
+//   the outward normal is derived (inputs influx, tau.n < 0; outputs outflux,
+//   tau.n > 0).
+//
+// Run it:   dfactl --sure docs/SURE/swap.sure
+//           dfactl --sure docs/SURE/swap.sure --tau 1,-1   (ILLEGAL flux demo)
+
+N = 4;
+
+system ((i,j) | 0 <= i < N, 0 <= j < 2) {
+    x(i,j) = x(i,j-1);                             // value-preserving flow carrying X
+    y(i,j) = y(i,j-1);                             // value-preserving flow carrying Y
+}
+
+// tensor confluences
+input  X[N]    ((i,j) | 0 <= i < N, j = -1) : x(i,j) = X[i];       // inject X on the front halo
+input  Y[N]    ((i,j) | 0 <= i < N, j = -1) : y(i,j) = Y[i];       // inject Y on the front halo
+output Xout[N] ((i,j) | 0 <= i < N, j = 1)  : Xout[i] = y(i,j);    // first slot receives Y
+output Yout[N] ((i,j) | 0 <= i < N, j = 1)  : Yout[i] = x(i,j);    // second slot receives X
+
+tau = [1, 1];                    // canonical legal wavefront schedule
+
+// test-bench data:  (X, Y) = ({1,2,3,4}, {10,20,30,40}) -> (Xout, Yout) = (Y, X)
+data X = {  1,  2,  3,  4 };
+data Y = { 10, 20, 30, 40 };
