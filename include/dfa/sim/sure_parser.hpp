@@ -35,7 +35,9 @@
 // Notation rules: recurrence variables are read with parentheses (a(i,j-1,k),
 // affine dependency taps; equation and output expressions), tensors with
 // brackets (A[i][k]; input and output expressions only).  Expression bodies
-// support + - * /, unary minus, parentheses, and sqrt/exp/abs.
+// support + - * /, unary minus, parentheses, the pointwise maps sqrt/exp/abs,
+// and the exact selection built-ins gt(a,b) (1 if a > b else 0) and
+// select(c,x,y) (x if c != 0 else y) -- e.g. an argmax reduction (iamax).
 //
 // v1 -> v2: the `boundary` statement, the data-table `input`, and the
 // projected `output` are replaced by the confluence declarations above.
@@ -108,7 +110,8 @@ namespace sw {
                     std::vector<std::vector<long>> idxCoeffs;   // ArrayRef: per-dim coeffs over system indices
                     std::vector<long> idxConst;                 // ArrayRef: per-dim constants
                     char op = 0;                                // Unary '-', Binary '+','-','*','/'
-                    ExprPtr lhs, rhs;                           // Binary; Unary/Call use lhs
+                    ExprPtr lhs, rhs;                           // Binary; Unary uses lhs
+                    std::vector<ExprPtr> args;                  // Call arguments (1: sqrt/exp/abs; 2: gt; 3: select)
                 };
 
                 inline double evalExpr(const Expr& e,
@@ -152,10 +155,14 @@ namespace sw {
                         }
                     }
                     case Expr::Kind::Call: {
-                        double a = evalExpr(*e.lhs, taps, p, inputs);
+                        double a = evalExpr(*e.args[0], taps, p, inputs);
                         if (e.name == "sqrt") return std::sqrt(a);
                         if (e.name == "exp")  return std::exp(a);
-                        return std::abs(a);   // "abs"
+                        if (e.name == "abs")  return std::abs(a);
+                        // two/three-argument selection built-ins (exact; ties well-defined)
+                        double b = evalExpr(*e.args[1], taps, p, inputs);
+                        if (e.name == "gt") return (a > b) ? 1.0 : 0.0;   // strict greater-than indicator
+                        return (a != 0.0) ? b : evalExpr(*e.args[2], taps, p, inputs);   // "select"(c,x,y)
                     }
                     }
                     return 0.0;
@@ -165,6 +172,7 @@ namespace sw {
                     if (e.kind == Expr::Kind::ArrayRef) names.push_back(e.name);
                     if (e.lhs) collectArrays(*e.lhs, names);
                     if (e.rhs) collectArrays(*e.rhs, names);
+                    for (const auto& a : e.args) if (a) collectArrays(*a, names);
                 }
 
                 // ── tokenizer ──────────────────────────────────────────────
@@ -745,10 +753,20 @@ namespace sw {
                         }
                         if (at(Token::Kind::Ident)) {
                             std::string id = next().text;
-                            if ((id == "sqrt" || id == "exp" || id == "abs") && atPunct("(")) {
+                            // built-in calls: 1-arg maps (sqrt/exp/abs), and the
+                            // exact selection builtins gt(a,b) and select(c,x,y)
+                            std::size_t arity = (id == "sqrt" || id == "exp" || id == "abs") ? 1
+                                              : (id == "gt")     ? 2
+                                              : (id == "select") ? 3 : 0;
+                            if (arity != 0 && atPunct("(")) {
                                 ++pos;
                                 auto n = std::make_shared<Expr>();
-                                n->kind = Expr::Kind::Call; n->name = id; n->lhs = parseExpr(eq);
+                                n->kind = Expr::Kind::Call; n->name = id;
+                                n->args.push_back(parseExpr(eq));
+                                for (std::size_t k = 1; k < arity; ++k) {
+                                    expectPunct(",");
+                                    n->args.push_back(parseExpr(eq));
+                                }
                                 expectPunct(")");
                                 return n;
                             }

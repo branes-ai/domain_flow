@@ -1,0 +1,50 @@
+// Executable version of the BLAS Level-1 iamax SURE from iamax.md:
+//
+//   system((i,j) | 0 <= i < N, 0 <= j < 1) {
+//       av(i,j)   = av(i,j-1);                                                  // |X| fed
+//       idx(i,j)  = idx(i,j-1);                                                 // index fed
+//       mval(i,j) = select(gt(av(i,j-1), mval(i-1,j)), av(i,j-1), mval(i-1,j)); // running max magnitude
+//       midx(i,j) = select(gt(av(i,j-1), mval(i-1,j)), idx(i,j-1), midx(i-1,j));// running argmax index
+//   }
+//
+//   iamax = argmax_i |X[i]|  is a SELECT reduction: it carries an (index, value)
+//   pair and, at each step, keeps the pair with the larger magnitude.  Unlike the
+//   arithmetic reductions (dot/nrm2/asum), the fold is a choice, expressed with
+//   the exact selection built-ins:
+//     gt(a,b)      = 1 if a > b else 0          (strict; ties keep the earlier i)
+//     select(c,x,y)= x if c != 0 else y
+//   The magnitude uses the abs input-face prologue (cf. asum); the index enters
+//   as data (Idx[i] = i projected onto the feed halo), since the equation body
+//   cannot read the loop index directly.
+//
+//   Reduction along +i, depth-1 feed axis j (operands consumed once at their
+//   cell).  The seed pair (mval, midx) = (-1, -1) at i = -1 loses to any real
+//   magnitude, so lane 0 always wins the first comparison.  The scalar result
+//   leaves the terminal point i = N-1.  Every tap is a constant offset, so the
+//   recurrences are uniform.  Faces are equality-pinned; the outward normal is
+//   derived (inputs influx, tau.n < 0; outputs outflux, tau.n > 0).
+//
+// Run it:   dfactl --sure docs/SURE/iamax.sure
+//           dfactl --sure docs/SURE/iamax.sure --tau -1,1   (ILLEGAL flux demo)
+
+N = 4;
+
+system ((i,j) | 0 <= i < N, 0 <= j < 1) {
+    av(i,j)   = av(i,j-1);                                                       // magnitude, fed from j = -1
+    idx(i,j)  = idx(i,j-1);                                                      // index, fed from j = -1
+    mval(i,j) = select(gt(av(i,j-1), mval(i-1,j)), av(i,j-1), mval(i-1,j));      // keep the larger magnitude
+    midx(i,j) = select(gt(av(i,j-1), mval(i-1,j)), idx(i,j-1), midx(i-1,j));     // keep the winner's index
+}
+
+// tensor confluences
+input  X[N]   ((i,j) | 0 <= i < N, j = -1)  : av(i,j)  = abs(X[i]);   // feed |X[i]| (abs prologue)
+input  Idx[N] ((i,j) | 0 <= i < N, j = -1)  : idx(i,j) = Idx[i];      // feed the index i as data
+input         ((i,j) | i = -1, 0 <= j < 1)  : mval(i,j) = -1;         // seed magnitude: loses to any |x|
+input         ((i,j) | i = -1, 0 <= j < 1)  : midx(i,j) = -1;         // seed index: sentinel
+output I[1]   ((i,j) | i = N-1, 0 <= j < 1) : I[0] = midx(i,j);       // argmax index leaves the terminal cell
+
+tau = [1, 1];                    // canonical legal wavefront schedule
+
+// test-bench data:  |X| = {1,5,3,2}  ->  argmax at i = 1  (|-5| is largest)
+data X   = { 1, -5, 3, -2 };
+data Idx = { 0,  1, 2,  3 };

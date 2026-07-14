@@ -39,4 +39,6 @@ if(DOMAINFLOW_BUILD_TESTING)
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/copy.sure)
     add_test(NAME dfactl_sure_rot
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/rot.sure)
+    add_test(NAME dfactl_sure_iamax
+             COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/iamax.sure)
 endif()
