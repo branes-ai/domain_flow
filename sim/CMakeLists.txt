@@ -48,8 +48,4 @@ if(DOMAINFLOW_BUILD_TESTING)
     add_test(NAME dfactl_emit_matmul_free
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/matmul.sure
                      --schedule free --emit-schedule ${CMAKE_CURRENT_BINARY_DIR}/matmul-free.sched.json)
-    # the 15x15x15 visualization-scale spec (scalar-fill data; larger domain)
-    add_test(NAME dfactl_emit_matmul15
-             COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/matmul15.sure
-                     --schedule linear --emit-schedule ${CMAKE_CURRENT_BINARY_DIR}/matmul15.sched.json)
 endif()

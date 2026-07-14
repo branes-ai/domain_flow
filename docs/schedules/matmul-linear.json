@@ -1,5 +1,5 @@
 {
-  "operator": "matmul15",
+  "operator": "matmul",
   "rank": 3,
   "indexNames": ["i","j","k"],
   "schedule": {"kind": "linear", "tau": [1,1,1]},

@@ -113,3 +113,9 @@ The regression test `src/dfa/tests/sim/scal_sure.cpp` (CTest `test_scal_sure`)
 parses this document's spec, checks the derived face normals, verifies
 $R = \alpha X$ against a direct reference, and confirms free/linear schedule
 legality and the memory analysis.
+
+## Watch the schedule
+
+The scaled map sweeps diagonally across the lanes under `τ = [1,1]`. Shown at N = 12. Press play, or scrub; drag to orbit.
+
+<div class="schedule-anim" data-src="schedules/scal-linear.json" data-height="340"></div>

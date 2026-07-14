@@ -135,3 +135,9 @@ The regression test `src/dfa/tests/sim/rot_sure.cpp` (CTest `test_rot_sure`) par
 this document's spec, checks the six input and two output face normals, verifies
 the rotated pair against the reference matrix *and* the norm-preserving invariant,
 and confirms free/linear schedule legality and the memory analysis.
+
+## Watch the schedule
+
+The six Givens-rotation flows — two projected scalars, two operands, two result streams — sweep the strip together under `τ = [1,1]`. Shown at N = 12. Press play, or scrub; drag to orbit.
+
+<div class="schedule-anim" data-src="schedules/rot-linear.json" data-height="340"></div>

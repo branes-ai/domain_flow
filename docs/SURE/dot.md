@@ -144,3 +144,9 @@ The regression test `src/dfa/tests/sim/dot_sure.cpp` (CTest `test_dot_sure`) par
 this document's spec, checks the derived face normals, verifies $s = x^{\mathsf T}y$
 against a direct reference, confirms free/linear schedule legality, and asserts the
 $O(1)$ accumulator footprint.
+
+## Watch the schedule
+
+The inner product is a linear-chain reduction: the wavefront is a single point sweeping the accumulation from `i = 0` to `i = N-1` in `N` steps — a chain has no parallelism to recover. Shown at N = 16. Press play, or scrub; drag to orbit.
+
+<div class="schedule-anim" data-src="schedules/dot-linear.json" data-height="340"></div>

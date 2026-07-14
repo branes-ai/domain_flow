@@ -26,6 +26,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   large enough for the wavefront geometry to materialize; the viewer uses
   `InstancedMesh` (~10k activations in one draw call) and handles 1–3-D index
   spaces. Reference implementation: `branes-ai/cortex`.
+  - **Phase 2** (issue #64): animations across the whole **BLAS L1** catalog —
+    all nine operator pages embed a schedule animation (the reductions `dot`,
+    `nrm2`, `asum`, `iamax` as a wavefront point sweeping the accumulation chain;
+    the maps `axpy`, `scal`, `copy`, `swap`, `rot` as a wavefront over the
+    systolic strip). Visualization scale is now applied by `make-schedules.mjs`
+    itself — it scales the size parameter and scalar-fills the operand data of a
+    throwaway copy of the committed spec (the schedule depends only on the
+    domain), so no duplicate `.sure` specs are checked in (the dedicated
+    `matmul15.sure` is retired; `matmul` renders from `matmul.sure` at 15³).
 - **SURE linear-algebra operator catalog** (epic #21): a catalog of executable
   SURE derivations of the key linear-algebra operators (BLAS L1/L2/L3,
   factorizations, solvers), each shipping the established triple — a `.sure`

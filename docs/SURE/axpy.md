@@ -213,3 +213,9 @@ derivation depends on the value: the same projection carries any real $\alpha$, 
 a per-lane coefficient (`data Alpha = { ... }` read along the `i = -1` edge)
 generalizes `axpy` to a diagonal scaling without changing the domain, the
 confluence structure, or the schedule.
+
+## Watch the schedule
+
+Under the linear schedule `τ = [1,1]` the wavefront sweeps diagonally across the lanes — the projected `alpha` pipeline and the streaming `y` advancing together. Shown at N = 12. Press play, or scrub; drag to orbit.
+
+<div class="schedule-anim" data-src="schedules/axpy-linear.json" data-height="340"></div>
