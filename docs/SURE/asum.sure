@@ -1,0 +1,40 @@
+// Executable version of the BLAS Level-1 asum SURE from asum.md:
+//
+//   system((i,j) | 0 <= i < N, 0 <= j < 1) {
+//       x(i,j) = x(i,j-1);                     // |X[i]| enters at the j=-1 feed halo
+//       s(i,j) = s(i-1,j) + x(i,j-1);          // running sum along +i
+//   }
+//   input ... : x(i,j) = abs(X[i]);           // abs fused on the INPUT face
+//
+//   asum  sum_i |X[i]|  is a REDUCTION with a pointwise map on the operand.  The
+//   accumulation itself is a pure sum (s(i) = s(i-1) + |X[i]|, seeded 0 at
+//   i = -1) and the scalar result leaves through the single terminal point
+//   i = N-1.  The absolute value is a pointwise op fused onto the INPUT
+//   confluence -- the mirror image of nrm2's output-face sqrt epilogue: asum
+//   maps the operand as it ENTERS, nrm2 maps the result as it LEAVES, and the
+//   interior recurrence stays a clean uniform sum in both.
+//
+//   The operand X is indexed by the reduction coordinate i, so it enters on a
+//   depth-1 FEED axis j (|X[i]| injected on the j = -1 halo, consumed once at
+//   its add cell).  Faces are equality-pinned; the outward normal is derived
+//   (inputs influx, tau.n < 0; outputs outflux, tau.n > 0).
+//
+// Run it:   dfactl --sure docs/SURE/asum.sure
+//           dfactl --sure docs/SURE/asum.sure --tau -1,1   (ILLEGAL flux demo)
+
+N = 4;
+
+system ((i,j) | 0 <= i < N, 0 <= j < 1) {
+    x(i,j) = x(i,j-1);                             // operand |X|, fed from the j = -1 halo
+    s(i,j) = s(i-1,j) + x(i,j-1);                  // accumulate |X[i]| along +i
+}
+
+// tensor confluences
+input  X[N] ((i,j) | 0 <= i < N, j = -1)  : x(i,j) = abs(X[i]);     // abs prologue: feed |X[i]| into cell i
+input       ((i,j) | i = -1, 0 <= j < 1)  : s(i,j) = 0;             // accumulator seed (additive identity)
+output S[1] ((i,j) | i = N-1, 0 <= j < 1) : S[0] = s(i,j);          // scalar sum leaves the terminal cell
+
+tau = [1, 1];                    // canonical legal wavefront schedule
+
+// test-bench data:  asum = |1| + |-2| + |3| + |-4| = 1 + 2 + 3 + 4 = 10
+data X = { 1, -2, 3, -4 };
