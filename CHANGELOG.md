@@ -232,6 +232,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **QR page overclaimed "SURE".** Modified Gram-Schmidt QR is a *System of Affine
+  Recurrence Equations* (SARE), not uniform: the projection coefficients are
+  broadcast reductions and each column reads the previous column's `q` — affine,
+  non-local dependencies. Retitled the page and added an upfront caution; the
+  honest classification (affine, hence no global linear schedule, hence a tiling
+  challenge) is now stated plainly.
+- **Schedule-animation playback rate is tunable** (`data-fps` on the
+  `.schedule-anim` div) and the adaptive default cap was lowered so fine-grained
+  schedules stay legible — the QR animation (144 short steps) now plays at 4 fps
+  instead of flickering past at the old 18 fps cap.
 - **Math not rendering on the QR and tensor-structure Theory pages.** Both docs
   wrapped their LaTeX in `\( … \)` / `\[ … \]`, which `remark-math` does not
   recognize (it only handles `$ … $` / `$$ … $$`), so every `\sum`, `\sqrt`,

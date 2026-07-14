@@ -1,6 +1,21 @@
-# QR Decomposition SURE
+# QR Decomposition as a Recurrence System
 
-To provide a SURE (System of Uniform Recurrence Equations) formulation for QR decomposition in the same style as the matrix multiplication (matmul) example, we need to express the QR decomposition algorithm in a way that captures its data dependencies and computations as a system of equations with uniform recurrence patterns. Let’s derive this step-by-step, ensuring the formulation aligns with the Domain Flow Architecture (DFA) methodology and matches the provided matmul structure.
+To provide a recurrence-equation formulation for QR decomposition in the same style as the matrix multiplication (matmul) example, we need to express the QR decomposition algorithm in a way that captures its data dependencies and computations as a system of equations. Let’s derive this step-by-step, ensuring the formulation aligns with the Domain Flow Architecture (DFA) methodology and matches the provided matmul structure.
+
+:::caution[This is a SARE, not a SURE]
+Unlike `matmul`, Modified Gram-Schmidt QR does **not** reduce to a System of
+*Uniform* Recurrence Equations. Two dependencies are **affine**, not
+constant-offset: each projection coefficient `r_kj` is a **reduction whose result
+is broadcast** back across the whole column, and every column reads the *previous*
+column's completed `q`. So the executable [`qr.sure`](qr.sure) is a System of
+*Affine* Recurrence Equations (SARE) — there is no global linear schedule, only the
+free one, and the [animation](#watch-the-schedule) shows the resulting non-planar
+wavefront. The step-by-step derivation below is kept for its pedagogical value but
+uses "uniform" loosely; the honest classification is **affine**. A genuinely
+uniform QR is the Gentleman–Kung Givens-rotation array (noted at the end). This
+uniform-vs-affine distinction is not academic: it is exactly what decides whether
+an operator **tiles** across KPUs without global communication.
+:::
 
 ### Understanding QR Decomposition
 QR decomposition factorizes a matrix $ A $ (of size $ m \times n $, where $ m \geq n $) into an orthogonal matrix $ Q $ (size $ m \times m $) and an upper triangular matrix $ R $ (size $ m \times n $), such that $ A = QR $. A common algorithm for QR decomposition is the Gram-Schmidt process, particularly the Modified Gram-Schmidt (MGS) variant, which is more numerically stable and can be expressed with uniform dependencies suitable for a SURE formulation. We’ll focus on MGS for an $ m \times n $ matrix, as it lends itself to a regular computational structure.
@@ -235,7 +250,7 @@ dependencies — column `j` cannot start until the earlier columns' `q`s exist �
 the front is markedly less regular than matmul's flat diagonal plane. Shown at
 M = N = 8 (latency 144). Press play, or scrub; drag to orbit.
 
-<div class="schedule-anim" data-src="schedules/qr-free.json" data-height="460"></div>
+<div class="schedule-anim" data-src="schedules/qr-free.json" data-height="460" data-fps="4"></div>
 
 ### Notes
 

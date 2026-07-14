@@ -138,8 +138,12 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
     camera.aspect = w / h; camera.updateProjectionMatrix();
   }
 
-  // aim for a ~6 s full sweep regardless of latency (small ops slow, 15^3 brisk)
-  const fps = options.fps ?? Math.max(2, Math.min(18, frameCount / 6));
+  // playback rate: an explicit `data-fps` (options.fps) wins; otherwise aim for a
+  // ~7 s sweep, capped low enough that fine-grained schedules (e.g. QR's many
+  // small steps) stay legible rather than flickering past.
+  const fps = (options.fps && options.fps > 0)
+    ? options.fps
+    : Math.max(1.5, Math.min(9, frameCount / 7));
   let playing = false, raf = 0, last = 0;
   function tick(ts) {
     raf = requestAnimationFrame(tick);
@@ -182,6 +186,7 @@ export async function mountAll(root = document) {
     const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
     const src = /^https?:/.test(raw) ? raw : `${base}/${raw.replace(/^\//, '')}`;
     const height = el.getAttribute('data-height') || '460';
+    const fps = Number(el.getAttribute('data-fps')) || 0;   // 0 → adaptive default
     el.style.height = `${height}px`;
 
     const canvas = document.createElement('canvas');
@@ -207,7 +212,7 @@ export async function mountAll(root = document) {
     let playing = false;
     const viewer = createScheduleViewer({
       canvas, hud, data,
-      options: { onFrame: (i) => { if (playing) scrub.value = String(i); } },
+      options: { fps, onFrame: (i) => { if (playing) scrub.value = String(i); } },
     });
     scrub.max = String(Math.max(0, viewer.frameCount - 1));
 
