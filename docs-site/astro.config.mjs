@@ -98,6 +98,13 @@ export default defineConfig({
                 { label: 'syr2 — A += α(xyᵀ+yxᵀ)', slug: 'sure-algorithms/blas-l2/syr2' },
               ],
             },
+            {
+              // Level-3 (matrix-matrix) operators.
+              label: 'BLAS L3',
+              items: [
+                { label: 'gemm — αAB + βC', slug: 'sure-algorithms/blas-l3/gemm' },
+              ],
+            },
           ],
         },
         {
