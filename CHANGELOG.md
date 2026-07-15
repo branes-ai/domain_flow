@@ -8,6 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **BLAS-3 `syr2k`** (issue #39): the symmetric rank-2k update
+  `C = βC + α(ABᵀ + BAᵀ)` on the triangular output `j ≤ i`, as a pure SURE —
+  `docs/SURE/syr2k.sure` (+ a lean page under SURE Algorithms / BLAS L3 with a
+  triangular-prism animation) and `src/dfa/tests/sim/syr2k_sure.cpp`
+  (`test_syr2k_sure`, dual-compiler, zero warnings) with a `dfactl_sure_syr2k`
+  schedule-emit test. It is `syrk` with two operands: four operand streams
+  (`A(i,k)`/`B(i,k)` along `+j`, `A(j,k)`/`B(j,k)` on the super-diagonal along `+i`)
+  feed the two-term product `α(A(i,k)B(j,k) + B(i,k)A(j,k))`. Same triangular-domain
+  schedule constraint as `syrk` (`τ = [2,1,1]` legal, `τ = [1,1,1]` rejected). Used in
+  blocked eigen/SVD trailing updates. Verified numerically (lower triangle
+  `[[14],[30,46],[56,76,104]]`).
 - **BLAS-3 `syrk`** (issue #38): the symmetric rank-k update `C = βC + αAAᵀ` on the
   triangular output `j ≤ i`, as a pure SURE — `docs/SURE/syrk.sure` (+ a lean page
   under SURE Algorithms / BLAS L3 with a triangular-prism animation) and
