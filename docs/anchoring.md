@@ -25,22 +25,30 @@ The required transformation can be achieved by a single rotation matrix that is 
 **1. Rotation around the x-axis by -90 degrees ($R_x(-90^\circ)$):**
 
 The rotation matrix is:
-$$R_x(-90^\circ) = \begin{bmatrix} 1 & 0 & 0 \\ 0 & \cos(-90^\circ) & -\sin(-90^\circ) \\ 0 & \sin(-90^\circ) & \cos(-90^\circ) \end{bmatrix} = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 0 & 1 \\ 0 & -1 & 0 \end{bmatrix}$$
+$$
+R_x(-90^\circ) = \begin{bmatrix} 1 & 0 & 0 \\ 0 & \cos(-90^\circ) & -\sin(-90^\circ) \\ 0 & \sin(-90^\circ) & \cos(-90^\circ) \end{bmatrix} = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 0 & 1 \\ 0 & -1 & 0 \end{bmatrix}
+$$
 
 **2. Rotation around the y-axis by -90 degrees ($R_y(-90^\circ)$):**
 
 The rotation matrix is:
-$$R_y(-90^\circ) = \begin{bmatrix} \cos(-90^\circ) & 0 & \sin(-90^\circ) \\ 0 & 1 & 0 \\ -\sin(-90^\circ) & 0 & \cos(-90^\circ) \end{bmatrix} = \begin{bmatrix} 0 & 0 & -1 \\ 0 & 1 & 0 \\ 1 & 0 & 0 \end{bmatrix}$$
+$$
+R_y(-90^\circ) = \begin{bmatrix} \cos(-90^\circ) & 0 & \sin(-90^\circ) \\ 0 & 1 & 0 \\ -\sin(-90^\circ) & 0 & \cos(-90^\circ) \end{bmatrix} = \begin{bmatrix} 0 & 0 & -1 \\ 0 & 1 & 0 \\ 1 & 0 & 0 \end{bmatrix}
+$$
 
 **3. Combined Rotation Matrix ($R$):**
 
 The combined rotation is obtained by multiplying the second rotation matrix by the first:
-$$R = R_y(-90^\circ) \cdot R_x(-90^\circ) = \begin{bmatrix} 0 & 0 & -1 \\ 0 & 1 & 0 \\ 1 & 0 & 0 \end{bmatrix} \begin{bmatrix} 1 & 0 & 0 \\ 0 & 0 & 1 \\ 0 & -1 & 0 \end{bmatrix} = \begin{bmatrix} 0 & 1 & 0 \\ 0 & 0 & 1 \\ 1 & 0 & 0 \end{bmatrix}$$
+$$
+R = R_y(-90^\circ) \cdot R_x(-90^\circ) = \begin{bmatrix} 0 & 0 & -1 \\ 0 & 1 & 0 \\ 1 & 0 & 0 \end{bmatrix} \begin{bmatrix} 1 & 0 & 0 \\ 0 & 0 & 1 \\ 0 & -1 & 0 \end{bmatrix} = \begin{bmatrix} 0 & 1 & 0 \\ 0 & 0 & 1 \\ 1 & 0 & 0 \end{bmatrix}
+$$
 
 **4. Verification of Synthesis Vector Mapping:**
 
 Applying the rotation matrix $R$ to the synthesis vector $\begin{bmatrix} 0 \\ 0 \\ k \end{bmatrix}$:
-$$R \begin{bmatrix} 0 \\ 0 \\ k \end{bmatrix} = \begin{bmatrix} 0 & 1 & 0 \\ 0 & 0 & 1 \\ 1 & 0 & 0 \end{bmatrix} \begin{bmatrix} 0 \\ 0 \\ k \end{bmatrix} = \begin{bmatrix} 0 \cdot 0 + 1 \cdot 0 + 0 \cdot k \\ 0 \cdot 0 + 0 \cdot 0 + 1 \cdot k \\ 1 \cdot 0 + 0 \cdot 0 + 0 \cdot k \end{bmatrix} = \begin{bmatrix} 0 \\ k \\ 0 \end{bmatrix}$$
+$$
+R \begin{bmatrix} 0 \\ 0 \\ k \end{bmatrix} = \begin{bmatrix} 0 & 1 & 0 \\ 0 & 0 & 1 \\ 1 & 0 & 0 \end{bmatrix} \begin{bmatrix} 0 \\ 0 \\ k \end{bmatrix} = \begin{bmatrix} 0 \cdot 0 + 1 \cdot 0 + 0 \cdot k \\ 0 \cdot 0 + 0 \cdot 0 + 1 \cdot k \\ 1 \cdot 0 + 0 \cdot 0 + 0 \cdot k \end{bmatrix} = \begin{bmatrix} 0 \\ k \\ 0 \end{bmatrix}
+$$
 The synthesis vector is mapped as required.
 
 **5. Transformation of Vertices:**
@@ -64,6 +72,8 @@ Assuming the dimensions $m, n, k$ are positive, all the transformed vertices hav
 
 The single rotation matrix that achieves the desired reorientation, maps the synthesis vector $(0, 0, k)$ to $(0, k, 0)$, keeps the origin invariant, and results in all non-negative coordinates for the transformed rectangular prism is:
 
-$$R = \begin{bmatrix} 0 & 1 & 0 \\ 0 & 0 & 1 \\ 1 & 0 & 0 \end{bmatrix}$$
+$$
+R = \begin{bmatrix} 0 & 1 & 0 \\ 0 & 0 & 1 \\ 1 & 0 & 0 \end{bmatrix}
+$$
 
 This rotation corresponds to a specific reorientation of the coordinate axes. The original x-axis becomes the new z-axis, the original y-axis becomes the new x-axis, and the original z-axis becomes the new y-axis.
