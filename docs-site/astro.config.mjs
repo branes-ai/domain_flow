@@ -105,6 +105,7 @@ export default defineConfig({
                 { label: 'gemm — αAB + βC', slug: 'sure-algorithms/blas-l3/gemm' },
                 { label: 'syrk — αAAᵀ + βC', slug: 'sure-algorithms/blas-l3/syrk' },
                 { label: 'syr2k — α(ABᵀ+BAᵀ) + βC', slug: 'sure-algorithms/blas-l3/syr2k' },
+                { label: 'trmm — B := αTB', slug: 'sure-algorithms/blas-l3/trmm' },
               ],
             },
           ],
