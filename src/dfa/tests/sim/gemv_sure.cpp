@@ -57,21 +57,21 @@ int main() {
         ok &= nok;
 
         // ---- numeric result: y = beta*y + alpha*A*x (mirrors the spec's data) ----
-        const int M = 3, N = 4;
+        const size_t M = 3, N = 4;
         const double A[3][4] = { { 1, 2, 3, 4 }, { 5, 6, 7, 8 }, { 9, 10, 11, 12 } };
         const double X[4] = { 1, 2, 3, 4 };
         const double alpha = 2, beta = 10;
         const double Yin[3] = { 1, 2, 3 };
         double ref[3];
-        for (int i = 0; i < M; ++i) {
+        for (size_t i = 0; i < M; ++i) {
             double s = 0;
-            for (int j = 0; j < N; ++j) s += A[i][j] * X[j];
+            for (size_t j = 0; j < N; ++j) s += A[i][j] * X[j];
             ref[i] = beta * Yin[i] + alpha * s;
         }
 
         SureSimulator<double> sim(spec.system);
         const SureOutput& out = spec.outputs.front();
-        int checked = 0;
+        size_t checked = 0;
         bool numok = true;
         for (const auto& p : out.region.enumerate()) {
             std::vector<long> idx = out.elemIndex(p);   // Y[i]
