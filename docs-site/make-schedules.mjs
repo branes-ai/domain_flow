@@ -55,6 +55,8 @@ const OPERATORS = [
   { op: 'symv',  scale: { N: 12 },        schedules: ['linear'] },
   { op: 'syr',   scale: { N: 12 },        schedules: ['linear'] },
   { op: 'syr2',  scale: { N: 12 },        schedules: ['linear'] },
+  // BLAS L3 — matrix-matrix, the full 3-D reduction cube (like matmul)
+  { op: 'gemm',  scale: { M: 12, N: 12, K: 12 }, schedules: ['linear'] },
 ];
 
 // Scale the size parameter(s) and scalar-fill the braced data bindings. The values

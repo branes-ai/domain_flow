@@ -1,0 +1,65 @@
+// BLAS-3 general matrix-matrix product (issue #37):
+//
+//   C(i,j) := beta * C(i,j) + alpha * sum_k A(i,k) * B(k,j)
+//
+// gemm is the full generalization of the canonical systolic matmul (docs/SURE/
+// matmul.sure, C = A*B) with the alpha/beta scaling and an incoming-C face. It is
+// the compute-bound heart of dense linear algebra (O(n^3) work on O(n^2) data).
+//
+// 3-D domain (i,j,k): the reduction runs over k; A(i,k) propagates along +j and
+// B(k,j) along +i (the classic systolic flows). The generalization reuses the
+// catalog's matrix-vector patterns: the scalar alpha is projected onto a face and
+// pipelined (consumed as a product of recurrence variables, never a literal), and
+// the incoming C, scaled by beta, joins the completed sum in a terminal-face
+// EPILOGUE on the output face k = K-1 -- exactly gemv's alpha/beta handling lifted
+// to the 3-D reduction cube.
+//
+//   a(i,j,k)     = a(i,j-1,k)      A(i,k) along +j
+//   b(i,j,k)     = b(i-1,j,k)      B(k,j) along +i
+//   alpha(i,j,k) = alpha(i,j,k-1)  scalar alpha, projected on k=-1, pipelined +k
+//   beta(i,j,k)  = beta(i-1,j,k)   scalar beta, projected on i=-1
+//   cin(i,j,k)   = cin(i,j,k-1)    incoming C(i,j), pipelined to the terminal +k
+//   c(i,j,k)     = c(i,j,k-1) + alpha(i,j,k-1)*a(i,j-1,k)*b(i-1,j,k)
+//
+// The operand taps are read one step upstream of their propagation, so no cell
+// reads a value produced at the same point. Every dependence is a constant offset
+// -- a pure SURE (uniform). See docs/theory/matmul (the reduction skeleton) and the
+// matrix-vector derivations (project-and-pipeline, the epilogue).
+//
+// Run it:   dfactl --sure docs/SURE/gemm.sure            (free schedule)
+//           dfactl --sure docs/SURE/gemm.sure --tau 1,1,1
+
+M = 2; N = 2; K = 3;
+
+system ((i,j,k) | 0 <= i < M, 0 <= j < N, 0 <= k < K) {
+    a(i,j,k)     = a(i,j-1,k);                                              // A(i,k) along +j
+    b(i,j,k)     = b(i-1,j,k);                                              // B(k,j) along +i
+    alpha(i,j,k) = alpha(i,j,k-1);                                          // scalar alpha along +k
+    beta(i,j,k)  = beta(i-1,j,k);                                           // scalar beta along +i
+    cin(i,j,k)   = cin(i,j,k-1);                                            // incoming C along +k
+    c(i,j,k)     = c(i,j,k-1) + alpha(i,j,k-1) * a(i,j-1,k) * b(i-1,j,k);   // accumulate alpha*A*B along +k
+}
+
+// tensor confluences
+input  A[M][K]   ((i,j,k) | 0 <= i < M, 0 <= k < K, j = -1)  : a(i,j,k)     = A[i][k];   // A on the j=-1 face
+input  B[K][N]   ((i,j,k) | 0 <= k < K, 0 <= j < N, i = -1)  : b(i,j,k)     = B[k][j];   // B on the i=-1 face
+input  Alpha[1]  ((i,j,k) | 0 <= i < M, 0 <= j < N, k = -1)  : alpha(i,j,k) = Alpha[0];  // project scalar alpha
+input  Beta[1]   ((i,j,k) | i = -1, 0 <= j < N, 0 <= k < K)  : beta(i,j,k)  = Beta[0];    // project scalar beta
+input  Cin[M][N] ((i,j,k) | 0 <= i < M, 0 <= j < N, k = -1)  : cin(i,j,k)   = Cin[i][j];  // incoming C on k=-1
+input            ((i,j,k) | 0 <= i < M, 0 <= j < N, k = -1)  : c(i,j,k)     = 0;           // accumulator seed
+output C[M][N]   ((i,j,k) | 0 <= i < M, 0 <= j < N, k = K-1) : C[i][j] = c(i,j,k) + beta(i,j,k) * cin(i,j,k); // alpha*AB + beta*C
+
+tau = [1, 1, 1];                 // canonical legal wavefront schedule
+
+// test bench:  C = beta*Cin + alpha*A*B
+//   A = [[1,2,3],[4,5,6]], B = [[7,8],[9,10],[11,12]]  ->  A*B = [[58,64],[139,154]]
+//   alpha = 2, beta = 10, Cin = [[1,2],[3,4]]  ->  C = [[126,148],[308,348]]
+data A     = { 1, 2, 3,
+               4, 5, 6 };
+data B     = { 7,  8,
+               9, 10,
+              11, 12 };
+data Cin   = { 1, 2,
+               3, 4 };
+data Alpha = 2;
+data Beta  = 10;
