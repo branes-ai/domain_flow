@@ -49,12 +49,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **docs-site: math rendering in the Theory geometry docs.** The "Aligning convex
   hulls" (`alignment_formalism.md`) and "Geometric Transformation" (`anchoring.md`)
-  pages showed raw LaTeX: several display equations were **concatenated** on one line
-  (`$$…$$$$…$$`), which remark-math cannot parse, and the rest used the **single-line**
-  `$$…$$` form that this site renders inline rather than as centered display blocks.
-  Split the concatenated blocks and converted every display equation to the multi-line
-  block form. Both pages now render 0 raw-TeX (alignment: 15 display blocks, anchoring:
-  5), matching the rest of the site.
+  pages showed raw LaTeX from three compounding issues in the original brain-dump
+  markdown: (1) several display equations were **concatenated** on one line
+  (`$$…$$$$…$$`), which remark-math cannot parse; (2) the rest used the **single-line**
+  `$$…$$` form that this site renders inline rather than as a centered display block;
+  and (3) deeply **indented nested list items** (4+ spaces) were parsed as *code
+  blocks*, so the inline `$…$` math in those bullets rendered as literal text. Split
+  the concatenated blocks, converted display equations to the multi-line block form,
+  and flattened the list structure to top level (de-indenting prose/math while
+  preserving the fenced Python code block). Both pages now render **0 visible raw-TeX**
+  (alignment: 15 display blocks + full inline math; anchoring: 5), matching the rest of
+  the site.
 
 ### Changed
 

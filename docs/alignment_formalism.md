@@ -16,63 +16,63 @@ Each $v_{i,j}$ is a 3D vector $[x, y, z]^T$.
 **Step 2: Aligning and Orienting the First Convex Hull ($\mathcal{H}_1$)**
 
 1.  **Centering at the Origin (Optional but often helpful):**
-    * Calculate the centroid (geometric center) of $\mathcal{H}_1$:
+- Calculate the centroid (geometric center) of $\mathcal{H}_1$:
 
 $$
 c_1 = \frac{1}{n_1} \sum_{i=1}^{n_1} v_{1,i}
 $$
 
-    * Translate all vertices of $\mathcal{H}_1$ by $-c_1$:
+- Translate all vertices of $\mathcal{H}_1$ by $-c_1$:
 
 $$
 v'_{1,i} = v_{1,i} - c_1
 $$
 
-    * Now, the centroid of the transformed $\mathcal{H}_1$ (let's call it $\mathcal{H}'_1$) is at the origin.
+- Now, the centroid of the transformed $\mathcal{H}_1$ (let's call it $\mathcal{H}'_1$) is at the origin.
 
 2.  **Orienting $\mathcal{H}'_1$ (Specifying a Direction):**
-    * You need to define a target orientation for $\mathcal{H}'_1$. This could be based on:
-        * **A specific face normal:** If you want a particular face of $\mathcal{H}'_1$ to align with a world axis (e.g., its normal pointing along the positive z-axis). You'd need to compute the face normals of $\mathcal{H}'_1$.
-        * **Principal Component Analysis (PCA):** You could align the principal axes of $\mathcal{H}'_1$'s point cloud with the world axes. This provides a canonical orientation based on the data's spread.
-        * **Alignment with specific vertices or edges:** You might want a specific edge to be parallel to an axis or two specific vertices to lie in a particular plane.
+- You need to define a target orientation for $\mathcal{H}'_1$. This could be based on:
+- **A specific face normal:** If you want a particular face of $\mathcal{H}'_1$ to align with a world axis (e.g., its normal pointing along the positive z-axis). You'd need to compute the face normals of $\mathcal{H}'_1$.
+- **Principal Component Analysis (PCA):** You could align the principal axes of $\mathcal{H}'_1$'s point cloud with the world axes. This provides a canonical orientation based on the data's spread.
+- **Alignment with specific vertices or edges:** You might want a specific edge to be parallel to an axis or two specific vertices to lie in a particular plane.
 
-    * Let's assume you've chosen a target orientation defined by a rotation matrix $R_1$. This matrix will rotate $\mathcal{H}'_1$ such that its chosen feature aligns with the desired direction.
-    * Apply the rotation to all vertices of $\mathcal{H}'_1$:
+- Let's assume you've chosen a target orientation defined by a rotation matrix $R_1$. This matrix will rotate $\mathcal{H}'_1$ such that its chosen feature aligns with the desired direction.
+- Apply the rotation to all vertices of $\mathcal{H}'_1$:
 
 $$
 v''_{1,i} = R_1 v'_{1,i}
 $$
 
-    * Now, we have an oriented version of the first convex hull, $\mathcal{H}''_1$. If you skipped the centering step, $v''_{1,i} = R_1 (v_{1,i} - c_1)$. If you didn't center, and want to anchor a specific vertex to the origin later, you'd perform a translation.
+- Now, we have an oriented version of the first convex hull, $\mathcal{H}''_1$. If you skipped the centering step, $v''_{1,i} = R_1 (v_{1,i} - c_1)$. If you didn't center, and want to anchor a specific vertex to the origin later, you'd perform a translation.
 
 **Step 3: Aligning the Second Convex Hull ($\mathcal{H}_2$) to a Face of $\mathcal{H}''_1$**
 
 1.  **Identify the Target Face on $\mathcal{H}''_1$:**
-    * You need a way to specify the face of $\mathcal{H}''_1$ you want to align with. This could be done by:
-        * **Indices of the vertices forming the face.**
-        * **The equation of the plane containing the face (normal vector and a point on the plane).**
+- You need a way to specify the face of $\mathcal{H}''_1$ you want to align with. This could be done by:
+- **Indices of the vertices forming the face.**
+- **The equation of the plane containing the face (normal vector and a point on the plane).**
 
 2.  **Determine the Corresponding Features on $\mathcal{H}_2$:**
-    * You also need to identify the part of $\mathcal{H}_2$ that should align with the chosen face of $\mathcal{H}''_1$. This could be:
-        * **A face of $\mathcal{H}_2$ (defined by its vertices).**
-        * **A set of vertices on $\mathcal{H}_2$ that should lie on or near the plane of the target face of $\mathcal{H}''_1$.**
+- You also need to identify the part of $\mathcal{H}_2$ that should align with the chosen face of $\mathcal{H}''_1$. This could be:
+- **A face of $\mathcal{H}_2$ (defined by its vertices).**
+- **A set of vertices on $\mathcal{H}_2$ that should lie on or near the plane of the target face of $\mathcal{H}''_1$.**
 
 3.  **Compute the Alignment Transformation:**
-    * This is the most complex part and depends on what exactly needs to be aligned (a face to a face, vertices to a face, etc.). Here are a few scenarios:
+- This is the most complex part and depends on what exactly needs to be aligned (a face to a face, vertices to a face, etc.). Here are a few scenarios:
 
-        * **Aligning a Face of $\mathcal{H}_2$ to a Face of $\mathcal{H}''_1$:**
-            * **Compute the plane equation of the target face on $\mathcal{H}''_1$:** Given three non-collinear vertices $p_1, p_2, p_3$ of the face, the normal vector $n_1 = (p_2 - p_1) \times (p_3 - p_1)$ (normalize it). A point on the plane is $p_1$. The equation is $n_1 \cdot (x - p_1) = 0$.
-            * **Compute the plane equation of the corresponding face on $\mathcal{H}_2$:** Similarly, find the normal vector $n_2$ and a point $q_1$ on the face.
-            * **Rotation to align the normals:** Find a rotation $R_2$ that aligns $n_2$ with $n_1$. This can be done using techniques like Rodrigues' rotation formula or by finding the rotation matrix that maps one vector to another.
-            * **Translation to bring the faces into contact:** After rotation, you need to translate $\mathcal{H}_2$ so that a point on its aligned face ($R_2 q_1$) coincides with a point on the target face of $\mathcal{H}''_1$ ($p_1$). The translation vector would be $t = p_1 - R_2 q_1$.
-            * The transformation for $\mathcal{H}_2$ would be $v'_{2,i} = R_2 v_{2,i} + t$.
+- **Aligning a Face of $\mathcal{H}_2$ to a Face of $\mathcal{H}''_1$:**
+- **Compute the plane equation of the target face on $\mathcal{H}''_1$:** Given three non-collinear vertices $p_1, p_2, p_3$ of the face, the normal vector $n_1 = (p_2 - p_1) \times (p_3 - p_1)$ (normalize it). A point on the plane is $p_1$. The equation is $n_1 \cdot (x - p_1) = 0$.
+- **Compute the plane equation of the corresponding face on $\mathcal{H}_2$:** Similarly, find the normal vector $n_2$ and a point $q_1$ on the face.
+- **Rotation to align the normals:** Find a rotation $R_2$ that aligns $n_2$ with $n_1$. This can be done using techniques like Rodrigues' rotation formula or by finding the rotation matrix that maps one vector to another.
+- **Translation to bring the faces into contact:** After rotation, you need to translate $\mathcal{H}_2$ so that a point on its aligned face ($R_2 q_1$) coincides with a point on the target face of $\mathcal{H}''_1$ ($p_1$). The translation vector would be $t = p_1 - R_2 q_1$.
+- The transformation for $\mathcal{H}_2$ would be $v'_{2,i} = R_2 v_{2,i} + t$.
 
-        * **Aligning Vertices of $\mathcal{H}_2$ to the Plane of a Face on $\mathcal{H}''_1$:**
-            * Compute the plane equation of the target face on $\mathcal{H}''_1$ (normal $n_1$, point $p_1$).
-            * You might want to find a rigid transformation (rotation $R_2$ and translation $t$) for $\mathcal{H}_2$ that minimizes the distances of the chosen vertices of $\mathcal{H}_2$ to the plane. This could involve a least-squares optimization approach.
+- **Aligning Vertices of $\mathcal{H}_2$ to the Plane of a Face on $\mathcal{H}''_1$:**
+- Compute the plane equation of the target face on $\mathcal{H}''_1$ (normal $n_1$, point $p_1$).
+- You might want to find a rigid transformation (rotation $R_2$ and translation $t$) for $\mathcal{H}_2$ that minimizes the distances of the chosen vertices of $\mathcal{H}_2$ to the plane. This could involve a least-squares optimization approach.
 
-        * **Aligning Specific Vertices of $\mathcal{H}_2$ to Specific Vertices of the Target Face on $\mathcal{H}''_1$:**
-            * If you have a one-to-one correspondence between a set of vertices on $\mathcal{H}_2$ and a set of vertices on the target face of $\mathcal{H}''_1$, you can try to find the rigid transformation that maps these corresponding points as closely as possible. This is a point cloud registration problem, and algorithms like the Horn's method (using quaternions) can be used to find the optimal rotation and translation.
+- **Aligning Specific Vertices of $\mathcal{H}_2$ to Specific Vertices of the Target Face on $\mathcal{H}''_1$:**
+- If you have a one-to-one correspondence between a set of vertices on $\mathcal{H}_2$ and a set of vertices on the target face of $\mathcal{H}''_1$, you can try to find the rigid transformation that maps these corresponding points as closely as possible. This is a point cloud registration problem, and algorithms like the Horn's method (using quaternions) can be used to find the optimal rotation and translation.
 
 **Step 4: Combining Transformations**
 
@@ -82,13 +82,13 @@ The final transformation applied to the vertices of $\mathcal{H}_2$ will depend 
 
 1.  **Represent the convex hulls by their vertex sets.**
 2.  **For $\mathcal{H}_1$:**
-    * **(Optional)** Translate by $-c_1$ to center at the origin.
-    * Apply a rotation $R_1$ based on the desired orientation.
+- **(Optional)** Translate by $-c_1$ to center at the origin.
+- Apply a rotation $R_1$ based on the desired orientation.
 3.  **For $\mathcal{H}_2$:**
-    * Identify the target face on the transformed $\mathcal{H}_1$ ($\mathcal{H}''_1$).
-    * Identify the corresponding features on $\mathcal{H}_2$.
-    * Compute a rotation $R_2$ and translation $t$ that aligns these features. The method for computing $R_2$ and $t$ depends on the type of alignment (face-to-face, vertex-to-plane, vertex-to-vertex).
-    * Apply the transformation to the vertices of $\mathcal{H}_2$: $v'_{2,i} = R_2 v_{2,i} + t$.
+- Identify the target face on the transformed $\mathcal{H}_1$ ($\mathcal{H}''_1$).
+- Identify the corresponding features on $\mathcal{H}_2$.
+- Compute a rotation $R_2$ and translation $t$ that aligns these features. The method for computing $R_2$ and $t$ depends on the type of alignment (face-to-face, vertex-to-plane, vertex-to-vertex).
+- Apply the transformation to the vertices of $\mathcal{H}_2$: $v'_{2,i} = R_2 v_{2,i} + t$.
 
 **Mathematical Notation:**
 
@@ -140,13 +140,13 @@ $$
 
 4.  **Translate back to anchor v0 at the origin:** The original v0 was at $(0,0,0)$. After the translation and rotation, its new position will be $R_x(-90^\circ) (0 - c_1) = R_x(-90^\circ) (-\frac{m}{2}, -\frac{n}{2}, -\frac{k}{2})^T$. To bring this rotated original v0 back to the origin, we need to apply a translation by the negative of this vector: $-R_x(-90^\circ) (-\frac{m}{2}, -\frac{n}{2}, -\frac{k}{2})^T = R_x(-90^\circ) (\frac{m}{2}, \frac{n}{2}, \frac{k}{2})^T$.
 
-    Let's compute this translation vector:
+Let's compute this translation vector:
 
 $$
 R_x(-90^\circ) \begin{bmatrix} m/2 \\ n/2 \\ k/2 \end{bmatrix} = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 0 & 1 \\ 0 & -1 & 0 \end{bmatrix} \begin{bmatrix} m/2 \\ n/2 \\ k/2 \end{bmatrix} = \begin{bmatrix} m/2 \\ k/2 \\ -n/2 \end{bmatrix}
 $$
 
-    So, the final transformation for each original vertex $v_i$ would be:
+So, the final transformation for each original vertex $v_i$ would be:
 
 $$
 v'_i = R_x(-90^\circ) (v_i - c_1) + \begin{bmatrix} m/2 \\ k/2 \\ -n/2 \end{bmatrix}
@@ -309,24 +309,24 @@ print(f"v7': {expected_v7_prime_2}")
 
 1.  **`rotate_x_minus_90()`:** Returns the 3x3 rotation matrix for a -90 degree rotation around the x-axis.
 2.  **`transform_hull(vertices, m, n, k)`:**
-    * Takes the list of vertices and the dimensions of the prism as input.
-    * Calculates the centroid.
-    * Defines the rotation matrix.
-    * Defines the translation vector needed to anchor the original v0 at the origin after rotation.
-    * Iterates through each vertex:
-        * Centers the vertex by subtracting the centroid.
-        * Rotates the centered vertex.
-        * Translates the rotated vertex to the final position.
-    * Returns the list of transformed vertices.
+- Takes the list of vertices and the dimensions of the prism as input.
+- Calculates the centroid.
+- Defines the rotation matrix.
+- Defines the translation vector needed to anchor the original v0 at the origin after rotation.
+- Iterates through each vertex:
+- Centers the vertex by subtracting the centroid.
+- Rotates the centered vertex.
+- Translates the rotated vertex to the final position.
+- Returns the list of transformed vertices.
 3.  **Main part of the script:**
-    * Defines the dimensions `m`, `n`, and `k`.
-    * Defines the original vertices of the first prism.
-    * Calls `transform_hull` to get the transformed vertices of the first prism.
-    * Defines the original vertices of the second prism (same as the first).
-    * Calls `transform_hull` to get the reoriented and anchored vertices of the second prism.
-    * Applies an additional translation of `[0, k + 1, 0]` to the second prism to place it to the right of the first.
-    * Prints the transformed vertices of both prisms.
-    * Includes the expected output based on your example for comparison.
+- Defines the dimensions `m`, `n`, and `k`.
+- Defines the original vertices of the first prism.
+- Calls `transform_hull` to get the transformed vertices of the first prism.
+- Defines the original vertices of the second prism (same as the first).
+- Calls `transform_hull` to get the reoriented and anchored vertices of the second prism.
+- Applies an additional translation of `[0, k + 1, 0]` to the second prism to place it to the right of the first.
+- Prints the transformed vertices of both prisms.
+- Includes the expected output based on your example for comparison.
 
 **Important Note on Expected Output:**
 
