@@ -61,6 +61,7 @@ const FILE_MAP = {
   'scaling/uniformization.md':       'scaling/uniformization.md',
   'scaling/hierarchy.md':            'scaling/hierarchy.md',
   'scaling/dmm.md':                  'scaling/dmm.md',
+  'scaling/composition.md':          'scaling/composition.md',
 
   // ── Theory: background + operator derivations not yet in the catalog ──
   'SURE/matmul.md':                  'theory/matmul.md',

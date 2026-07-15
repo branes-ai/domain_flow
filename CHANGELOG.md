@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Composition across the hierarchy** (issue #74, the section capstone):
+  `docs/scaling/composition.md` — how tiled operators chain into a full domain flow
+  graph and where inter-operator collectives land. Establishes that a DFG edge's cost
+  is set by whether the producer's output tiling and the consumer's input tiling
+  **agree**: an aligned edge flows with no collective (what the alignment/anchoring
+  formalism computes), a mismatched edge needs a transpose/all-to-all reshuffle. The
+  fuse-vs-materialize choice (elementwise ops fuse for free; layout/axis changes force
+  a boundary), a two-layer MLP worked example showing the same graph paying an
+  all-reduce or nothing depending purely on the producer's tiling choice, and the
+  coupled tiling+placement mapping problem as a global (not greedy) optimization.
+  Ties back to the repo's DFG/RDG tooling and the alignment, anchoring, and
+  pipelining-schedule docs. This closes the Scaling & Distribution walkthrough.
 - **The memory & communication hierarchy and the DMM** (issue #73): two greenfield
   scaling pages. `docs/scaling/hierarchy.md` defines the levels (PE → tile → KPU →
   SoC → cluster), establishes that there is **no shared memory above the tile**, and
