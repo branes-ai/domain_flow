@@ -47,6 +47,14 @@ const OPERATORS = [
   { op: 'copy',  scale: { N: 12 }, schedules: ['linear'] },
   { op: 'swap',  scale: { N: 12 }, schedules: ['linear'] },
   { op: 'rot',   scale: { N: 12 }, schedules: ['linear'] },
+  // BLAS L2 — matrix-vector over an (i,j) plane with a thin feed axis k. The
+  // wavefront sweeps the plane (matvec reductions) or the triangle (trmv/syr*).
+  { op: 'gemv',  scale: { M: 12, N: 12 }, schedules: ['linear'] },
+  { op: 'ger',   scale: { M: 12, N: 12 }, schedules: ['linear'] },
+  { op: 'trmv',  scale: { N: 12 },        schedules: ['linear'] },
+  { op: 'symv',  scale: { N: 12 },        schedules: ['linear'] },
+  { op: 'syr',   scale: { N: 12 },        schedules: ['linear'] },
+  { op: 'syr2',  scale: { N: 12 },        schedules: ['linear'] },
 ];
 
 // Scale the size parameter(s) and scalar-fill the braced data bindings. The values
