@@ -43,6 +43,8 @@ if(DOMAINFLOW_BUILD_TESTING)
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/iamax.sure)
     add_test(NAME dfactl_sure_gemv
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/gemv.sure)
+    add_test(NAME dfactl_sure_ger
+             COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/ger.sure)
     add_test(NAME dfactl_sure_qr_givens
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/qr_givens.sure)
     add_test(NAME dfactl_sure_qr_givens_tall

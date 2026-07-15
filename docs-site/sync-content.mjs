@@ -44,6 +44,7 @@ const FILE_MAP = {
   // ── SURE Algorithms: BLAS Level 1 (executable operator derivations) ──
   // Order in the sidebar is set explicitly in astro.config.mjs (pedagogical,
   // not alphabetical).
+  'SURE/blas-naming.md':             'sure-algorithms/blas-naming.md',
   'SURE/axpy.md':                    'sure-algorithms/blas-l1/axpy.md',
   'SURE/dot.md':                     'sure-algorithms/blas-l1/dot.md',
   'SURE/nrm2.md':                    'sure-algorithms/blas-l1/nrm2.md',
@@ -66,6 +67,7 @@ const FILE_MAP = {
   // ── Theory: background + operator derivations not yet in the catalog ──
   'SURE/matmul.md':                  'theory/matmul.md',
   'SURE/gemv.md':                    'theory/gemv.md',
+  'SURE/ger.md':                     'theory/ger.md',
   'SURE/conv2d.md':                  'theory/conv2d.md',
   'SURE/QR_decomposition.md':        'theory/qr-decomposition.md',
   'tensor_structure.md':             'theory/tensor-structure.md',
