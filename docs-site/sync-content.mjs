@@ -69,6 +69,7 @@ const FILE_MAP = {
   'SURE/gemv.md':                    'theory/gemv.md',
   'SURE/ger.md':                     'theory/ger.md',
   'SURE/trmv.md':                    'theory/trmv.md',
+  'SURE/symv.md':                    'theory/symv.md',
   'SURE/conv2d.md':                  'theory/conv2d.md',
   'SURE/QR_decomposition.md':        'theory/qr-decomposition.md',
   'tensor_structure.md':             'theory/tensor-structure.md',
