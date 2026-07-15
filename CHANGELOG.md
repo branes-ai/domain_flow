@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Halo vs collective** (issue #71): `docs/scaling/halo-vs-collective.md` — the
+  worked-out cross-tile dependency dichotomy at the heart of the scaling section. A
+  uniform (constant-offset) dependence becomes a nearest-neighbour **halo**
+  (grounded in `conv2d.sure`'s stencil and matmul); an affine/domain-spanning one
+  becomes a **collective** — with a taxonomy (reduce/all-reduce, broadcast,
+  transpose/all-to-all) mapped onto the catalog (`dot`/`nrm2`/`asum` reductions,
+  `axpy`'s `α` broadcast, QR's `srp`). Includes the honest reduction subtlety (an
+  in-tile accumulation chain is a pipeline; the collective appears only when the
+  reduction axis is split — a gather for a single consumer, a full all-reduce when
+  the result is read back), and the surface-to-volume cost argument (halo `O(1/T)`
+  amortizes; a collective has an `O(log P)`–`O(P)` payload-independent latency floor
+  whose energy scales with interconnect distance).
 - **Tiling the index space** (issue #70): `docs/scaling/tiling.md` — a blocked-matmul
   worked example showing that tiling is a **partition of the same index space**, not
   a new recurrence: because `matmul.sure` is uniform, its `a`/`b`/`c` dependences are
