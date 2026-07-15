@@ -11,7 +11,7 @@ is a **halo**, never a collective.
 ## The recurrence does not change — that is the whole point
 
 Tiling is often presented as a *rewrite* of the algorithm ("blocked matmul"). It is
-not a different recurrence. [`matmul.sure`](../theory/matmul.md) is
+not a different recurrence. [`matmul.sure`](../SURE/matmul.md) is
 
 ```text
 a(i,j,k) = a(i,j-1,k);                            // A streams along +j
@@ -40,7 +40,7 @@ Partitioning splits the schedule into two nested levels:
 
 - **Within a tile** — the systolic wavefront over the offsets `(ii,jj,kk)`: the
   canonical `τ = [1,1,1]` sweeps diagonal planes `ii+jj+kk = const` through the
-  block. This is the same wavefront the [catalog](../theory/matmul.md) already
+  block. This is the same wavefront the [catalog](../SURE/matmul.md) already
   animates, now confined to a `T×T×T` sub-cube.
 - **Across tiles** — a schedule over the block grid `(I,J,K)`. And here matmul is
   **self-similar**: the block-level computation is *itself* a matmul,

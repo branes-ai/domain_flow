@@ -78,6 +78,7 @@ export default defineConfig({
           items: [
             { label: 'The scale-out problem', slug: 'scaling' },
             { label: 'Tiling the index space', slug: 'scaling/tiling' },
+            { label: 'Halo vs collective', slug: 'scaling/halo-vs-collective' },
             { label: 'Uniformization', slug: 'scaling/uniformization' },
           ],
         },

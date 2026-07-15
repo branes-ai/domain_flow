@@ -53,7 +53,9 @@ The rest of this section works through each piece:
 - **[Tiling the index space](tiling.md)** — index-set partitioning and the two-level
   (across-tile + within-tile) schedule, with **blocked matmul** as the clean example:
   because it is uniform, every severed dependence is a halo, never a collective.
-- **Halo vs collective** — the dependency dichotomy above, worked out concretely.
+- **[Halo vs collective](halo-vs-collective.md)** — the dependency dichotomy above,
+  worked out concretely: the stencil/conv **halo** vs the reduction **all-reduce**,
+  the collective taxonomy, and the surface-to-volume cost argument.
 - **[Uniformization](uniformization.md)** — turning affine dependencies into uniform
   ones so an operator tiles: pipeline the broadcast, or change algorithm (the
   Givens-rotation QR). This is where QR's "SARE dishonesty" is resolved for real.
