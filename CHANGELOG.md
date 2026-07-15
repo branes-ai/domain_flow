@@ -45,6 +45,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   (`C = [[126,148],[308,348]]` for `αAB + βC` with `α=2, β=10`) and for free/linear
   schedule legality.
 
+### Fixed
+
+- **docs-site: math rendering in the Theory geometry docs.** The "Aligning convex
+  hulls" (`alignment_formalism.md`) and "Geometric Transformation" (`anchoring.md`)
+  pages showed raw LaTeX: several display equations were **concatenated** on one line
+  (`$$…$$$$…$$`), which remark-math cannot parse, and the rest used the **single-line**
+  `$$…$$` form that this site renders inline rather than as centered display blocks.
+  Split the concatenated blocks and converted every display equation to the multi-line
+  block form. Both pages now render 0 raw-TeX (alignment: 15 display blocks, anchoring:
+  5), matching the rest of the site.
+
 ### Changed
 
 - **docs-site: Theory vs SURE Algorithms restructure** (issue #87). Separated

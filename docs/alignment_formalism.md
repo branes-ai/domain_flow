@@ -17,9 +17,17 @@ Each $v_{i,j}$ is a 3D vector $[x, y, z]^T$.
 
 1.  **Centering at the Origin (Optional but often helpful):**
     * Calculate the centroid (geometric center) of $\mathcal{H}_1$:
-        $$c_1 = \frac{1}{n_1} \sum_{i=1}^{n_1} v_{1,i}$$
+
+$$
+c_1 = \frac{1}{n_1} \sum_{i=1}^{n_1} v_{1,i}
+$$
+
     * Translate all vertices of $\mathcal{H}_1$ by $-c_1$:
-        $$v'_{1,i} = v_{1,i} - c_1$$
+
+$$
+v'_{1,i} = v_{1,i} - c_1
+$$
+
     * Now, the centroid of the transformed $\mathcal{H}_1$ (let's call it $\mathcal{H}'_1$) is at the origin.
 
 2.  **Orienting $\mathcal{H}'_1$ (Specifying a Direction):**
@@ -30,7 +38,11 @@ Each $v_{i,j}$ is a 3D vector $[x, y, z]^T$.
 
     * Let's assume you've chosen a target orientation defined by a rotation matrix $R_1$. This matrix will rotate $\mathcal{H}'_1$ such that its chosen feature aligns with the desired direction.
     * Apply the rotation to all vertices of $\mathcal{H}'_1$:
-        $$v''_{1,i} = R_1 v'_{1,i}$$
+
+$$
+v''_{1,i} = R_1 v'_{1,i}
+$$
+
     * Now, we have an oriented version of the first convex hull, $\mathcal{H}''_1$. If you skipped the centering step, $v''_{1,i} = R_1 (v_{1,i} - c_1)$. If you didn't center, and want to anchor a specific vertex to the origin later, you'd perform a translation.
 
 **Step 3: Aligning the Second Convex Hull ($\mathcal{H}_2$) to a Face of $\mathcal{H}''_1$**
@@ -117,7 +129,10 @@ In our specific case, since you want to align a face normal with a global direct
 Let's refine the steps for the first prism:
 
 1.  **Centroid of the original prism:**
-    $$c_1 = \frac{1}{8} ( (0,0,0) + (m,0,0) + (m,0,k) + (0,0,k) + (0,n,k) + (0,n,0) + (m,n,0) + (m,n,k) ) = (\frac{m}{2}, \frac{n}{2}, \frac{k}{2})$$
+
+$$
+c_1 = \frac{1}{8} ( (0,0,0) + (m,0,0) + (m,0,k) + (0,0,k) + (0,n,k) + (0,n,0) + (m,n,0) + (m,n,k) ) = (\frac{m}{2}, \frac{n}{2}, \frac{k}{2})
+$$
 
 2.  **Translate by $-c_1$:** Subtract the centroid from each vertex. For example, $v0' = v0 - c_1 = (-\frac{m}{2}, -\frac{n}{2}, -\frac{k}{2})$.
 
@@ -126,21 +141,63 @@ Let's refine the steps for the first prism:
 4.  **Translate back to anchor v0 at the origin:** The original v0 was at $(0,0,0)$. After the translation and rotation, its new position will be $R_x(-90^\circ) (0 - c_1) = R_x(-90^\circ) (-\frac{m}{2}, -\frac{n}{2}, -\frac{k}{2})^T$. To bring this rotated original v0 back to the origin, we need to apply a translation by the negative of this vector: $-R_x(-90^\circ) (-\frac{m}{2}, -\frac{n}{2}, -\frac{k}{2})^T = R_x(-90^\circ) (\frac{m}{2}, \frac{n}{2}, \frac{k}{2})^T$.
 
     Let's compute this translation vector:
-    $$R_x(-90^\circ) \begin{bmatrix} m/2 \\ n/2 \\ k/2 \end{bmatrix} = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 0 & 1 \\ 0 & -1 & 0 \end{bmatrix} \begin{bmatrix} m/2 \\ n/2 \\ k/2 \end{bmatrix} = \begin{bmatrix} m/2 \\ k/2 \\ -n/2 \end{bmatrix}$$
+
+$$
+R_x(-90^\circ) \begin{bmatrix} m/2 \\ n/2 \\ k/2 \end{bmatrix} = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 0 & 1 \\ 0 & -1 & 0 \end{bmatrix} \begin{bmatrix} m/2 \\ n/2 \\ k/2 \end{bmatrix} = \begin{bmatrix} m/2 \\ k/2 \\ -n/2 \end{bmatrix}
+$$
 
     So, the final transformation for each original vertex $v_i$ would be:
-    $$v'_i = R_x(-90^\circ) (v_i - c_1) + \begin{bmatrix} m/2 \\ k/2 \\ -n/2 \end{bmatrix}$$
+
+$$
+v'_i = R_x(-90^\circ) (v_i - c_1) + \begin{bmatrix} m/2 \\ k/2 \\ -n/2 \end{bmatrix}
+$$
 
 Let's apply this to the original v0 = (0, 0, 0):
-$$v'_0 = R_x(-90^\circ) ( (0,0,0) - (\frac{m}{2}, \frac{n}{2}, \frac{k}{2}) ) + (\frac{m}{2}, \frac{k}{2}, -\frac{n}{2})$$$$v'_0 = R_x(-90^\circ) (-\frac{m}{2}, -\frac{n}{2}, -\frac{k}{2})^T + (\frac{m}{2}, \frac{k}{2}, -\frac{n}{2})^T$$$$v'_0 = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 0 & 1 \\ 0 & -1 & 0 \end{bmatrix} \begin{bmatrix} -m/2 \\ -n/2 \\ -k/2 \end{bmatrix} + \begin{bmatrix} m/2 \\ k/2 \\ -n/2 \end{bmatrix} = \begin{bmatrix} -m/2 \\ -k/2 \\ n/2 \end{bmatrix} + \begin{bmatrix} m/2 \\ k/2 \\ -n/2 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix}$$
+
+$$
+v'_0 = R_x(-90^\circ) ( (0,0,0) - (\frac{m}{2}, \frac{n}{2}, \frac{k}{2}) ) + (\frac{m}{2}, \frac{k}{2}, -\frac{n}{2})
+$$
+
+$$
+v'_0 = R_x(-90^\circ) (-\frac{m}{2}, -\frac{n}{2}, -\frac{k}{2})^T + (\frac{m}{2}, \frac{k}{2}, -\frac{n}{2})^T
+$$
+
+$$
+v'_0 = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 0 & 1 \\ 0 & -1 & 0 \end{bmatrix} \begin{bmatrix} -m/2 \\ -n/2 \\ -k/2 \end{bmatrix} + \begin{bmatrix} m/2 \\ k/2 \\ -n/2 \end{bmatrix} = \begin{bmatrix} -m/2 \\ -k/2 \\ n/2 \end{bmatrix} + \begin{bmatrix} m/2 \\ k/2 \\ -n/2 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix}
+$$
+
 This correctly anchors the transformed original v0 at the origin.
 
 Now let's apply this to another vertex, say v3 = (0, 0, k):
-$$v_3 - c_1 = (0 - m/2, 0 - n/2, k - k/2) = (-\frac{m}{2}, -\frac{n}{2}, \frac{k}{2})$$$$R_x(-90^\circ) (v_3 - c_1) = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 0 & 1 \\ 0 & -1 & 0 \end{bmatrix} \begin{bmatrix} -m/2 \\ -n/2 \\ k/2 \end{bmatrix} = \begin{bmatrix} -m/2 \\ k/2 \\ n/2 \end{bmatrix}$$$$v'_3 = \begin{bmatrix} -m/2 \\ k/2 \\ n/2 \end{bmatrix} + \begin{bmatrix} m/2 \\ k/2 \\ -n/2 \end{bmatrix} = \begin{bmatrix} 0 \\ k \\ 0 \end{bmatrix}$$
+
+$$
+v_3 - c_1 = (0 - m/2, 0 - n/2, k - k/2) = (-\frac{m}{2}, -\frac{n}{2}, \frac{k}{2})
+$$
+
+$$
+R_x(-90^\circ) (v_3 - c_1) = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 0 & 1 \\ 0 & -1 & 0 \end{bmatrix} \begin{bmatrix} -m/2 \\ -n/2 \\ k/2 \end{bmatrix} = \begin{bmatrix} -m/2 \\ k/2 \\ n/2 \end{bmatrix}
+$$
+
+$$
+v'_3 = \begin{bmatrix} -m/2 \\ k/2 \\ n/2 \end{bmatrix} + \begin{bmatrix} m/2 \\ k/2 \\ -n/2 \end{bmatrix} = \begin{bmatrix} 0 \\ k \\ 0 \end{bmatrix}
+$$
+
 This matches the v3' in your transformed vertices.
 
 Let's try v2 = (m, 0, k):
-$$v_2 - c_1 = (m - m/2, 0 - n/2, k - k/2) = (\frac{m}{2}, -\frac{n}{2}, \frac{k}{2})$$$$R_x(-90^\circ) (v_2 - c_1) = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 0 & 1 \\ 0 & -1 & 0 \end{bmatrix} \begin{bmatrix} m/2 \\ -n/2 \\ k/2 \end{bmatrix} = \begin{bmatrix} m/2 \\ k/2 \\ n/2 \end{bmatrix}$$$$v'_2 = \begin{bmatrix} m/2 \\ k/2 \\ n/2 \end{bmatrix} + \begin{bmatrix} m/2 \\ k/2 \\ -n/2 \end{bmatrix} = \begin{bmatrix} m \\ k \\ 0 \end{bmatrix}$$
+
+$$
+v_2 - c_1 = (m - m/2, 0 - n/2, k - k/2) = (\frac{m}{2}, -\frac{n}{2}, \frac{k}{2})
+$$
+
+$$
+R_x(-90^\circ) (v_2 - c_1) = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 0 & 1 \\ 0 & -1 & 0 \end{bmatrix} \begin{bmatrix} m/2 \\ -n/2 \\ k/2 \end{bmatrix} = \begin{bmatrix} m/2 \\ k/2 \\ n/2 \end{bmatrix}
+$$
+
+$$
+v'_2 = \begin{bmatrix} m/2 \\ k/2 \\ n/2 \end{bmatrix} + \begin{bmatrix} m/2 \\ k/2 \\ -n/2 \end{bmatrix} = \begin{bmatrix} m \\ k \\ 0 \end{bmatrix}
+$$
+
 This matches v2'.
 
 It seems your intuition about centering and then translating back to anchor a specific point is correct and aligns with the output you provided.
