@@ -13,7 +13,8 @@ derivation prose.
 
 ## Summary
 
-**19 PRs merged (#77–#96)**; epic #68 and 18 issues closed. The Scaling &
+**19 PRs merged (#77–#86 and #88–#96 — #87 is the restructure *issue*)**; epic #68
+and 19 issues closed. The Scaling &
 Distribution section is a complete narrative arc (tiling → halo/collective →
 uniformization → hierarchy/DMM → composition), anchored by an executable Givens-QR;
 the schedule animator gained a `data-tile` overlay that *shows* halo vs collective
@@ -125,7 +126,8 @@ flattened the list nesting — while preserving the fenced Python code block.
 
 ## Outcome
 
-- **PRs merged:** #77–#96 (19); **issues closed:** #68 (epic), #69–#75, #31–#41, #87.
+- **PRs merged:** #77–#86 and #88–#96 (19; #87 is the restructure issue, landed via
+  #90); **issues closed:** #68 (epic) plus 19 issues — #69–#75, #31–#41, #87.
 - **Catalog:** BLAS **L1 (9) + L2 (6) + L3 (5)** = 20 executable operators, each with a
   spec, a dual-compiler test, a derivation, and a schedule animation.
 - **Scaling & Distribution** section complete (7 pages) with an executable Givens-QR
