@@ -80,6 +80,7 @@ export default defineConfig({
               items: [
                 { label: 'gemv — αAx + βy', slug: 'theory/gemv' },
                 { label: 'ger — A += αxyᵀ', slug: 'theory/ger' },
+                { label: 'trmv — x := Tx', slug: 'theory/trmv' },
               ],
             },
           ],

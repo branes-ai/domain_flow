@@ -1,0 +1,59 @@
+// BLAS-2 triangular matrix-vector product (issue #33):
+//
+//   x(i) := sum_{j <= i} T(i,j) * x(j),   0 <= i < N   (LOWER triangular)
+//
+// trmv is gemv restricted to a TRIANGULAR domain — the first non-box index space
+// in the catalog. For a lower-triangular T only the entries j <= i exist, so the
+// reduction over j for row i sweeps a variable extent j = 0..i, and the domain of
+// computation is a triangular prism rather than a box. (The upper-triangular case
+// is the mirror image: constrain j >= i and reduce the other way.)
+//
+// Domain (i,j,k):  i (0..N-1), j (0..N-1) with j <= i, and k = a depth-1 FEED
+// axis (0..0). As in gemv, T(i,j) is indexed by both domain axes and read once, so
+// it enters on the (i,j) face k=-1. The input vector x(j) is fed the same way
+// (per cell, on the (i,j) face) rather than pipelined along +i: on a triangular
+// domain a +i pipeline would have to enter on a diagonal face parallel to the
+// output, which admits no linear schedule — feeding x on the k face keeps one.
+//
+//   t(i,j,k)   = t(i,j,k-1)                    T(i,j) on the (i,j) face
+//   xx(i,j,k)  = xx(i,j,k-1)                   x(j)   on the (i,j) face
+//   acc(i,j,k) = acc(i,j-1,k) + t(i,j,k-1)*xx(i,j,k-1)   reduce over +j
+//
+// The reduction seed acc(i,-1,k) = 0 enters on the j=-1 face; the completed sum
+// for row i leaves on the DIAGONAL face i-j = 0 (where j reaches its maximum i).
+// Every dependence is a constant offset — a pure SURE (uniform).
+//
+// Schedule note: the diagonal output face has outward normal (-1,1,0), so its
+// outflux tau.n > 0 requires tau_j > tau_i. The canonical tau = [1,2,1] satisfies
+// this; the box-operator default tau = [1,1,1] is REJECTED (zero flux on the
+// diagonal) — a concrete way the triangular geometry constrains the schedule.
+//
+// Run it:   dfactl --sure docs/SURE/trmv.sure            (free schedule)
+//           dfactl --sure docs/SURE/trmv.sure --tau 1,2,1
+
+N = 4;
+
+system ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, 0 <= k < 1) {
+    t(i,j,k)   = t(i,j,k-1);                                // T(i,j) enters on the (i,j) face
+    xx(i,j,k)  = xx(i,j,k-1);                               // x(j) enters on the (i,j) face
+    acc(i,j,k) = acc(i,j-1,k) + t(i,j,k-1) * xx(i,j,k-1);   // reduce over +j (j = 0..i)
+}
+
+// tensor confluences
+input  T[N][N] ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = -1)         : t(i,j,k)  = T[i][j];   // lower triangle of T
+input  Xin[N]  ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = -1)         : xx(i,j,k) = Xin[j];     // input vector
+input          ((i,j,k) | 0 <= i < N, j = -1, 0 <= k < 1)                 : acc(i,j,k) = 0;         // reduction seed
+output Xout[N] ((i,j,k) | 0 <= i < N, 0 <= j < N, i - j = 0, 0 <= k < 1)  : Xout[i] = acc(i,j,k);   // result on the diagonal j = i
+
+tau = [1, 2, 1];                 // canonical schedule (tau_j > tau_i for the diagonal outflux)
+
+// test bench:  lower-triangular T, x = [1,2,3,4]  ->  x := T x = [2, 11, 38, 100]
+//   [2  0  0  0 ] [1]   [ 2*1                     ]   [  2 ]
+//   [3  4  0  0 ] [2] = [ 3*1 + 4*2               ] = [ 11 ]
+//   [5  6  7  0 ] [3]   [ 5*1 + 6*2 + 7*3         ]   [ 38 ]
+//   [8  9 10 11 ] [4]   [ 8*1 + 9*2 + 10*3 + 11*4 ]   [100 ]
+data T   = { 2,  0,  0,  0,
+             3,  4,  0,  0,
+             5,  6,  7,  0,
+             8,  9, 10, 11 };
+data Xin = { 1, 2, 3, 4 };
