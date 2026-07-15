@@ -82,6 +82,7 @@ export default defineConfig({
             { label: 'Uniformization', slug: 'scaling/uniformization' },
             { label: 'The memory & communication hierarchy', slug: 'scaling/hierarchy' },
             { label: 'The Distributed Memory Machine', slug: 'scaling/dmm' },
+            { label: 'Composition across the hierarchy', slug: 'scaling/composition' },
           ],
         },
         {

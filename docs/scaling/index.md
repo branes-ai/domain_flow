@@ -65,7 +65,8 @@ The rest of this section works through each piece:
   Machine](dmm.md)** — the partitioned-memory execution model and the collective
   primitives (reduce, broadcast, scatter/gather, transpose) that carry everything a
   halo cannot.
-- **Composition across the hierarchy** — operator graphs that span tiles and SoCs,
-  and where the compiler places the collectives.
+- **[Composition across the hierarchy](composition.md)** — operator graphs that span
+  tiles and SoCs: how tiled nodes chain, why an inter-operator collective is the price
+  of a layout mismatch, and where the compiler places (or aligns away) each one.
 
 _Tracked by the [Scaling & Distribution epic](https://github.com/branes-ai/domain_flow/issues/68)._
