@@ -1,0 +1,72 @@
+// BLAS-2 general matrix-vector product (issue #31):
+//
+//   y(i) = beta * y(i) + alpha * sum_j A(i,j) * x(j),   0 <= i < M, 0 <= j < N
+//
+// gemv is structurally matmul with the second matrix collapsed to a single vector
+// x, so it reuses matmul's systolic skeleton: a reduction over the column index j
+// with one operand (x) reused across the rows and the other (A) consumed once.
+//
+// Domain (i,j,k):  i = row (0..M-1),  j = column / reduction (0..N-1),
+//                  k = a depth-1 FEED axis (0..0).
+//
+// The feed axis k exists for one reason: A(i,j) is indexed by BOTH domain axes and
+// read exactly once, so — unlike matmul's A, which is reused along the orthogonal
+// axis and can enter on a face — it has no free axis to enter on. A depth-1 feed
+// gives it one: A enters on the (i,j) face k = -1 and is read at k-1 by the
+// accumulator (exactly as dot adds a feed axis for its once-read operands).
+//
+//   a(i,j,k)     = a(i,j,k-1)      A(i,j), fed on the (i,j) face k = -1
+//   xx(i,j,k)    = xx(i-1,j,k)     x(j), pipelined across the rows along +i (reused)
+//   alpha(i,j,k) = alpha(i,j,k-1)  the scalar alpha, projected onto the (i,j) face
+//   beta(i,j,k)  = beta(i-1,j,k)   the scalar beta, projected onto the i = -1 face
+//   yin(i,j,k)   = yin(i,j-1,k)    the incoming y(i), pipelined along the reduction +j
+//   acc(i,j,k)   = acc(i,j-1,k) + alpha(i,j,k-1)*a(i,j,k-1)*xx(i-1,j,k)
+//                                  reduce alpha*A*x along +j
+//
+// Every dependence is a CONSTANT offset, so this is a pure SURE (uniform). The
+// scalars alpha and beta are never literals in a recurrence body — they are
+// projected onto a face and consumed as a product of recurrence variables
+// (project-and-pipeline / one-shot injection, as in scal and axpy). alpha folds
+// into the reduction product; the beta*y(i) term combines with the completed sum in
+// a terminal-face EPILOGUE on the output face j = N-1:
+//
+//   Y[i] = acc(i,N-1,0) + beta(i,N-1,0) * yin(i,N-1,0)
+//        = alpha * sum_j A(i,j) x(j)  +  beta * y(i).
+//
+// Faces are equality-pinned; the outward normal is derived (inputs influx,
+// tau.n < 0; outputs outflux, tau.n > 0).
+//
+// Run it:   dfactl --sure docs/SURE/gemv.sure          (free schedule)
+//           dfactl --sure docs/SURE/gemv.sure --tau 1,1,1
+
+M = 3; N = 4;
+
+system ((i,j,k) | 0 <= i < M, 0 <= j < N, 0 <= k < 1) {
+    a(i,j,k)     = a(i,j,k-1);                                              // A(i,j) enters on the (i,j) face
+    xx(i,j,k)    = xx(i-1,j,k);                                             // x(j) pipelined across rows +i
+    alpha(i,j,k) = alpha(i,j,k-1);                                          // scalar alpha on the (i,j) face
+    beta(i,j,k)  = beta(i-1,j,k);                                           // scalar beta on the i = -1 face
+    yin(i,j,k)   = yin(i,j-1,k);                                            // incoming y(i) along +j
+    acc(i,j,k)   = acc(i,j-1,k) + alpha(i,j,k-1) * a(i,j,k-1) * xx(i-1,j,k); // reduce alpha*A*x along +j
+}
+
+// tensor confluences
+input  A[M][N]  ((i,j,k) | 0 <= i < M, 0 <= j < N, k = -1)  : a(i,j,k)     = A[i][j];   // A on its (i,j) face
+input  X[N]     ((i,j,k) | i = -1, 0 <= j < N, 0 <= k < 1)  : xx(i,j,k)    = X[j];       // x on the i = -1 face
+input  Alpha[1] ((i,j,k) | 0 <= i < M, 0 <= j < N, k = -1)  : alpha(i,j,k) = Alpha[0];   // project scalar alpha
+input  Beta[1]  ((i,j,k) | i = -1, 0 <= j < N, 0 <= k < 1)  : beta(i,j,k)  = Beta[0];     // project scalar beta
+input  Yin[M]   ((i,j,k) | 0 <= i < M, j = -1, 0 <= k < 1)  : yin(i,j,k)   = Yin[i];      // incoming y on j = -1
+input           ((i,j,k) | 0 <= i < M, j = -1, 0 <= k < 1)  : acc(i,j,k)   = 0;           // reduction seed (additive identity)
+output Y[M]     ((i,j,k) | 0 <= i < M, j = N-1, 0 <= k < 1) : Y[i] = acc(i,j,k) + beta(i,j,k) * yin(i,j,k); // alpha*A*x + beta*y epilogue
+
+tau = [1, 1, 1];                 // canonical legal wavefront schedule
+
+// test bench:  y = beta*y + alpha*A*x  with A = [[1..4],[5..8],[9..12]], x = [1,2,3,4],
+//   alpha = 2, beta = 10, y_in = [1,2,3]  ->  A*x = [30,70,110],  y = [70,160,250]
+data A     = { 1,  2,  3,  4,
+               5,  6,  7,  8,
+               9, 10, 11, 12 };
+data X     = { 1, 2, 3, 4 };
+data Alpha = 2;
+data Beta  = 10;
+data Yin   = { 1, 2, 3 };
