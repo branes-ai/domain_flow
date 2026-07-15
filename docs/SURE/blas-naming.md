@@ -91,9 +91,11 @@ In the domain-flow view the name's fields often predict the **recurrence shape**
 - the **operation** field tells you the index-space geometry — `mv` is a *reduction*
   (a matvec contracts an axis), `r`/`r2` are *fully-parallel outer products* (a rank
   update has no reduction), and `mm` is the full *3-D reduction cube*;
-- the **structure** field tells you which part of the domain carries data — a `tr`
-  (triangular) or `sy` (symmetric) operator only computes over *half* the $(i,j)$
-  plane, so its domain of computation is a triangular prism rather than a box.
+- the **structure** field tells you the matrix is *referenced* only in a triangular
+  half — `sy`/`he` exploit symmetry to read half the elements, `tr` is triangular.
+  For the rank **updates** `syr`/`syr2` this restricts the *writes* too, so their
+  domain of computation is a triangular prism rather than a box; the matrix–vector
+  cases `symv`/`trmv` still produce a *full* vector, they just read half the matrix.
 
 So `gemv` and `ger` being adjacent in the catalog is not a coincidence: they are the
 inner-product and outer-product halves of the same matrix–vector interaction, and
