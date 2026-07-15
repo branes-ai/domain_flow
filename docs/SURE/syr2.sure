@@ -1,0 +1,58 @@
+// BLAS-2 symmetric rank-2 update (issue #36):
+//
+//   A(i,j) := A(i,j) + alpha * ( x(i)*y(j) + y(i)*x(j) )   on j <= i
+//
+// syr2 is syr with TWO vectors: two rank-1 outer products (x y^T and y x^T) fused
+// into one symmetric update on the triangular domain. A + alpha(x y^T + y x^T) is
+// symmetric, so only the lower triangle is stored/updated. It is the kernel behind
+// syr2k and the LDL^T / eigensolver trailing (Schur) updates.
+//
+// The structure is exactly syr's: a depth-2 FEED/DRAIN axis k (inject -> add ->
+// drain) over the triangular output j <= i, with the two vectors fed per cell on
+// the (i,j) face. Each cell needs four values -- x(i), x(j), y(i), y(j) -- fed from
+// the two input vectors X and Y (each drives two of the four feeds):
+//
+//   alpha(i,j,k) = 0                          alpha lives ONLY on the k=-1 halo
+//   xi(i,j,k) = xi(i,j,k-1)   xj(i,j,k) = xj(i,j,k-1)    x(i), x(j)
+//   yi(i,j,k) = yi(i,j,k-1)   yj(i,j,k) = yj(i,j,k-1)    y(i), y(j)
+//   r(i,j,k)  = r(i,j,k-1) + alpha(i,j,k-1)*(xi*yj + yi*xj)     (taps at k-1)
+//
+// r is seeded by the incoming A on k=-1 and accumulates the rank-2 term EXACTLY
+// ONCE: alpha is injected only on the k=-1 halo (interior value 0), so the product
+// contributes at k=0 and vanishes at the k=1 drain. Every dependence is a constant
+// offset -- a pure SURE (uniform). The symmetric rank-2 combination xi*yj + yi*xj is
+// formed in the recurrence from uniform taps; the symmetry is the triangular domain.
+//
+// Run it:   dfactl --sure docs/SURE/syr2.sure           (free schedule)
+//           dfactl --sure docs/SURE/syr2.sure --tau 1,1,1
+
+N = 3;
+
+system ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, 0 <= k < 2) {
+    alpha(i,j,k) = 0;                                                       // alpha only on the k=-1 halo
+    xi(i,j,k)    = xi(i,j,k-1);                                             // x(i)
+    xj(i,j,k)    = xj(i,j,k-1);                                             // x(j)
+    yi(i,j,k)    = yi(i,j,k-1);                                             // y(i)
+    yj(i,j,k)    = yj(i,j,k-1);                                             // y(j)
+    r(i,j,k)     = r(i,j,k-1) + alpha(i,j,k-1) * (xi(i,j,k-1)*yj(i,j,k-1) + yi(i,j,k-1)*xj(i,j,k-1));
+}
+
+// tensor confluences — two vectors, each driving two of the four feeds:
+input  A[N][N]  ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = -1)  : r(i,j,k)     = A[i][j];   // lower triangle seeds r
+input  Alpha[1] ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = -1)  : alpha(i,j,k) = Alpha[0];  // project the scalar alpha
+input  X[N]     ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = -1)  : xi(i,j,k)    = X[i];       // x(i)
+input           ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = -1)  : xj(i,j,k)    = X[j];       // x(j)
+input  Y[N]     ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = -1)  : yi(i,j,k)    = Y[i];       // y(i)
+input           ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = -1)  : yj(i,j,k)    = Y[j];       // y(j)
+output Aout[N][N] ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = 1) : Aout[i][j] = r(i,j,k);     // updated lower triangle
+
+tau = [1, 1, 1];                 // canonical legal wavefront schedule
+
+// test bench:  A(lower) + alpha*(x y^T + y x^T),  A = [[1],[2,3],[4,5,6]],
+//   x = [1,2,3], y = [2,1,4], alpha = 1  ->  lower triangle [[5],[7,7],[14,16,30]]
+data A     = { 1, 0, 0,
+               2, 3, 0,
+               4, 5, 6 };
+data X     = { 1, 2, 3 };
+data Y     = { 2, 1, 4 };
+data Alpha = 1;

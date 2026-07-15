@@ -8,6 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **BLAS-2 `syr2`** (issue #36): the symmetric rank-2 update `A += α(xyᵀ + yxᵀ)` on
+  the triangular domain `j ≤ i`, as a pure SURE — `docs/SURE/syr2.sure` (+ derivation
+  `docs/SURE/syr2.md` under Theory / BLAS L2 nav) and
+  `src/dfa/tests/sim/syr2_sure.cpp` (`test_syr2_sure`, dual-compiler, zero warnings)
+  with a `dfactl_sure_syr2` schedule-emit test. It is `syr` with two vectors: the two
+  rank-1 outer products `xyᵀ` and `yxᵀ` are fused into one symmetric update. Same
+  structure as `syr` (a depth-2 feed/drain axis over the triangle, `α` injected once),
+  but each cell needs four per-cell feeds — `x(i)`, `x(j)`, `y(i)`, `y(j)` — from the
+  two input vectors `X` and `Y` (each drives two feeds); the rank-2 combination
+  `α(x(i)y(j) + y(i)x(j))` is formed in the recurrence from uniform taps. The kernel
+  behind `syr2k` and the LDLᵀ / eigensolver trailing updates. Verified numerically
+  (lower triangle `[[5],[7,7],[14,16,30]]`). **This completes the BLAS Level-2
+  catalog (#31–#36).**
 - **BLAS-2 `syr`** (issue #35): the symmetric rank-1 update `A += αxxᵀ` on the
   triangular domain `j ≤ i`, as a pure SURE — `docs/SURE/syr.sure` (+ derivation
   `docs/SURE/syr.md` under Theory / BLAS L2 nav) and `src/dfa/tests/sim/syr_sure.cpp`
