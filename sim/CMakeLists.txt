@@ -47,6 +47,8 @@ if(DOMAINFLOW_BUILD_TESTING)
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/ger.sure)
     add_test(NAME dfactl_sure_trmv
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/trmv.sure)
+    add_test(NAME dfactl_sure_symv
+             COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/symv.sure)
     add_test(NAME dfactl_sure_qr_givens
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/qr_givens.sure)
     add_test(NAME dfactl_sure_qr_givens_tall
