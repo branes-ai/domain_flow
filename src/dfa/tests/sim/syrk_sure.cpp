@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 #include <cmath>
+#include <stdexcept>
 #include <dfa/sim/sure_parser.hpp>
 #include <dfa/sim/legality.hpp>
 

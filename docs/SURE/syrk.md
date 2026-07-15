@@ -1,8 +1,9 @@
 # syrk — symmetric rank-k update
 
-`syrk` computes **`C := βC + αAAᵀ`** — the SPD-forming Level-3 kernel (the trailing
-update in blocked Cholesky). It is [`gemm`](gemm.md) with `B = Aᵀ` (a single operand
-`A` feeding both taps) on a **triangular output** `j ≤ i`, since `AAᵀ` is symmetric.
+`syrk` computes **`C := βC + αAAᵀ`** — a symmetric rank-k update (the `AAᵀ` term is
+positive *semi*definite), the kernel behind blocked Cholesky's trailing update. It is
+[`gemm`](gemm.md) with `B = Aᵀ` (a single operand `A` feeding both taps) on a
+**triangular output** `j ≤ i`, since `AAᵀ` is symmetric.
 
 ## The SURE
 

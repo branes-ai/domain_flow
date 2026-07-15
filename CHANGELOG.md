@@ -18,9 +18,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   diagonal, the `A(j,k)` tap enters on the **super-diagonal** halo `i-j = -1` (a clean
   halo since the output leaves on `k=K-1`); its normal `(-1,1,0)` makes the canonical
   `τ = [2,1,1]` legal while the box-default `τ = [1,1,1]` is rejected — the triangular
-  geometry constrains the schedule, mirroring `trmv` in the opposite direction. The
-  SPD-forming kernel behind blocked Cholesky's trailing update. Verified numerically
-  (lower triangle `[[20],[42,80],[74,128,182]]`).
+  geometry constrains the schedule, mirroring `trmv` in the opposite direction. A
+  symmetric rank-k update (the `AAᵀ` term is positive semidefinite) — the kernel
+  behind blocked Cholesky's trailing update. Verified numerically (lower triangle
+  `[[20],[42,80],[74,128,182]]`).
 - **BLAS-3 `gemm`** (issue #37): the general matrix–matrix product `C = βC + αAB`,
   the first Level-3 catalog operator — `docs/SURE/gemm.sure` (+ a lean page under
   SURE Algorithms / **BLAS L3** with a 3-D-cube schedule animation) and
