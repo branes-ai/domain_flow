@@ -99,9 +99,12 @@ affine operators are measured.
 The cube below is `matmul` at 15³, partitioned into `T = 5` blocks — a `3×3×3`
 grid of 27 tiles. Colour encodes the **tile block**; the boxes are the tile
 boundaries; the bright white wavefront is the `τ = [1,1,1]` schedule sweeping
-diagonally *across* the blocks. Watch the wavefront cross a tile boundary: that
-crossing is a halo exchange — a thin face of data handed to the neighbour, nothing
-more.
+diagonally *across* the blocks. The **green** lines are the wavefront's cross-tile
+dependency edges — every one a nearest-neighbour **halo**. Watch: they are *all*
+green and there is **no red** (long-range collective) edge anywhere, because every
+matmul dependence is a constant `±1` offset. That is what "tiles cleanly" looks
+like — contrast the [near-uniform Givens QR](uniformization.md), whose affine
+diagonal taps light up red.
 
 <div class="schedule-anim" data-src="schedules/matmul-linear.json" data-tile="5" data-height="480" data-fps="6"></div>
 

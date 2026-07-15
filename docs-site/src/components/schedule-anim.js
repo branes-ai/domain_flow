@@ -72,7 +72,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   let tMin = Infinity, tMax = -Infinity;
   vars.forEach((v, vi) => {
     for (const pt of v.points) {
-      acts.push({ p: pad(pt.p), t: pt.t, vi });
+      acts.push({ p: pad(pt.p), raw: pt.p, t: pt.t, vi });
       tMin = Math.min(tMin, pt.t); tMax = Math.max(tMax, pt.t);
     }
   });
@@ -136,6 +136,54 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
     tileMode ? tileColor(tileId(a.p)) : new THREE.Color(PALETTE[a.vi % PALETTE.length]));
   const WHITE = new THREE.Color(0xffffff);
 
+  // ── cross-tile dependency edges (issue #75): replay each variable's taps to
+  //    find dependences that cross a tile boundary, and classify them — a
+  //    |Δtile|∞ = 1 crossing is a HALO (nearest-neighbour, green); a longer jump
+  //    is a COLLECTIVE (long-range, red). A uniform operator (all taps A = I)
+  //    shows only green; an affine tap (a projection/permutation) lights up red.
+  //    Edges are bucketed by the consumer's firing time so only the wavefront's
+  //    traffic is drawn each frame. Tile mode only. ────────────────────────────
+  const HALO_COLOR = new THREE.Color(0x35c759);
+  const COLL_COLOR = new THREE.Color(0xff453a);
+  const EDGE_CAP = 200000;
+  let edgeBuckets = null, maxBucket = 0, haloTotal = 0, collTotal = 0, edgeCapped = false;
+  if (tileMode) {
+    const inBounds = (s) => s.every((v, d) => v >= (lo[d] ?? 0) && v <= (hi[d] ?? 0));
+    const applyMap = (A, b, p) =>
+      A.map((row, r) => (b?.[r] ?? 0) + row.reduce((acc, m, c) => acc + m * (p[c] ?? 0), 0));
+    edgeBuckets = Array.from({ length: frameCount }, () => []);
+    let count = 0;
+    for (let i = 0; i < acts.length && !edgeCapped; i++) {
+      const a = acts[i];
+      const taps = vars[a.vi]?.taps ?? [];
+      const consumerTile = tileOf(a.p);
+      for (const tap of taps) {
+        if (!Array.isArray(tap.A)) continue;
+        const s = applyMap(tap.A, tap.b, a.raw);
+        if (!inBounds(s)) continue;                 // boundary/input read — not a cross-tile compute edge
+        const st = tileOf(pad(s));
+        let lvl = 0;
+        for (let d = 0; d < 3; d++) lvl = Math.max(lvl, Math.abs(consumerTile[d] - st[d]));
+        if (lvl === 0) continue;                    // stays in the same tile
+        edgeBuckets[a.t - tMin].push({ from: positions[i], to: pad(s), level: lvl });
+        if (lvl === 1) haloTotal++; else collTotal++;
+        if (++count >= EDGE_CAP) { edgeCapped = true; break; }
+      }
+    }
+    for (const bk of edgeBuckets) maxBucket = Math.max(maxBucket, bk.length);
+  }
+  // one LineSegments object, its draw range refilled per frame from the bucket
+  let lineSeg = null;
+  if (tileMode && maxBucket > 0) {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(maxBucket * 6), 3));
+    g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(maxBucket * 6), 3));
+    lineSeg = new THREE.LineSegments(
+      g, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.85 }));
+    scene.add(lineSeg);
+  }
+  let firingHalo = 0, firingColl = 0;
+
   // ── per-frame state colouring ─────────────────────────────────────────────
   const dummy = new THREE.Object3D();
   const col = new THREE.Color();
@@ -162,6 +210,24 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
     }
     inst.instanceMatrix.needsUpdate = true;
     if (inst.instanceColor) inst.instanceColor.needsUpdate = true;
+
+    // refill the cross-tile edges for the firing wavefront at this frame
+    firingHalo = 0; firingColl = 0;
+    if (lineSeg) {
+      const bucket = edgeBuckets[frame];
+      const pos = lineSeg.geometry.attributes.position.array;
+      const lc = lineSeg.geometry.attributes.color.array;
+      for (let n = 0; n < bucket.length; n++) {
+        const e = bucket[n], c = e.level === 1 ? HALO_COLOR : COLL_COLOR, o = n * 6;
+        pos[o] = e.from[0]; pos[o + 1] = e.from[1]; pos[o + 2] = e.from[2];
+        pos[o + 3] = e.to[0]; pos[o + 4] = e.to[1]; pos[o + 5] = e.to[2];
+        lc[o] = lc[o + 3] = c.r; lc[o + 1] = lc[o + 4] = c.g; lc[o + 2] = lc[o + 5] = c.b;
+        if (e.level === 1) firingHalo++; else firingColl++;
+      }
+      lineSeg.geometry.setDrawRange(0, bucket.length * 2);
+      lineSeg.geometry.attributes.position.needsUpdate = true;
+      lineSeg.geometry.attributes.color.needsUpdate = true;
+    }
     if (hud) {
       // tau is coerced to numbers so it can never carry markup; operator/kind are
       // escaped as they come straight from the fetched JSON.
@@ -174,7 +240,10 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
         `&nbsp; latency ${data.latency ?? frameCount}</div>` +
         `<div>wavefront: <b>${firing}</b> firing (parallelism)</div>` +
         `<div>fired ${fired} / ${acts.length}</div>` +
-        (tileMode ? `<div>tiles: ${nTiles[0]}×${nTiles[1]}×${nTiles[2]} (T=${tileSizes.join('×')})</div>` : '');
+        (tileMode ? `<div>tiles: ${nTiles[0]}×${nTiles[1]}×${nTiles[2]} (T=${tileSizes.join('×')})</div>` : '') +
+        (lineSeg ? `<div>cross-tile: <b style="color:#35c759">${firingHalo}</b> halo · ` +
+          `<b style="color:#ff453a">${firingColl}</b> collective` +
+          (edgeCapped ? ' <span class="sa-warn">(capped)</span>' : '') + `</div>` : '');
     }
     options.onFrame?.(frame);
   }
@@ -224,7 +293,9 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
     fitView,
     dispose() {
       cancelAnimationFrame(raf); ro.disconnect(); controls.dispose();
-      geo.dispose(); inst.material.dispose(); inst.dispose(); renderer.dispose();
+      geo.dispose(); inst.material.dispose(); inst.dispose();
+      if (lineSeg) { lineSeg.geometry.dispose(); lineSeg.material.dispose(); }
+      renderer.dispose();
     },
   };
 }
@@ -282,7 +353,10 @@ export async function mountAll(root = document) {
     // (one hue per tile) rather than the recurrence variable.
     if (viewer.tileMode) {
       const leg = Object.assign(document.createElement('div'), { className: 'sa-legend' });
-      leg.innerHTML = `<span>colour = tile block · box = tile boundary · white = firing wavefront</span>`;
+      leg.innerHTML =
+        `<span>colour = tile block · box = tile boundary · white = firing wavefront</span>` +
+        `<span><i style="background:#35c759"></i>halo edge (nearest tile)</span>` +
+        `<span><i style="background:#ff453a"></i>collective edge (long-range)</span>`;
       el.append(leg);
     } else if (Array.isArray(data.variables) && data.variables.length) {
       const leg = Object.assign(document.createElement('div'), { className: 'sa-legend' });

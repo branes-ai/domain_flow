@@ -33,7 +33,9 @@ const OPERATORS = [
   // QR (Modified Gram-Schmidt): a SARE with affine/broadcast taps over a shared
   // triangular domain — no global linear tau exists, so only the free schedule.
   { op: 'qr', scale: { M: 8, N: 8 }, schedules: ['free'] },
-  { op: 'qr_givens', scale: { M: 8, N: 8 }, schedules: ['free'] },
+  // N=12 so a T=4 tiling gives 3 blocks/axis — enough for the affine diagonal tap
+  // r(i-1,p,p) to span >1 tile and show up as a long-range (collective) edge (#75).
+  { op: 'qr_givens', scale: { M: 12, N: 12 }, schedules: ['free'] },
   // BLAS L1 reductions — a wavefront point sweeping the accumulation chain
   { op: 'dot',   scale: { N: 16 }, schedules: ['linear'] },
   { op: 'nrm2',  scale: { N: 16 }, schedules: ['linear'] },

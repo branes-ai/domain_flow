@@ -8,6 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Tiled schedule animations — halo vs collective edges** (issue #75, closes the
+  Scaling & Distribution epic #68): the schedule animator now *visualizes* the tiling
+  dichotomy. `dfactl --emit-schedule` emits each variable's dependence taps (the
+  affine map `A·p + b` per producer read), and the `schedule-anim.js` viewer replays
+  them per firing wavefront to draw the cross-tile dependency edges — **green** when a
+  dependence crosses to the nearest tile (`|Δtile|∞ = 1`, a halo), **red** when it
+  jumps farther (a collective). A uniform operator shows only green; an affine tap
+  lights up red. Verified on the assets: **matmul** (15³, `T=5`) draws 2250 halo and
+  **0 collective** edges — it tiles cleanly; the near-uniform **Givens QR** (now
+  `N=12`, `T=4`) draws ~2288 halo **and ~640 collective** edges along its affine
+  diagonal taps `r(i-1,p,p)`. Both are embedded on the tiling and uniformization
+  pages. Adds `AffineDependency::matrix()`/`offset()` accessors; extends the emitter
+  and viewer (edge buckets by firing time, a cross-tile HUD counter, a halo/collective
+  legend). Builds on the `data-tile` overlay from #70.
 - **Composition across the hierarchy** (issue #74, the section capstone):
   `docs/scaling/composition.md` — how tiled operators chain into a full domain flow
   graph and where inter-operator collectives land. Establishes that a DFG edge's cost
