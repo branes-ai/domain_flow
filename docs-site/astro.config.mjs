@@ -55,6 +55,7 @@ export default defineConfig({
         {
           label: 'SURE Algorithms',
           items: [
+            { label: 'Reading BLAS names', slug: 'sure-algorithms/blas-naming' },
             {
               // Pedagogical order (each operator builds on the previous), not
               // alphabetical; pages live under content/docs/sure-algorithms/.

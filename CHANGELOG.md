@@ -23,6 +23,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **docs-site: BLAS L2 catalog nav** — a new **BLAS L2** subsection under *SURE
   Algorithms* surfaces `gemv` and `ger` in the catalog navigation (referencing their
   Theory pages) alongside the existing BLAS L1 operators.
+- **docs: "Reading BLAS names"** — a reference page (`docs/SURE/blas-naming.md`, top
+  of the SURE Algorithms section) that decodes the BLAS shorthand: the three levels
+  (vector–vector / matrix–vector / matrix–matrix by work-to-data ratio) and the
+  `[type][structure][operation]` name anatomy (`ge`/`sy`/`tr` × `mv`/`mm`/`r`/`r2`),
+  so `gemv`/`ger`/`gemm`/`syr2` become self-documenting. Includes a decoded table of
+  every catalog operator and a note on how the name's fields predict the recurrence
+  shape (reduction vs. outer product vs. the 3-D cube; triangular/symmetric domains).
 - **BLAS-2 `gemv`** (issue #31, first Level-2 catalog operator): `y = βy + αAx` as a
   pure SURE — `docs/SURE/gemv.sure` (+ derivation `docs/SURE/gemv.md` under Theory)
   and `src/dfa/tests/sim/gemv_sure.cpp` (`test_gemv_sure`, dual-compiler, zero
