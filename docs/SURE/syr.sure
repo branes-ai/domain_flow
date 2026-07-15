@@ -1,0 +1,56 @@
+// BLAS-2 symmetric rank-1 update (issue #35):
+//
+//   A(i,j) := A(i,j) + alpha * x(i) * x(j)   on the triangular domain j <= i
+//
+// syr is ger (the rank-1 update) with y = x — a single vector on both axes — and
+// the output restricted to one triangle, since A + alpha x x^T is symmetric so only
+// the lower triangle need be stored/updated. It is the SPD-accumulation primitive
+// behind Cholesky's trailing (Schur) update.
+//
+// Domain (i,j,k):  i (0..N-1), j (0..N-1) with j <= i, and k = a depth-2 FEED/DRAIN
+// axis (0..1) — the same inject -> add -> drain shape as ger/scal/axpy, but on the
+// triangular output. As in ger, A enters (and, updated, exits) on the (i,j) face.
+// The single vector x feeds BOTH axes, per cell on the (i,j) face: x(i) as xx and
+// x(j) as yy. (On a triangular domain a +i broadcast would have to enter on a
+// diagonal face — cf. trmv — so x is fed on the k face instead, which is clean.)
+//
+//   alpha(i,j,k) = 0                          alpha lives ONLY on the k=-1 halo
+//   xx(i,j,k)    = xx(i,j,k-1)                x(i) on the (i,j) face
+//   yy(i,j,k)    = yy(i,j,k-1)                x(j) on the (i,j) face
+//   r(i,j,k)     = r(i,j,k-1) + alpha(i,j,k-1)*xx(i,j,k-1)*yy(i,j,k-1)
+//
+// r is seeded by the incoming A on k=-1 and accumulates the rank-1 term EXACTLY
+// ONCE: alpha is injected only on the k=-1 halo (interior value 0), so the product
+// contributes at k=0 and vanishes at the k=1 drain. Every dependence is a constant
+// offset — a pure SURE (uniform). alpha is projected onto a face and consumed as a
+// product of recurrence variables (project-and-pipeline / one-shot injection); the
+// symmetry is expressed by the triangular domain, not the recurrence.
+//
+// Run it:   dfactl --sure docs/SURE/syr.sure            (free schedule)
+//           dfactl --sure docs/SURE/syr.sure --tau 1,1,1
+
+N = 3;
+
+system ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, 0 <= k < 2) {
+    alpha(i,j,k) = 0;                                                       // alpha only on the k=-1 halo
+    xx(i,j,k)    = xx(i,j,k-1);                                             // x(i) on the (i,j) face
+    yy(i,j,k)    = yy(i,j,k-1);                                             // x(j) on the (i,j) face
+    r(i,j,k)     = r(i,j,k-1) + alpha(i,j,k-1) * xx(i,j,k-1) * yy(i,j,k-1); // add alpha*x(i)*x(j) once, drain
+}
+
+// tensor confluences — one vector x drives both axes:
+input  A[N][N]  ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = -1)  : r(i,j,k)     = A[i][j];   // lower triangle seeds r
+input  Alpha[1] ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = -1)  : alpha(i,j,k) = Alpha[0];  // project the scalar alpha
+input  X[N]     ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = -1)  : xx(i,j,k)    = X[i];       // x(i)
+input           ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = -1)  : yy(i,j,k)    = X[j];       // x(j) — same vector
+output Aout[N][N] ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = 1) : Aout[i][j] = r(i,j,k);     // updated lower triangle
+
+tau = [1, 1, 1];                 // canonical legal wavefront schedule
+
+// test bench:  A(lower) + alpha*x*x^T,  A = [[1,.,.],[2,3,.],[4,5,6]], x = [1,2,3],
+//   alpha = 2  ->  lower triangle [[3],[6,11],[10,17,24]]
+data A     = { 1, 0, 0,
+               2, 3, 0,
+               4, 5, 6 };
+data X     = { 1, 2, 3 };
+data Alpha = 2;
