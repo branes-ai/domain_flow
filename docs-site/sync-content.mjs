@@ -59,6 +59,8 @@ const FILE_MAP = {
   'scaling/tiling.md':               'scaling/tiling.md',
   'scaling/halo-vs-collective.md':   'scaling/halo-vs-collective.md',
   'scaling/uniformization.md':       'scaling/uniformization.md',
+  'scaling/hierarchy.md':            'scaling/hierarchy.md',
+  'scaling/dmm.md':                  'scaling/dmm.md',
 
   // ── Theory: background + operator derivations not yet in the catalog ──
   'SURE/matmul.md':                  'theory/matmul.md',

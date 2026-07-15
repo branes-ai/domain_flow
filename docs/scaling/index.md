@@ -59,9 +59,12 @@ The rest of this section works through each piece:
 - **[Uniformization](uniformization.md)** — turning affine dependencies into uniform
   ones so an operator tiles: pipeline the broadcast, or change algorithm (the
   Givens-rotation QR). This is where QR's "SARE dishonesty" is resolved for real.
-- **The memory & communication hierarchy and the DMM** — PE → tile → KPU → SoC →
-  cluster; the energy–delay–**distance** cost; and the Distributed Memory Machine
-  execution model that carries the collectives.
+- **[The memory & communication hierarchy](hierarchy.md)** — PE → tile → KPU → SoC →
+  cluster; the energy–delay–**distance** cost that grows at each level, and why
+  locality compounds in value as you go up. Then **[the Distributed Memory
+  Machine](dmm.md)** — the partitioned-memory execution model and the collective
+  primitives (reduce, broadcast, scatter/gather, transpose) that carry everything a
+  halo cannot.
 - **Composition across the hierarchy** — operator graphs that span tiles and SoCs,
   and where the compiler places the collectives.
 

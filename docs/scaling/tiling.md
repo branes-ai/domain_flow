@@ -91,7 +91,7 @@ collective to serialize on. (That is a statement about *communication structure*
 not a linear-speedup guarantee: end-to-end scaling is still shaped by the
 surface-to-volume ratio, the `+K` accumulation chain's latency, the interconnect
 topology, and tile reuse.) This is the concrete, best-case instance of the
-[halo-vs-collective](index.md) dichotomy — and the baseline against which the
+[halo-vs-collective](halo-vs-collective.md) dichotomy — and the baseline against which the
 affine operators are measured.
 
 ## The partition, animated
@@ -105,4 +105,4 @@ more.
 
 <div class="schedule-anim" data-src="schedules/matmul-linear.json" data-tile="5" data-height="480" data-fps="6"></div>
 
-_Part of the [Scaling & Distribution epic](https://github.com/branes-ai/domain_flow/issues/68) (issue #70). Next: [halo vs collective](index.md) worked out across the catalog, and the [memory & communication hierarchy](index.md)._
+_Part of the [Scaling & Distribution epic](https://github.com/branes-ai/domain_flow/issues/68) (issue #70). Next: [halo vs collective](halo-vs-collective.md) worked out across the catalog, and the [memory & communication hierarchy](hierarchy.md)._
