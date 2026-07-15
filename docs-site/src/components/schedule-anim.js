@@ -148,24 +148,29 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   const EDGE_CAP = 200000;
   let edgeBuckets = null, maxBucket = 0, haloTotal = 0, collTotal = 0, edgeCapped = false;
   if (tileMode) {
-    const inBounds = (s) => s.every((v, d) => v >= (lo[d] ?? 0) && v <= (hi[d] ?? 0));
+    // index every activation by (variable name, point) so a tap resolves to a REAL
+    // producer cell. A mapped coordinate can sit inside the global bounding box yet
+    // be absent from the source variable's (e.g. triangular p ≤ q) domain — resolving
+    // by name avoids drawing a phantom edge, and gives the producer's true position.
+    const actAt = new Map();
+    acts.forEach((a, i) => actAt.set(`${vars[a.vi].name}@${a.raw.join(',')}`, i));
     const applyMap = (A, b, p) =>
       A.map((row, r) => (b?.[r] ?? 0) + row.reduce((acc, m, c) => acc + m * (p[c] ?? 0), 0));
     edgeBuckets = Array.from({ length: frameCount }, () => []);
     let count = 0;
     for (let i = 0; i < acts.length && !edgeCapped; i++) {
       const a = acts[i];
-      const taps = vars[a.vi]?.taps ?? [];
       const consumerTile = tileOf(a.p);
-      for (const tap of taps) {
+      for (const tap of vars[a.vi]?.taps ?? []) {
         if (!Array.isArray(tap.A)) continue;
         const s = applyMap(tap.A, tap.b, a.raw);
-        if (!inBounds(s)) continue;                 // boundary/input read — not a cross-tile compute edge
-        const st = tileOf(pad(s));
+        const j = actAt.get(`${tap.source}@${s.join(',')}`);
+        if (j === undefined) continue;              // boundary/input read or out-of-domain — no compute edge
+        const st = tileOf(acts[j].p);
         let lvl = 0;
         for (let d = 0; d < 3; d++) lvl = Math.max(lvl, Math.abs(consumerTile[d] - st[d]));
         if (lvl === 0) continue;                    // stays in the same tile
-        edgeBuckets[a.t - tMin].push({ from: positions[i], to: pad(s), level: lvl });
+        edgeBuckets[a.t - tMin].push({ from: positions[i], to: positions[j], level: lvl });
         if (lvl === 1) haloTotal++; else collTotal++;
         if (++count >= EDGE_CAP) { edgeCapped = true; break; }
       }

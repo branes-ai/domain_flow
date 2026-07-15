@@ -110,8 +110,9 @@ The animation below tiles the `(i,p,q)` domain (`T = 4`, a `3×3×3` grid) and d
 the cross-tile dependency edges of the firing wavefront: **green** where a dependence
 crosses to the *nearest* tile (a halo), **red** where it jumps *farther* (a
 collective). Givens lights up **mostly green** — the near-uniform structure — with a
-thin ribbon of **red** along the diagonal taps `r(i-1,p,p)`, the affine
-row-broadcast that a true SURE would pipeline away. Compare the
+thin ribbon of **red** along the two affine diagonal taps `r(i-1,p,p)` and
+`a(i,p-1,p)`, the row-broadcast of the rotation that a true SURE would pipeline
+away. Compare the
 [tiled matmul](tiling.md): pure green, **zero** red.
 
 <div class="schedule-anim" data-src="schedules/qr_givens-free.json" data-tile="4" data-height="460" data-fps="4"></div>

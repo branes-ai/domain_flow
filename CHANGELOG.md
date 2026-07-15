@@ -17,8 +17,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   jumps farther (a collective). A uniform operator shows only green; an affine tap
   lights up red. Verified on the assets: **matmul** (15³, `T=5`) draws 2250 halo and
   **0 collective** edges — it tiles cleanly; the near-uniform **Givens QR** (now
-  `N=12`, `T=4`) draws ~2288 halo **and ~640 collective** edges along its affine
-  diagonal taps `r(i-1,p,p)`. Both are embedded on the tiling and uniformization
+  `N=12`, `T=4`) draws ~2288 halo **and ~640 collective** edges along its two affine
+  diagonal taps `r(i-1,p,p)` and `a(i,p-1,p)`. Both are embedded on the tiling and
+  uniformization
   pages. Adds `AffineDependency::matrix()`/`offset()` accessors; extends the emitter
   and viewer (edge buckets by firing time, a cross-tile HUD counter, a halo/collective
   legend). Builds on the `data-tile` overlay from #70.
