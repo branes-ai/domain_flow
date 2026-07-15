@@ -1,0 +1,61 @@
+// BLAS-3 symmetric matrix-matrix product (issue #41):
+//
+//   C(i,j) := beta*C(i,j) + alpha * sum_k A(i,k) * B(k,j),   with A = A^T
+//   stored as a single (lower) triangle.
+//
+// symm is gemm for a symmetric A: numerically it is gemm, and the interest is the
+// symmetric-storage confluence -- the same TWO-FACE feed as symv, now on gemm's 3-D
+// reduction cube. The operand a carrying A(i,k) reads the stored triangle two ways:
+//   - lower cells (k <= i) read the stored element   a = A[i][k]
+//   - upper cells (i <  k) read the REFLECTED element a = A[k][i]
+// so cell (i,j,k) always sees A_sym(i,k) and the reduction is the ordinary gemm sweep.
+//
+//   a(i,j,k)     = a(i,j-1,k)      A_sym(i,k) along +j
+//   b(i,j,k)     = b(i-1,j,k)      B(k,j) along +i
+//   alpha/beta/cin pipelined as in gemm
+//   c(i,j,k)     = c(i,j,k-1) + alpha(i,j,k-1)*a(i,j-1,k)*b(i-1,j,k)
+//
+// alpha is projected and folded into the reduction; the incoming C scaled by beta
+// joins the completed sum in a terminal-face epilogue on k = K-1. Every dependence is
+// a constant offset -- a pure SURE (uniform); the symmetry lives in the confluence.
+//
+// Run it:   dfactl --sure docs/SURE/symm.sure            (free schedule)
+//           dfactl --sure docs/SURE/symm.sure --tau 1,1,1
+
+M = 3; N = 2; K = 3;
+
+system ((i,j,k) | 0 <= i < M, 0 <= j < N, 0 <= k < K) {
+    a(i,j,k)     = a(i,j-1,k);                                              // A_sym(i,k) along +j
+    b(i,j,k)     = b(i-1,j,k);                                              // B(k,j) along +i
+    alpha(i,j,k) = alpha(i,j,k-1);                                          // scalar alpha along +k
+    beta(i,j,k)  = beta(i-1,j,k);                                           // scalar beta along +i
+    cin(i,j,k)   = cin(i,j,k-1);                                            // incoming C along +k
+    c(i,j,k)     = c(i,j,k-1) + alpha(i,j,k-1) * a(i,j-1,k) * b(i-1,j,k);   // accumulate alpha*A*B along +k
+}
+
+// tensor confluences -- the symmetric feed reads one stored (lower) triangle twice:
+input  A[M][K]   ((i,j,k) | 0 <= i < M, 0 <= k < K, k <= i, j = -1)  : a(i,j,k)     = A[i][k];  // lower: A(i,k)
+input            ((i,j,k) | 0 <= i < M, 0 <= k < K, i < k, j = -1)   : a(i,j,k)     = A[k][i];  // upper: reflected A(k,i)
+input  B[K][N]   ((i,j,k) | 0 <= k < K, 0 <= j < N, i = -1)          : b(i,j,k)     = B[k][j];   // B on the i=-1 face
+input  Alpha[1]  ((i,j,k) | 0 <= i < M, 0 <= j < N, k = -1)          : alpha(i,j,k) = Alpha[0];  // project scalar alpha
+input  Beta[1]   ((i,j,k) | i = -1, 0 <= j < N, 0 <= k < K)          : beta(i,j,k)  = Beta[0];    // project scalar beta
+input  Cin[M][N] ((i,j,k) | 0 <= i < M, 0 <= j < N, k = -1)          : cin(i,j,k)   = Cin[i][j];  // incoming C on k=-1
+input            ((i,j,k) | 0 <= i < M, 0 <= j < N, k = -1)          : c(i,j,k)     = 0;           // accumulator seed
+output C[M][N]   ((i,j,k) | 0 <= i < M, 0 <= j < N, k = K-1)         : C[i][j] = c(i,j,k) + beta(i,j,k)*cin(i,j,k); // alpha*AB + beta*C
+
+tau = [1, 1, 1];                 // canonical legal wavefront schedule
+
+// test bench:  symmetric A = [[2,3,5],[3,4,6],[5,6,7]] stored as its lower triangle,
+//   B = [[1,2],[3,4],[5,6]], alpha=2, beta=10, Cin=[[1,2],[3,4],[5,6]].
+//   A B = [[36,46],[45,58],[58,76]];  C = 10*Cin + 2*A B = [[82,112],[120,156],[166,212]]
+data A     = { 2, 0, 0,
+               3, 4, 0,
+               5, 6, 7 };
+data B     = { 1, 2,
+               3, 4,
+               5, 6 };
+data Cin   = { 1, 2,
+               3, 4,
+               5, 6 };
+data Alpha = 2;
+data Beta  = 10;
