@@ -1,0 +1,66 @@
+// BLAS-3 symmetric rank-k update (issue #38):
+//
+//   C(i,j) := beta * C(i,j) + alpha * sum_k A(i,k) * A(j,k)   on j <= i
+//
+// syrk is gemm with B = A^T (a single operand A feeding both taps) and a TRIANGULAR
+// output domain, since C = A A^T is symmetric so only the lower triangle is formed.
+// It is the SPD-forming Level-3 kernel (the trailing update in blocked Cholesky).
+//
+// 3-D domain (i,j,k) with j <= i: the reduction runs over k. As in gemm, a carries
+// A(i,k) along +j; but the second tap is A(j,k), so b carries A(j,k) along +i --
+// and because the output triangle's columns begin at the diagonal, b cannot enter
+// on the plain i = -1 face (its +i pipeline would read outside the triangle). It
+// enters instead on the SUPER-DIAGONAL halo i - j = -1 (the cell just above each
+// column's first, cf. trmv), which is a clean halo here because the output leaves
+// on the k = K-1 face, not on a diagonal parallel to that feed.
+//
+//   a(i,j,k)     = a(i,j-1,k)      A(i,k) along +j
+//   b(i,j,k)     = b(i-1,j,k)      A(j,k) along +i, seeded on the super-diagonal
+//   alpha/beta/cin pipelined along +k (as in gemm)
+//   c(i,j,k)     = c(i,j,k-1) + alpha(i,j,k-1)*a(i,j-1,k)*b(i-1,j,k)
+//
+// alpha is projected and folded into the reduction; the incoming C scaled by beta
+// joins the completed sum in a terminal-face epilogue on k = K-1. Every dependence
+// is a constant offset -- a pure SURE (uniform).
+//
+// Schedule: the super-diagonal b-face has outward normal (-1,1,0), so its influx
+// tau.n < 0 requires tau_i > tau_j. The canonical tau = [2,1,1] satisfies this; the
+// box default tau = [1,1,1] is REJECTED -- the triangular geometry constrains the
+// schedule (mirroring trmv, in the opposite direction).
+//
+// Run it:   dfactl --sure docs/SURE/syrk.sure            (free schedule)
+//           dfactl --sure docs/SURE/syrk.sure --tau 2,1,1
+
+N = 3; K = 2;
+
+system ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, 0 <= k < K) {
+    a(i,j,k)     = a(i,j-1,k);                                              // A(i,k) along +j
+    b(i,j,k)     = b(i-1,j,k);                                              // A(j,k) along +i
+    alpha(i,j,k) = alpha(i,j,k-1);                                          // scalar alpha along +k
+    beta(i,j,k)  = beta(i,j,k-1);                                           // scalar beta along +k
+    cin(i,j,k)   = cin(i,j,k-1);                                            // incoming C along +k
+    c(i,j,k)     = c(i,j,k-1) + alpha(i,j,k-1) * a(i,j-1,k) * b(i-1,j,k);   // Σ_k A(i,k)A(j,k)
+}
+
+// tensor confluences — a single A feeds both taps:
+input  A[N][K]   ((i,j,k) | 0 <= i < N, 0 <= k < K, j = -1)                  : a(i,j,k)     = A[i][k];  // A(i,k) on j=-1
+input            ((i,j,k) | -1 <= i < N, 0 <= j < N, i - j = -1, 0 <= k < K) : b(i,j,k)     = A[j][k];  // A(j,k) super-diagonal
+input  Alpha[1]  ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = -1)          : alpha(i,j,k) = Alpha[0]; // project scalar alpha
+input  Beta[1]   ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = -1)          : beta(i,j,k)  = Beta[0];  // project scalar beta
+input  Cin[N][N] ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = -1)          : cin(i,j,k)   = Cin[i][j]; // incoming lower triangle
+input            ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = -1)          : c(i,j,k)     = 0;         // accumulator seed
+output C[N][N]   ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = K-1)         : C[i][j] = c(i,j,k) + beta(i,j,k) * cin(i,j,k); // αAAᵀ + βC
+
+tau = [2, 1, 1];                 // canonical schedule (tau_i > tau_j for the super-diagonal influx)
+
+// test bench:  C = beta*Cin + alpha*A*A^T (lower),  A = [[1,2],[3,4],[5,6]]
+//   A A^T = [[5],[11,25],[17,39,61]];  alpha=2, beta=10, Cin lower [[1],[2,3],[4,5,6]]
+//   -> C = [[20],[42,80],[74,128,182]]
+data A     = { 1, 2,
+               3, 4,
+               5, 6 };
+data Cin   = { 1, 0, 0,
+               2, 3, 0,
+               4, 5, 6 };
+data Alpha = 2;
+data Beta  = 10;
