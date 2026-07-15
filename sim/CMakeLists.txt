@@ -52,6 +52,9 @@ if(DOMAINFLOW_BUILD_TESTING)
     add_test(NAME dfactl_sure_syr2k
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/syr2k.sure
                      --emit-schedule ${CMAKE_CURRENT_BINARY_DIR}/syr2k-schedule.json)
+    add_test(NAME dfactl_sure_trmm
+             COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/trmm.sure
+                     --emit-schedule ${CMAKE_CURRENT_BINARY_DIR}/trmm-schedule.json)
     add_test(NAME dfactl_sure_ger
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/ger.sure)
     add_test(NAME dfactl_sure_trmv
