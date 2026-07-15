@@ -161,10 +161,18 @@ namespace {
         std::vector<long> hi(rank, std::numeric_limits<long>::min());
         long tmin = std::numeric_limits<long>::max(), tmax = std::numeric_limits<long>::min();
 
-        struct VarDump { std::string name; std::vector<std::pair<IndexPoint, long>> pts; };
+        // A dependence tap: which producer this variable reads, and the affine map
+        // f(p) = A*p + b from a consumer point to the producer point it reads. The
+        // viewer replays these to find edges that cross a tile boundary (halo vs
+        // collective) — uniform taps give A = I (short, nearest-neighbour), affine
+        // taps (a projection/permutation) can jump across many tiles (long-range).
+        struct TapDump { std::string source; std::vector<std::vector<int>> A; std::vector<int> b; };
+        struct VarDump { std::string name; std::vector<std::pair<IndexPoint, long>> pts; std::vector<TapDump> taps; };
         std::vector<VarDump> vars;
         for (const auto& [name, eq] : sure.system.equations()) {
             VarDump vd; vd.name = name;
+            for (const auto& tap : eq.taps)
+                vd.taps.push_back({ tap.source, tap.map.matrix(), tap.map.offset() });
             for (const auto& p : eq.domain.enumerate()) {
                 long t = sched.time(name, p);
                 vd.pts.emplace_back(p, t);
@@ -200,7 +208,14 @@ namespace {
         js << "  \"latency\": " << (tmax - tmin + 1) << ",\n";
         js << "  \"variables\": [\n";
         for (std::size_t v = 0; v < vars.size(); ++v) {
-            js << "    {\"name\": \"" << vars[v].name << "\", \"points\": [";
+            js << "    {\"name\": \"" << vars[v].name << "\", \"taps\": [";
+            for (std::size_t k = 0; k < vars[v].taps.size(); ++k) {
+                const TapDump& t = vars[v].taps[k];
+                js << "{\"source\":\"" << t.source << "\",\"A\":[";
+                for (std::size_t r = 0; r < t.A.size(); ++r) { arr(t.A[r]); js << (r + 1 < t.A.size() ? "," : ""); }
+                js << "],\"b\":"; arr(t.b); js << "}" << (k + 1 < vars[v].taps.size() ? "," : "");
+            }
+            js << "], \"points\": [";
             for (std::size_t k = 0; k < vars[v].pts.size(); ++k) {
                 const IndexPoint& p = vars[v].pts[k].first;
                 js << "{\"p\":[";
