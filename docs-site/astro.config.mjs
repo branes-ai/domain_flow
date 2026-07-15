@@ -80,6 +80,8 @@ export default defineConfig({
             { label: 'Tiling the index space', slug: 'scaling/tiling' },
             { label: 'Halo vs collective', slug: 'scaling/halo-vs-collective' },
             { label: 'Uniformization', slug: 'scaling/uniformization' },
+            { label: 'The memory & communication hierarchy', slug: 'scaling/hierarchy' },
+            { label: 'The Distributed Memory Machine', slug: 'scaling/dmm' },
           ],
         },
         {

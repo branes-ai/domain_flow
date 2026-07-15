@@ -8,6 +8,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **The memory & communication hierarchy and the DMM** (issue #73): two greenfield
+  scaling pages. `docs/scaling/hierarchy.md` defines the levels (PE → tile → KPU →
+  SoC → cluster), establishes that there is **no shared memory above the tile**, and
+  gives the **energy–delay–distance** cost model — each level up costs ~an order of
+  magnitude more per word — with the key argument that **locality compounds**: a
+  uniform halo stays pinned to the bottom level at any scale, while an affine
+  collective is forced to climb the hierarchy as the problem grows, so the
+  uniform-vs-affine gap *widens* with scale. `docs/scaling/dmm.md` defines the
+  **Distributed Memory Machine** execution model (partitioned memory + collective
+  primitives: reduce, broadcast, all-reduce, scatter/gather, transpose), their cost
+  tiers (level dominates count; all-to-all is the cliff), and the compiler's
+  four-step lowering contract. Reconciles the acronym collision honestly: **EDDO** is
+  *Explicit Decoupled Data Orchestration* (the architecture class, per the existing
+  `targeting-EDDO-with-Polyhedral.md`), distinct from the energy–delay–distance
+  *cost model*. Also wires up the previously-placeholder cross-links from the tiling,
+  halo-vs-collective, and landing pages.
 - **Halo vs collective** (issue #71): `docs/scaling/halo-vs-collective.md` — the
   worked-out cross-tile dependency dichotomy at the heart of the scaling section. A
   uniform (constant-offset) dependence becomes a nearest-neighbour **halo**
