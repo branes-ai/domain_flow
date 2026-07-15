@@ -1,0 +1,64 @@
+// BLAS-2 symmetric matrix-vector product (issue #34):
+//
+//   y(i) := beta * y(i) + alpha * sum_j A(i,j) * x(j),   with A = A^T,
+//   reading only ONE stored triangle of A.
+//
+// symv is gemv for a symmetric A that is stored as a single (here lower) triangle.
+// The interesting part is the symmetric-storage confluence pattern: each stored
+// element A(i,j) (j <= i) is routed to TWO contributions,
+//   y(i) += A(i,j) x(j)   and   y(j) += A(i,j) x(i),
+// which here is realized cleanly by a TWO-FACE feed over the full square domain:
+//   - the LOWER cells (j <= i) read the stored element directly:  a = A[i][j]
+//   - the UPPER cells (i <  j) read the REFLECTED element:         a = A[j][i]
+// so cell (i,j) always sees A_sym(i,j), and the reduction y(i) = sum_j a(i,j) x(j)
+// is the ordinary gemv sweep. One stored triangle, two reads (= two accumulations).
+//
+// The rest is gemv verbatim: x(j) reused across rows (pipelined +i), the scalars
+// alpha/beta project-and-pipelined, and the beta*y epilogue on the terminal face.
+//
+//   a(i,j,k)     = a(i,j,k-1)      A_sym(i,j), fed on the (i,j) face (two regions)
+//   xx(i,j,k)    = xx(i-1,j,k)     x(j) pipelined across the rows +i
+//   alpha(i,j,k) = alpha(i,j,k-1)  scalar alpha on the (i,j) face
+//   beta(i,j,k)  = beta(i-1,j,k)   scalar beta on the i=-1 face
+//   yin(i,j,k)   = yin(i,j-1,k)    incoming y(i) along +j
+//   acc(i,j,k)   = acc(i,j-1,k) + alpha(i,j,k-1)*a(i,j,k-1)*xx(i-1,j,k)
+//
+// Every dependence is a constant offset — a pure SURE (uniform); the symmetry lives
+// entirely in the confluence (the reflected upper feed A[j][i]).
+//
+// Run it:   dfactl --sure docs/SURE/symv.sure            (free schedule)
+//           dfactl --sure docs/SURE/symv.sure --tau 1,1,1
+
+N = 3;
+
+system ((i,j,k) | 0 <= i < N, 0 <= j < N, 0 <= k < 1) {
+    a(i,j,k)     = a(i,j,k-1);                                              // A_sym(i,j) on the (i,j) face
+    xx(i,j,k)    = xx(i-1,j,k);                                             // x(j) pipelined across rows +i
+    alpha(i,j,k) = alpha(i,j,k-1);                                          // scalar alpha on the (i,j) face
+    beta(i,j,k)  = beta(i-1,j,k);                                           // scalar beta on the i=-1 face
+    yin(i,j,k)   = yin(i,j-1,k);                                            // incoming y(i) along +j
+    acc(i,j,k)   = acc(i,j-1,k) + alpha(i,j,k-1) * a(i,j,k-1) * xx(i-1,j,k); // reduce alpha*A*x along +j
+}
+
+// tensor confluences — the symmetric feed reads one stored (lower) triangle twice:
+input  A[N][N]  ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = -1)  : a(i,j,k)     = A[i][j];  // lower: A(i,j)
+input           ((i,j,k) | 0 <= i < N, 0 <= j < N, i < j, k = -1)   : a(i,j,k)     = A[j][i];  // upper: reflected A(j,i)
+input  X[N]     ((i,j,k) | i = -1, 0 <= j < N, 0 <= k < 1)          : xx(i,j,k)    = X[j];       // x on the i=-1 face
+input  Alpha[1] ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1)          : alpha(i,j,k) = Alpha[0];   // project scalar alpha
+input  Beta[1]  ((i,j,k) | i = -1, 0 <= j < N, 0 <= k < 1)          : beta(i,j,k)  = Beta[0];     // project scalar beta
+input  Yin[N]   ((i,j,k) | 0 <= i < N, j = -1, 0 <= k < 1)          : yin(i,j,k)   = Yin[i];      // incoming y on j=-1
+input           ((i,j,k) | 0 <= i < N, j = -1, 0 <= k < 1)          : acc(i,j,k)   = 0;           // reduction seed
+output Y[N]     ((i,j,k) | 0 <= i < N, j = N-1, 0 <= k < 1)         : Y[i] = acc(i,j,k) + beta(i,j,k) * yin(i,j,k); // alpha*A*x + beta*y
+
+tau = [1, 1, 1];                 // canonical legal wavefront schedule
+
+// test bench: symmetric A = [[2,3,5],[3,4,6],[5,6,7]] stored as its lower triangle,
+//   x = [1,2,3], alpha = 2, beta = 10, y_in = [1,2,3].
+//   A x = [23, 29, 38];  y = 10*y_in + 2*A x = [56, 78, 106]
+data A     = { 2, 0, 0,
+               3, 4, 0,
+               5, 6, 7 };
+data X     = { 1, 2, 3 };
+data Alpha = 2;
+data Beta  = 10;
+data Yin   = { 1, 2, 3 };

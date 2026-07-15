@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **BLAS-2 `symv`** (issue #34): the symmetric matvec `y = αAx + βy` (`A = Aᵀ`,
+  reading only one stored triangle) as a pure SURE — `docs/SURE/symv.sure` (+
+  derivation `docs/SURE/symv.md` under Theory / BLAS L2 nav) and
+  `src/dfa/tests/sim/symv_sure.cpp` (`test_symv_sure`, dual-compiler, zero warnings)
+  with a `dfactl_sure_symv` emit test. Numerically it is `gemv`; the interest is the
+  **symmetric-storage confluence pattern** — each stored element `A(i,j)` (`j ≤ i`)
+  is routed to two accumulations (`y(i) += A(i,j)x(j)` and `y(j) += A(i,j)x(i)`),
+  realized as a **two-face feed** over the full square: the lower cells read the
+  stored `A[i][j]`, the upper cells read the **reflected** `A[j][i]`, so cell `(i,j)`
+  always sees `A_sym(i,j)` and the reduction is the ordinary gemv sweep. The symmetry
+  lives entirely in the confluence, not the recurrence. Verified numerically
+  (`Ax = [23,29,38]`, `y = [56,78,106]`) and for free/linear schedule legality.
 - **BLAS-2 `trmv`** (issue #33): the triangular matvec `x := Tx` as a pure SURE —
   `docs/SURE/trmv.sure` (+ derivation `docs/SURE/trmv.md` under Theory / BLAS L2 nav)
   and `src/dfa/tests/sim/trmv_sure.cpp` (`test_trmv_sure`, dual-compiler, zero
