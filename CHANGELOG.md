@@ -8,6 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **BLAS-2 `gemv`** (issue #31, first Level-2 catalog operator): `y = βy + αAx` as a
+  pure SURE — `docs/SURE/gemv.sure` (+ derivation `docs/SURE/gemv.md` under Theory)
+  and `src/dfa/tests/sim/gemv_sure.cpp` (`test_gemv_sure`, dual-compiler, zero
+  warnings) with a `dfactl_sure_gemv` emit test. Structurally matmul with the second
+  matrix collapsed to a vector: a reduction over the column `j`, with `x` reused
+  across rows (pipelined along `+i`) and `A` — indexed by both axes and read once —
+  entering on the `(i,j)` face of a depth-1 feed axis. The scalars `α`, `β` are
+  project-and-pipelined (never literals in a recurrence body): `α` folds into the
+  reduction product, and the `βy` term combines with the completed sum in a
+  terminal-face epilogue on the output face `j = N-1`. Verified numerically
+  (`y = [70,160,250]` for the bundled data) and for free/linear schedule legality.
 - **Tiled schedule animations — halo vs collective edges** (issue #75, closes the
   Scaling & Distribution epic #68): the schedule animator now *visualizes* the tiling
   dichotomy. `dfactl --emit-schedule` emits each variable's dependence taps (the
