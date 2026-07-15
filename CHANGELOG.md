@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **BLAS-3 `gemm`** (issue #37): the general matrix–matrix product `C = βC + αAB`,
+  the first Level-3 catalog operator — `docs/SURE/gemm.sure` (+ a lean page under
+  SURE Algorithms / **BLAS L3** with a 3-D-cube schedule animation) and
+  `src/dfa/tests/sim/gemm_sure.cpp` (`test_gemm_sure`, dual-compiler, zero warnings)
+  with a `dfactl_sure_gemm` schedule-emit test. Generalizes the canonical systolic
+  `matmul` (`C = AB`) with the catalog's matrix–vector patterns lifted to the 3-D
+  reduction cube: `α` is projected onto a face and folded into the reduction, and the
+  incoming `C` scaled by `β` joins the completed sum in a terminal-face epilogue on
+  `k = K-1`. Every dependence is a constant offset → a pure SURE. Verified numerically
+  (`C = [[126,148],[308,348]]` for `αAB + βC` with `α=2, β=10`) and for free/linear
+  schedule legality.
+
 ### Changed
 
 - **docs-site: Theory vs SURE Algorithms restructure** (issue #87). Separated
