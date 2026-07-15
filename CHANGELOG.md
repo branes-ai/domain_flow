@@ -8,6 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **BLAS-3 `symm`** (issue #41, completes BLAS Level-3): the symmetric matrix-matrix
+  product `C = βC + αAB` (`A = Aᵀ` read from one triangle) as a pure SURE —
+  `docs/SURE/symm.sure` (+ a lean page under SURE Algorithms / BLAS L3 with a 3-D-cube
+  animation) and `src/dfa/tests/sim/symm_sure.cpp` (`test_symm_sure`, dual-compiler,
+  zero warnings) with a `dfactl_sure_symm` schedule-emit test. It is `gemm` for a
+  symmetric `A`: the operand tap reads the stored triangle via a **two-face feed** —
+  the lower cells read `A[i][k]`, the upper cells read the reflected `A[k][i]` — so
+  cell `(i,j,k)` always sees `A_sym(i,k)` and the reduction is the ordinary gemm
+  sweep (`symv`'s confluence pattern on gemm's 3-D cube). Verified numerically
+  (`C = [[82,112],[120,156],[166,212]]`). **This completes the BLAS Level-3 catalog
+  (#37–#41: gemm, syrk, syr2k, trmm, symm).**
 - **BLAS-3 `trmm`** (issue #40): the triangular matrix-matrix product `B := αTB`
   (in place, `T` lower-triangular) as a pure SURE — `docs/SURE/trmm.sure` (+ a lean
   page under SURE Algorithms / BLAS L3 with a triangular-prism animation) and
