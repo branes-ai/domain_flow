@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **BLAS-2 `syr`** (issue #35): the symmetric rank-1 update `A += αxxᵀ` on the
+  triangular domain `j ≤ i`, as a pure SURE — `docs/SURE/syr.sure` (+ derivation
+  `docs/SURE/syr.md` under Theory / BLAS L2 nav) and `src/dfa/tests/sim/syr_sure.cpp`
+  (`test_syr_sure`, dual-compiler, zero warnings) with a `dfactl_sure_syr` emit test.
+  It is `ger` with `y = x` (a single vector on both axes) and the output restricted to
+  one triangle (`A + αxxᵀ` is symmetric) — the SPD-accumulation primitive behind
+  Cholesky's trailing update. Combines `ger`'s inject → add → drain (a depth-2 feed
+  axis, `α` injected once on the `k=-1` halo) with `trmv`'s triangular domain; the
+  single vector feeds both axes per cell on the `(i,j)` face (a `+i` broadcast would
+  need a diagonal seed face on a triangular domain). The result drains on the `k=1`
+  face, so `τ=[1,1,1]` is legal (no diagonal-output constraint). Verified numerically
+  (lower triangle `[[3],[6,11],[10,17,24]]`).
 - **BLAS-2 `symv`** (issue #34): the symmetric matvec `y = αAx + βy` (`A = Aᵀ`,
   reading only one stored triangle) as a pure SURE — `docs/SURE/symv.sure` (+
   derivation `docs/SURE/symv.md` under Theory / BLAS L2 nav) and
