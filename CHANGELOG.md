@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Complete BLAS operator catalog (L1 + L2 + L3) and the Scaling & Distribution docs
+  section.** This spans the individual entries below (BLAS-2 `gemv`…`syr2`, BLAS-3
+  `gemm`…`symm`, the tiling/hierarchy/DMM/composition pages, the Givens-QR flagship,
+  the docs-site restructure, and the geometry-doc math-rendering repair). Session log:
+  [`docs/sessions/2026-07-14-scaling-epic-and-blas-l2-l3-catalog.md`](https://github.com/branes-ai/domain_flow/blob/main/docs/sessions/2026-07-14-scaling-epic-and-blas-l2-l3-catalog.md).
+
 - **BLAS-3 `symm`** (issue #41, completes BLAS Level-3): the symmetric matrix-matrix
   product `C = βC + αAB` (`A = Aᵀ` read from one triangle) as a pure SURE —
   `docs/SURE/symm.sure` (+ a lean page under SURE Algorithms / BLAS L3 with a 3-D-cube
