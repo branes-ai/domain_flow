@@ -8,6 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **BLAS-3 `syrk`** (issue #38): the symmetric rank-k update `C = βC + αAAᵀ` on the
+  triangular output `j ≤ i`, as a pure SURE — `docs/SURE/syrk.sure` (+ a lean page
+  under SURE Algorithms / BLAS L3 with a triangular-prism animation) and
+  `src/dfa/tests/sim/syrk_sure.cpp` (`test_syrk_sure`, dual-compiler, zero warnings)
+  with a `dfactl_sure_syrk` schedule-emit test. It is `gemm` with `B = Aᵀ` — a single
+  operand `A` feeds both taps (`A(i,k)` along `+j`, `A(j,k)` along `+i`) — and a
+  triangular output (`AAᵀ` is symmetric). Because the triangle's columns begin at the
+  diagonal, the `A(j,k)` tap enters on the **super-diagonal** halo `i-j = -1` (a clean
+  halo since the output leaves on `k=K-1`); its normal `(-1,1,0)` makes the canonical
+  `τ = [2,1,1]` legal while the box-default `τ = [1,1,1]` is rejected — the triangular
+  geometry constrains the schedule, mirroring `trmv` in the opposite direction. A
+  symmetric rank-k update (the `AAᵀ` term is positive semidefinite) — the kernel
+  behind blocked Cholesky's trailing update. Verified numerically (lower triangle
+  `[[20],[42,80],[74,128,182]]`).
 - **BLAS-3 `gemm`** (issue #37): the general matrix–matrix product `C = βC + αAB`,
   the first Level-3 catalog operator — `docs/SURE/gemm.sure` (+ a lean page under
   SURE Algorithms / **BLAS L3** with a 3-D-cube schedule animation) and

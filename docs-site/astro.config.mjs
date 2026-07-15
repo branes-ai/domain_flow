@@ -103,6 +103,7 @@ export default defineConfig({
               label: 'BLAS L3',
               items: [
                 { label: 'gemm — αAB + βC', slug: 'sure-algorithms/blas-l3/gemm' },
+                { label: 'syrk — αAAᵀ + βC', slug: 'sure-algorithms/blas-l3/syrk' },
               ],
             },
           ],
