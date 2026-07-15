@@ -83,6 +83,7 @@ export default defineConfig({
                 { label: 'trmv — x := Tx', slug: 'theory/trmv' },
                 { label: 'symv — αAx + βy (sym)', slug: 'theory/symv' },
                 { label: 'syr — A += αxxᵀ', slug: 'theory/syr' },
+                { label: 'syr2 — A += α(xyᵀ+yxᵀ)', slug: 'theory/syr2' },
               ],
             },
           ],
