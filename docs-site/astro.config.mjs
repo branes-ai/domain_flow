@@ -55,6 +55,7 @@ export default defineConfig({
         {
           label: 'SURE Algorithms',
           items: [
+            { label: 'Reading BLAS names', slug: 'sure-algorithms/blas-naming' },
             {
               // Pedagogical order (each operator builds on the previous), not
               // alphabetical; pages live under content/docs/sure-algorithms/.
@@ -69,6 +70,16 @@ export default defineConfig({
                 { label: 'copy — y ← x', slug: 'sure-algorithms/blas-l1/copy' },
                 { label: 'rot — Givens', slug: 'sure-algorithms/blas-l1/rot' },
                 { label: 'iamax — argmax|xᵢ|', slug: 'sure-algorithms/blas-l1/iamax' },
+              ],
+            },
+            {
+              // Level-2 (matrix-vector) operators. The pages live under Theory
+              // (content/docs/theory/); these entries surface them in the catalog
+              // nav alongside BLAS L1 by referencing their slugs.
+              label: 'BLAS L2',
+              items: [
+                { label: 'gemv — αAx + βy', slug: 'theory/gemv' },
+                { label: 'ger — A += αxyᵀ', slug: 'theory/ger' },
               ],
             },
           ],
