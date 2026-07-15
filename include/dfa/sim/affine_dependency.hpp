@@ -54,6 +54,11 @@ namespace sw {
                 std::size_t inDim()  const noexcept { return A_.empty() ? 0 : A_[0].size(); }
                 std::size_t outDim() const noexcept { return A_.size(); }
 
+                // The map coefficients, for consumers that need to serialize or analyze
+                // the dependence (e.g. the schedule emitter writing taps to JSON).
+                const std::vector<std::vector<int>>& matrix() const noexcept { return A_; }
+                const std::vector<int>& offset() const noexcept { return b_; }
+
                 // Uniform dependency: producer = p + shift  (A = I, b = shift)
                 static AffineDependency shift(const std::vector<int>& s) {
                     std::size_t n = s.size();
