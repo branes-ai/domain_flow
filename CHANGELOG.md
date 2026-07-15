@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **BLAS-2 `ger`** (issue #32): the rank-1 update `A += αxyᵀ` as a pure SURE —
+  `docs/SURE/ger.sure` (+ derivation `docs/SURE/ger.md` under Theory) and
+  `src/dfa/tests/sim/ger_sure.cpp` (`test_ger_sure`, dual-compiler, zero warnings)
+  with a `dfactl_sure_ger` emit test. The outer-product counterpart to `gemv`: a 2-D
+  **fully-parallel** update (no reduction), with `x` broadcast along `+j` and `y`
+  along `+i`. The matrix `A` — indexed by both axes and consumed once — enters *and*
+  exits on the `(i,j)` face of a **depth-2 feed/drain** axis (inject → add → drain,
+  as in `scal`/`axpy`): `A` seeds the accumulator on the `k=-1` halo, the rank-1 term
+  is added exactly once (`α` injected only on that halo, zero in the interior), and
+  the updated matrix drains on the `k=1` face. Verified numerically
+  (`[[21,42,63],[44,85,126]]`) and for free/linear schedule legality. The rank-1
+  building block reused by LU's Schur update and by `syr`/`syr2`.
 - **BLAS-2 `gemv`** (issue #31, first Level-2 catalog operator): `y = βy + αAx` as a
   pure SURE — `docs/SURE/gemv.sure` (+ derivation `docs/SURE/gemv.md` under Theory)
   and `src/dfa/tests/sim/gemv_sure.cpp` (`test_gemv_sure`, dual-compiler, zero
