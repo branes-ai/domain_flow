@@ -20,6 +20,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   the updated matrix drains on the `k=1` face. Verified numerically
   (`[[21,42,63],[44,85,126]]`) and for free/linear schedule legality. The rank-1
   building block reused by LU's Schur update and by `syr`/`syr2`.
+- **docs-site: BLAS L2 catalog nav** — a new **BLAS L2** subsection under *SURE
+  Algorithms* surfaces `gemv` and `ger` in the catalog navigation (referencing their
+  Theory pages) alongside the existing BLAS L1 operators.
 - **BLAS-2 `gemv`** (issue #31, first Level-2 catalog operator): `y = βy + αAx` as a
   pure SURE — `docs/SURE/gemv.sure` (+ derivation `docs/SURE/gemv.md` under Theory)
   and `src/dfa/tests/sim/gemv_sure.cpp` (`test_gemv_sure`, dual-compiler, zero
