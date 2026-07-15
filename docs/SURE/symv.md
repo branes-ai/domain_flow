@@ -14,15 +14,17 @@ pattern** — how a single stored triangle drives a full matrix–vector product
 ## One triangle, two contributions
 
 The efficient symmetric algorithm reads each stored element $A_{ij}$ (with $j \le i$)
-**once** and routes it to **two** accumulations:
+**once**. An **off-diagonal** element ($j < i$) routes to **two** accumulations,
 
 $$
 y_i \mathrel{+}= A_{ij}\,x_j
 \qquad\text{and}\qquad
-y_j \mathrel{+}= A_{ij}\,x_i .
+y_j \mathrel{+}= A_{ij}\,x_i ,
 $$
 
-The second is the symmetric partner ($A_{ji} = A_{ij}$). In the domain-flow view the
+the second being the symmetric partner ($A_{ji} = A_{ij}$); a **diagonal** element
+($j = i$) has no distinct partner, so it contributes to $y_i$ **once**. In the
+domain-flow view the
 cleanest way to express "one element, two contributions" is a **two-face feed** over
 the full square domain $(i,j)$: the operand variable $a(i,j)$ is bound to the stored
 triangle in two ways,
