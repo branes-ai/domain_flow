@@ -41,6 +41,11 @@ int main() {
         std::cout << "parsed structure (indices, tau, 3 inputs, 1 output): "
                   << (ok ? "PASS" : "FAIL") << "\n";
 
+        // fail fast before dereferencing the output/inputs below (avoid UB if a
+        // parse regression produced an empty confluence set)
+        if (spec.outputs.empty() || spec.inputs.empty())
+            throw std::runtime_error("trmv: parse produced no input/output confluence");
+
         // ---- derived confluence orientation: outward face normals ----
         // T and the input vector feed on the (i,j) face k=-1; the seed on j=-1;
         // the result leaves on the DIAGONAL face i-j=0 with normal (-1,1,0).
