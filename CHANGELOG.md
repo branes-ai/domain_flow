@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **BLAS-2 `trmv`** (issue #33): the triangular matvec `x := Tx` as a pure SURE —
+  `docs/SURE/trmv.sure` (+ derivation `docs/SURE/trmv.md` under Theory / BLAS L2 nav)
+  and `src/dfa/tests/sim/trmv_sure.cpp` (`test_trmv_sure`, dual-compiler, zero
+  warnings) with a `dfactl_sure_trmv` emit test. The catalog's **first non-box index
+  space**: a `gemv`-style reduction on the **triangular domain** `j ≤ i`, so each
+  row's sum has a variable extent `j = 0..i` and the result leaves on the **diagonal
+  face** `i-j = 0` (not a flat `j = N-1` face). `T` and the input vector both feed on
+  the `(i,j)` face (`x` is fed rather than pipelined along `+i`, which on a triangular
+  domain would need a diagonal seed face parallel to the output — no linear schedule).
+  The diagonal output constrains the schedule: its outflux needs `τ_j > τ_i`, so the
+  canonical `τ = [1,2,1]` is legal while the box-default `τ = [1,1,1]` is rejected
+  (zero diagonal flux). Verified numerically (`Tx = [2,11,38,100]`).
 - **BLAS-2 `ger`** (issue #32): the rank-1 update `A += αxyᵀ` as a pure SURE —
   `docs/SURE/ger.sure` (+ derivation `docs/SURE/ger.md` under Theory) and
   `src/dfa/tests/sim/ger_sure.cpp` (`test_ger_sure`, dual-compiler, zero warnings)
