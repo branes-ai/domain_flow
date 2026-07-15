@@ -55,6 +55,9 @@ if(DOMAINFLOW_BUILD_TESTING)
     add_test(NAME dfactl_sure_trmm
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/trmm.sure
                      --emit-schedule ${CMAKE_CURRENT_BINARY_DIR}/trmm-schedule.json)
+    add_test(NAME dfactl_sure_symm
+             COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/symm.sure
+                     --emit-schedule ${CMAKE_CURRENT_BINARY_DIR}/symm-schedule.json)
     add_test(NAME dfactl_sure_ger
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/ger.sure)
     add_test(NAME dfactl_sure_trmv

@@ -61,6 +61,7 @@ const OPERATORS = [
   { op: 'syr2k', scale: { N: 12, K: 12 },       schedules: ['linear'] },
   // triangular in-place matmul — free-schedule only (no linear tau; cf. qr)
   { op: 'trmm',  scale: { M: 12, N: 12 },       schedules: ['free'] },
+  { op: 'symm',  scale: { M: 12, N: 12, K: 12 }, schedules: ['linear'] },
 ];
 
 // Scale the size parameter(s) and scalar-fill the braced data bindings. The values
