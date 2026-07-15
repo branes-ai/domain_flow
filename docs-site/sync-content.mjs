@@ -55,6 +55,15 @@ const FILE_MAP = {
   'SURE/rot.md':                     'sure-algorithms/blas-l1/rot.md',
   'SURE/iamax.md':                   'sure-algorithms/blas-l1/iamax.md',
 
+  // ── SURE Algorithms: BLAS Level 2 (lean reference: intro + SURE + animation;
+  //    the derivation lives in Theory/matrix-vector-operators) ──
+  'SURE/gemv.md':                    'sure-algorithms/blas-l2/gemv.md',
+  'SURE/ger.md':                     'sure-algorithms/blas-l2/ger.md',
+  'SURE/trmv.md':                    'sure-algorithms/blas-l2/trmv.md',
+  'SURE/symv.md':                    'sure-algorithms/blas-l2/symv.md',
+  'SURE/syr.md':                     'sure-algorithms/blas-l2/syr.md',
+  'SURE/syr2.md':                    'sure-algorithms/blas-l2/syr2.md',
+
   // ── Scaling & Distribution: mapping SUREs across tiles and SoCs ─────
   'scaling/index.md':                'scaling/index.md',
   'scaling/tiling.md':               'scaling/tiling.md',
@@ -64,20 +73,16 @@ const FILE_MAP = {
   'scaling/dmm.md':                  'scaling/dmm.md',
   'scaling/composition.md':          'scaling/composition.md',
 
-  // ── Theory: background + operator derivations not yet in the catalog ──
-  'SURE/matmul.md':                  'theory/matmul.md',
-  'SURE/gemv.md':                    'theory/gemv.md',
-  'SURE/ger.md':                     'theory/ger.md',
-  'SURE/trmv.md':                    'theory/trmv.md',
-  'SURE/symv.md':                    'theory/symv.md',
-  'SURE/syr.md':                     'theory/syr.md',
-  'SURE/syr2.md':                    'theory/syr2.md',
-  'SURE/conv2d.md':                  'theory/conv2d.md',
-  'SURE/QR_decomposition.md':        'theory/qr-decomposition.md',
+  // ── Theory: SURE-construction methodology & derivations (explicit sidebar
+  //    order in astro.config.mjs) ──
   'tensor_structure.md':             'theory/tensor-structure.md',
-  'pipelining_schedules.md':         'theory/pipelining-schedules.md',
+  'SURE/matmul.md':                  'theory/matmul.md',
   'alignment_formalism.md':          'theory/alignment-formalism.md',
   'anchoring.md':                    'theory/anchoring.md',
+  'pipelining_schedules.md':         'theory/pipelining-schedules.md',
+  'SURE/conv2d.md':                  'theory/conv2d.md',
+  'SURE/QR_decomposition.md':        'theory/qr-decomposition.md',
+  'matrix_vector_operators.md':      'theory/matrix-vector-operators.md',
 };
 
 // ── Root files (relative to repo root) ────────────────────────────
