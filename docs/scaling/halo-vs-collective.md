@@ -8,7 +8,7 @@ story of scaling, and there are only **two kinds**:
   boundary exchange with the adjacent tile;
 - an **affine / domain-spanning** dependence becomes a **collective** — an
   all-reduce, broadcast, or transpose carried across the whole machine by the
-  [Distributed Memory Machine](index.md).
+  [Distributed Memory Machine](dmm.md).
 
 Which one you get is **not** a runtime property — it is fixed by the *shape of the
 dependence vector* in the recurrence, and can be read off at compile time. That is
@@ -131,7 +131,7 @@ affine dependence genuinely demands one:
    reduction-broadcast at all (the [Givens QR](uniformization.md));
 3. and where a collective is irreducible, place it, schedule it, and hide as much of
    it behind compute as the dependence graph permits — the job of the
-   [Distributed Memory Machine](index.md).
+   [Distributed Memory Machine](dmm.md).
 
 Uniform-vs-affine is the tiling criterion; halo-vs-collective is what it costs.
 
