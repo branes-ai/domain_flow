@@ -8,6 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **BLAS-3 `trmm`** (issue #40): the triangular matrix-matrix product `B := αTB`
+  (in place, `T` lower-triangular) as a pure SURE — `docs/SURE/trmm.sure` (+ a lean
+  page under SURE Algorithms / BLAS L3 with a triangular-prism animation) and
+  `src/dfa/tests/sim/trmm_sure.cpp` (`test_trmm_sure`, dual-compiler, zero warnings)
+  with a `dfactl_sure_trmm` schedule-emit test. It is `gemm` whose reduction over `k`
+  has a **triangular extent** (`k ≤ i`) — a non-box 3-D domain: `T(i,k)` propagates
+  `+j`, `B(k,j)` propagates `+i` (super-diagonal feed), and the result leaves on the
+  diagonal `i-k = 0`. **Free-schedule-only**: the super-diagonal `B`-feed and the
+  diagonal output are parallel faces (same normal `(-1,0,1)`) with opposite flux, so
+  no linear `τ` satisfies both (`τ_k < τ_i` for the feed vs `τ_k > τ_i` for the
+  output) — the data-flow-earliest free schedule is required, as for the MGS `qr.sure`.
+  The test asserts the free schedule is legal and every linear `τ` is rejected.
+  Verified numerically (`αTB = [[2,4],[15,22],[58,76]]`).
 - **BLAS-3 `syr2k`** (issue #39): the symmetric rank-2k update
   `C = βC + α(ABᵀ + BAᵀ)` on the triangular output `j ≤ i`, as a pure SURE —
   `docs/SURE/syr2k.sure` (+ a lean page under SURE Algorithms / BLAS L3 with a

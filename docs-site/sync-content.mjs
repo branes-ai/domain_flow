@@ -68,6 +68,7 @@ const FILE_MAP = {
   'SURE/gemm.md':                    'sure-algorithms/blas-l3/gemm.md',
   'SURE/syrk.md':                    'sure-algorithms/blas-l3/syrk.md',
   'SURE/syr2k.md':                   'sure-algorithms/blas-l3/syr2k.md',
+  'SURE/trmm.md':                    'sure-algorithms/blas-l3/trmm.md',
 
   // ── Scaling & Distribution: mapping SUREs across tiles and SoCs ─────
   'scaling/index.md':                'scaling/index.md',

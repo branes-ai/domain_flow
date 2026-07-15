@@ -1,0 +1,57 @@
+// BLAS-3 triangular matrix-matrix product (issue #40):
+//
+//   B(i,j) := alpha * sum_{k <= i} T(i,k) * B(k,j)      (T lower triangular)
+//
+// i.e. B := alpha * T * B in place, with T lower-triangular so the reduction over k
+// has a TRIANGULAR extent (k = 0..i) -- a non-box 3-D iteration domain. It exercises
+// triangular face pinning at Level-3 scale.
+//
+// 3-D domain (i,j,k) with k <= i: the reduction runs over k. T(i,k) propagates along
+// +j (reused across output columns); B(k,j) propagates along +i (reused across rows,
+// entering on the super-diagonal halo i-k=-1 because the triangle's rows begin at the
+// diagonal). The reduction for row i completes at k = i, so the result leaves on the
+// DIAGONAL face i-k = 0.
+//
+//   a(i,j,k)     = a(i,j-1,k)      T(i,k) along +j
+//   b(i,j,k)     = b(i-1,j,k)      B(k,j) along +i (super-diagonal seed)
+//   alpha(i,j,k) = alpha(i,j,k-1)  scalar alpha along +k
+//   acc(i,j,k)   = acc(i,j,k-1) + alpha(i,j,k-1)*a(i,j-1,k)*b(i-1,j,k)
+//
+// Every dependence is a constant offset -- a pure SURE (uniform). alpha is projected
+// and folded into the reduction.
+//
+// SCHEDULE: this operator is FREE-SCHEDULE-ONLY. The super-diagonal B-feed (i-k=-1)
+// and the diagonal output (i-k=0) are PARALLEL faces with the same outward normal
+// (-1,0,1) but opposite flux: the feed needs tau_k < tau_i (influx) while the output
+// needs tau_k > tau_i (outflux). No single linear tau satisfies both, so there is no
+// legal linear schedule -- the data-flow-earliest FREE schedule is required (as for
+// the Modified-Gram-Schmidt qr.sure). This is the triangular in-place geometry
+// obstructing a global wavefront; see docs/scaling/uniformization.md.
+//
+// Run it:   dfactl --sure docs/SURE/trmm.sure            (free schedule)
+
+M = 3; N = 2;
+
+system ((i,j,k) | 0 <= i < M, 0 <= j < N, 0 <= k < M, k <= i) {
+    a(i,j,k)     = a(i,j-1,k);                                              // T(i,k) along +j
+    b(i,j,k)     = b(i-1,j,k);                                              // B(k,j) along +i (super-diagonal)
+    alpha(i,j,k) = alpha(i,j,k-1);                                          // scalar alpha along +k
+    acc(i,j,k)   = acc(i,j,k-1) + alpha(i,j,k-1) * a(i,j-1,k) * b(i-1,j,k); // Σ_{k<=i} T(i,k)B(k,j)
+}
+
+// tensor confluences
+input  T[M][M]  ((i,j,k) | 0 <= i < M, 0 <= k < M, k <= i, j = -1)          : a(i,j,k)     = T[i][k];  // lower triangle of T
+input  B[M][N]  ((i,j,k) | -1 <= i < M, 0 <= j < N, i - k = -1, 0 <= k < M) : b(i,j,k)     = B[k][j];  // B(k,j) super-diagonal
+input  Alpha[1] ((i,j,k) | 0 <= i < M, 0 <= j < N, k = -1)                  : alpha(i,j,k) = Alpha[0]; // project scalar alpha
+input           ((i,j,k) | 0 <= i < M, 0 <= j < N, k = -1)                  : acc(i,j,k)   = 0;         // reduction seed
+output Bout[M][N] ((i,j,k) | 0 <= i < M, 0 <= j < N, 0 <= k < M, i - k = 0) : Bout[i][j] = acc(i,j,k); // result on the diagonal k=i
+
+// test bench:  B := alpha * T * B (lower T),  T = [[2,0,0],[3,4,0],[5,6,7]],
+//   B = [[1,2],[3,4],[5,6]], alpha = 1  ->  [[2,4],[15,22],[58,76]]
+data T     = { 2, 0, 0,
+               3, 4, 0,
+               5, 6, 7 };
+data B     = { 1, 2,
+               3, 4,
+               5, 6 };
+data Alpha = 1;
