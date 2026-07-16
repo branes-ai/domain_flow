@@ -85,7 +85,7 @@ by translation vectors only. The reduction `acc(i,j,k) = acc(i,j-1,k) + …` is 
 `a→acc` and `alpha→acc` carry `θ = (0,0,1)` (the feed axis). No affine arc — a genuine
 SURE, schedulable by a single linear `τ`.
 
-<div class="rdg" data-src="rdg/gemv.json" data-height="440"></div>
+<div class="rdg" data-src="rdg/gemv.json" data-height="520"></div>
 
 ## Worked example — `lu` is a SARE
 
@@ -97,7 +97,7 @@ LU a SARE, and they are the arcs a **neighbour-pivoting** reformulation would re
 with translation vectors (uniformization). The RDG is where that transformation becomes
 legible — the broadcast and its uniformized propagation drawn side by side.
 
-<div class="rdg" data-src="rdg/lu.json" data-height="440"></div>
+<div class="rdg" data-src="rdg/lu.json" data-height="520"></div>
 
 ## Reading the graph
 
