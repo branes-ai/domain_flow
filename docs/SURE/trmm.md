@@ -37,3 +37,29 @@ obstructing a global wavefront (see [uniformization](../scaling/uniformization.m
 the animation below shows the free schedule sweeping the triangular prism.
 
 <div class="schedule-anim" data-src="schedules/trmm-free.json" data-height="480"></div>
+
+## Reduced dependency graph
+
+The [reduced dependency graph](reduced_dependency_graph.md) (RDG) draws the recurrence as
+one node per variable and one arc per dependence, each annotated with its **translation
+vector** `θ`. `trmm`'s four variables — the accumulator `acc`, the triangle `a`, the
+matrix `b`, and the scalar `alpha` — wire with constant offsets only:
+
+| arc | θ | dependence |
+| --- | --- | --- |
+| `acc → acc` | `[0,0,1]ᵀ` | the reduction chains along `+k` (over `k ≤ i`) |
+| `a → acc` | `[0,1,0]ᵀ` | `T(i,k)` enters the product |
+| `b → acc` | `[1,0,0]ᵀ` | `B(k,j)` enters the product |
+| `alpha → acc` | `[0,0,1]ᵀ` | α enters the product |
+| `a → a` | `[0,1,0]ᵀ` | `T` pipelined along `+j` |
+| `b → b` | `[1,0,0]ᵀ` | `B` pipelined along `+i` |
+| `alpha → alpha` | `[0,0,1]ᵀ` | α projected on the feed face |
+
+Every arc is a translation vector, so `trmm` is a genuine **SURE** — **yet it is
+free-schedule-only**. Uniformity guarantees nearest-neighbour *wiring*, not a linear
+*schedule*: `trmm`'s super-diagonal `B`-feed and its diagonal output are parallel faces
+with opposite flux, so no single linear `τ` satisfies both. The RDG (dependence
+structure) and schedulability (timing) are separate questions — the graph is uniform;
+the triangular geometry is what forces the free schedule.
+
+<div class="rdg" data-src="rdg/trmm.json" data-height="560"></div>
