@@ -7,13 +7,16 @@ read; it grows without bound as the problem grows. That expanded graph is unwiel
 worse, it hides the thing we actually care about: the *structure* of the recurrence is
 finite and repeats at every point.
 
-The **Reduced Dependency Graph (RDG)** is that finite structure. It collapses the
-expanded graph two ways:
+The **Reduced Dependency Graph (RDG)** is that finite structure. Its definition is
+simple: **variables become nodes, and dependence relationships become arcs.** It
+collapses the expanded graph two ways:
 
 - **one node per recurrence variable** — every lattice point of variable `a` becomes
   the single node `a`;
 - **one arc per dependence** — every instance of "this equation reads that operand"
-  becomes a single labeled arc.
+  becomes a single arc, **annotated with the dependence map** it carries: a
+  **translation vector** for a uniform dependence, or the **matrix transformation**
+  `A·p + b` for an affine one.
 
 The RDG captures the SURE/SARE algorithm structure, and it is the object the
 **Domain Flow Compiler** reasons over: from it the compiler analyzes the operator's
@@ -30,10 +33,12 @@ $$
 v(p) \;=\; f\bigl(\dots,\; s(A\,p + b),\; \dots\bigr).
 $$
 
-For each value it reads — each **tap** — the RDG adds an arc `s → v`. The arc is
-labeled with the operand's **affine dependency map** `p ↦ A p + b`: the producer point
-that a consumer at `p` reads. A variable that reads its own earlier values contributes
-a **self-loop**.
+For each value it reads — each **tap** — the RDG adds an arc `s → v`, **annotated with
+its dependence map** `p ↦ A p + b`: the producer point a consumer at `p` reads. The
+annotation is exactly the map — a **translation vector** when the dependence is uniform,
+the **matrix** `A` (with its offset `b`) when it is affine — *not* the operand
+expression: the arc that reads `a(i,j,k-1)` is labeled `[0,0,1]ᵀ`, not `a(i,j,k-1)`. A
+variable that reads its own earlier values contributes a **self-loop**.
 
 ### Uniform arcs — translation vectors
 
@@ -97,12 +102,13 @@ legible — the broadcast and its uniformized propagation drawn side by side.
 ## Reading the graph
 
 - **Nodes** are recurrence variables; **self-loops** are a variable reading its own
-  earlier values.
-- **Solid arcs** are uniform (translation `θ`, nearest-neighbour); **dashed arcs** are
-  affine (a map `p ↦ Ap+b`, a projection/broadcast).
-- The badge reads **SURE** when every arc is a translation, **SARE** when any arc is
-  affine — the single most important structural fact about a recurrence system, since
-  a SARE needs uniformization (or a free schedule) where a SURE admits a linear one.
+  earlier values, drawn on an open side of the node (one with no neighbour there).
+- **Solid arcs** are uniform, annotated with their **translation vector** `[θ]ᵀ`
+  (nearest-neighbour); **dashed arcs** are affine, annotated with their **matrix map**
+  `A·p + b` (a projection/broadcast).
+- The badge reads **SURE** when every arc is a translation vector, **SARE** when any arc
+  is a matrix — the single most important structural fact about a recurrence system,
+  since a SARE needs uniformization (or a free schedule) where a SURE admits a linear one.
 
 ---
 
