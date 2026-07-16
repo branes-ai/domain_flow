@@ -35,3 +35,26 @@ Box domain, so the canonical **τ = [1,1,1]** is legal, as is the free schedule.
 wavefront sweeps the `(i,j,k)` cube exactly as `gemm`.
 
 <div class="schedule-anim" data-src="schedules/symm-linear.json" data-height="480"></div>
+
+## Reduced dependency graph
+
+The [reduced dependency graph](reduced_dependency_graph.md) (RDG) draws the recurrence as
+one node per variable and one arc per dependence, each annotated with its **translation
+vector** `θ`. `symm` (`C := αAB + βC`, `A` symmetric) has the same six-node
+reduction-cube structure as [`gemm`](gemm.md) — the symmetry is in the two-face read of
+`A`'s stored triangle, not in the dependence graph:
+
+| arc | θ | dependence |
+| --- | --- | --- |
+| `c → c` | `[0,0,1]ᵀ` | the reduction chains along `+k` |
+| `a → c` | `[0,1,0]ᵀ` | `A(i,k)` enters the product |
+| `b → c` | `[1,0,0]ᵀ` | `B(k,j)` enters the product |
+| `alpha → c` | `[0,0,1]ᵀ` | α enters the product |
+| `a → a` | `[0,1,0]ᵀ` | `A` pipelined along `+j` |
+| `b → b` | `[1,0,0]ᵀ` | `B` pipelined along `+i` |
+| `alpha → alpha`, `cin → cin` | `[0,0,1]ᵀ` | α and the incoming `C` on the feed face |
+| `beta → beta` | `[1,0,0]ᵀ` | β projected on its face |
+
+Every arc is a translation vector, so `symm` is a genuine **SURE**.
+
+<div class="rdg" data-src="rdg/symm.json" data-height="620"></div>

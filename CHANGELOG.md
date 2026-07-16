@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **RDG sections for the BLAS L3 operators** (issues #114–#118, epic #102): `gemm`,
+  `syrk`, `syr2k`, `trmm`, and `symm` each gain a *Reduced dependency graph* section —
+  node set, arc table with the translation vector `θ` of every dependence, SURE
+  classification, and the embedded RDG. All five are genuine SUREs; `trmm` is the
+  teaching case where the RDG is uniform yet the operator is free-schedule-only (a flux
+  conflict on the triangular geometry, not an affine dependence).
 - **RDG sections for the BLAS L2 operators** (issues #108–#113, epic #102): `gemv`,
   `ger`, `trmv`, `symv`, `syr`, and `syr2` each gain a *Reduced dependency graph* section
   — the node set, an arc table with the translation vector `θ` of every dependence, the

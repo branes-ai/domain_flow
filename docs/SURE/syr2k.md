@@ -33,3 +33,26 @@ is *rejected*. The free schedule is also legal; the wavefront sweeps the triangu
 prism.
 
 <div class="schedule-anim" data-src="schedules/syr2k-linear.json" data-height="480"></div>
+
+## Reduced dependency graph
+
+The [reduced dependency graph](reduced_dependency_graph.md) (RDG) draws the recurrence as
+one node per variable and one arc per dependence, each annotated with its **translation
+vector** `θ`. `syr2k` (`C := α(ABᵀ + BAᵀ) + βC`) reads `A` and `B` each on two faces
+(`ai`,`aj` and `bi`,`bj`) to form the two products; all eight variables wire with
+constant offsets (grouped below; thirteen arcs in all):
+
+| arc(s) | θ | dependence |
+| --- | --- | --- |
+| `c → c` | `[0,0,1]ᵀ` | the reduction chains along `+k` |
+| `ai → c`, `bi → c` | `[0,1,0]ᵀ` | the `+j` operands feed the two products |
+| `bj → c`, `aj → c` | `[1,0,0]ᵀ` | the `+i` operands feed the two products |
+| `alpha → c` | `[0,0,1]ᵀ` | α enters the products |
+| `ai → ai`, `bi → bi` | `[0,1,0]ᵀ` | the `+j` operands pipelined |
+| `aj → aj`, `bj → bj` | `[1,0,0]ᵀ` | the `+i` operands pipelined |
+| `alpha → alpha`, `beta → beta`, `cin → cin` | `[0,0,1]ᵀ` | scalars / incoming `C` on the feed face |
+
+Every arc is a translation vector, so `syr2k` is a genuine **SURE** — two `gemm`-shaped
+reduction cubes sharing the accumulator `c`.
+
+<div class="rdg" data-src="rdg/syr2k.json" data-height="660"></div>

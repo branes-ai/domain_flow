@@ -37,3 +37,25 @@ the opposite direction — the triangular geometry again shapes the schedule. Th
 schedule is also legal; the wavefront sweeps the triangular prism.
 
 <div class="schedule-anim" data-src="schedules/syrk-linear.json" data-height="480"></div>
+
+## Reduced dependency graph
+
+The [reduced dependency graph](reduced_dependency_graph.md) (RDG) draws the recurrence as
+one node per variable and one arc per dependence, each annotated with its **translation
+vector** `θ`. `syrk` (`C := αAAᵀ + βC`) has the same six-node reduction-cube structure as
+[`gemm`](gemm.md) — the symmetry lives in *reading `A` twice* and updating one triangle,
+not in the dependence graph:
+
+| arc | θ | dependence |
+| --- | --- | --- |
+| `c → c` | `[0,0,1]ᵀ` | the reduction chains along `+k` |
+| `a → c` | `[0,1,0]ᵀ` | `A(i,k)` enters the product |
+| `b → c` | `[1,0,0]ᵀ` | the reflected `A(j,k)` enters the product |
+| `alpha → c` | `[0,0,1]ᵀ` | α enters the product |
+| `a → a` | `[0,1,0]ᵀ` | `A` pipelined along `+j` |
+| `b → b` | `[1,0,0]ᵀ` | the reflected `A` pipelined along `+i` |
+| `alpha → alpha`, `beta → beta`, `cin → cin` | `[0,0,1]ᵀ` | scalars / incoming `C` on the feed face |
+
+Every arc is a translation vector, so `syrk` is a genuine **SURE**.
+
+<div class="rdg" data-src="rdg/syrk.json" data-height="620"></div>

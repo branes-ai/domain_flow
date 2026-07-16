@@ -37,3 +37,27 @@ the output plane. This is the richest wavefront in the catalog and the archetype
 tiling (see [tiling the index space](../scaling/tiling.md)).
 
 <div class="schedule-anim" data-src="schedules/gemm-linear.json" data-height="480"></div>
+
+## Reduced dependency graph
+
+The [reduced dependency graph](reduced_dependency_graph.md) (RDG) draws the recurrence as
+one node per variable and one arc per dependence, each annotated with its **translation
+vector** `θ`. `gemm`'s six variables wire the full 3-D reduction cube with constant
+offsets only:
+
+| arc | θ | dependence |
+| --- | --- | --- |
+| `c → c` | `[0,0,1]ᵀ` | the reduction chains along the contraction axis `+k` |
+| `a → c` | `[0,1,0]ᵀ` | `A(i,k)` enters the product |
+| `b → c` | `[1,0,0]ᵀ` | `B(k,j)` enters the product |
+| `alpha → c` | `[0,0,1]ᵀ` | α enters the product |
+| `a → a` | `[0,1,0]ᵀ` | `A` pipelined (reused) along `+j` |
+| `b → b` | `[1,0,0]ᵀ` | `B` pipelined (reused) along `+i` |
+| `alpha → alpha` | `[0,0,1]ᵀ` | α projected on the feed face |
+| `beta → beta` | `[1,0,0]ᵀ` | β projected on its face |
+| `cin → cin` | `[0,0,1]ᵀ` | the incoming `C` held for the `βC` epilogue |
+
+Every arc is a translation vector, so `gemm` is a genuine **SURE** — the canonical
+3-D reduction cube, schedulable by a single linear `τ`.
+
+<div class="rdg" data-src="rdg/gemm.json" data-height="620"></div>
