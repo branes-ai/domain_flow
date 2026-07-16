@@ -1,0 +1,71 @@
+// Triangular solve (issue #49): forward substitution  L x = b  for a lower-
+// triangular L, the substitution engine behind every direct solver.
+//
+//   x(i) = ( b(i) - sum_{j<i} L(i,j) * x(j) ) / L(i,i),   0 <= i < N
+//
+// trsv is trmv's skeleton run BACKWARDS: where trmv FEEDS x(j) on the face and
+// reduces L(i,j)*x(j) to a product, trsv must SOLVE for x(j) and feed the result
+// back into the rows below. That feedback is the whole story. x(j) is produced at
+// the DIAGONAL cell (j,j) and consumed by every later row i > j, so the reduction
+// on row i reads x(j) via an AFFINE tap that projects onto the diagonal (j,j) --
+// exactly as lu.sure reads the pivot a(k,k,k-1). trsv is therefore a SARE (affine),
+// not a pure SURE: the solved x is broadcast down the columns.
+//
+// Domain (i,j,k):  i = row (0..N-1),  j = column / reduction (0..N-1) with j <= i
+// (lower triangle),  k = a depth-1 FEED axis (0..0).  As in trmv, L(i,j) and b(i)
+// are indexed by the domain axes and read once, so they enter on the (i,j) face
+// k = -1.
+//
+//   Lm(i,j,k)  = Lm(i,j,k-1)                              L(i,j) on the (i,j) face
+//   bb(i,j,k)  = bb(i,j,k-1)                              b(i)   on the (i,j) face
+//   acc(i,j,k) = acc(i,j-1,k) + Lm(i,j,k-1) * x(j,j,k)    reduce L(i,j)*x_j over +j
+//   x(i,j,k)   = ( bb(i,j,k-1) - acc(i,j-1,k) ) / Lm(i,j,k-1)     the solve
+//
+// The reduction seed acc(i,-1,k) = 0 enters on the j = -1 face. acc(i,j) accumulates
+// sum_{j'<=j} L(i,j') x_{j'}, so acc(i,i-1) is the OFF-diagonal sum sum_{j<i}; the
+// solve x(i,j) = (b_i - acc(i,i-1)) / L(i,i) reads it one column back and leaves on
+// the DIAGONAL face i - j = 0 (where the newly solved x_i lives). The affine tap
+// x(j,j,k) reads that diagonal for column j < i -- a benign FORWARD dependence
+// (source row j < consumer row i).
+//
+// SCHEDULE -- free only. Forward substitution FUSES a reduction and a division at
+// the same diagonal lattice point: on row i the off-diagonal sum sum_{j<i} L(i,j)x_j
+// completes and x_i is divided out at the very same cell (i,i). A LINEAR schedule
+// assigns one time to a lattice point, so it cannot order the sum before the divide
+// there -- and because all equations share the system domain (per-equation domains
+// are a follow-up), the diagonal also carries a dead cell acc(i,i) that reads the
+// same-point solve x(i,i). Both are zero-slack self-dependences (tau . 0 = 0 for
+// EVERY linear tau), so NO linear schedule is legal; the data-flow-earliest FREE
+// schedule is required (as for trmm). The free schedule is the sequential
+// substitution wavefront: row i fires only after every x_j, j < i, is resolved.
+//
+// Run it:   dfactl --sure docs/SURE/trsolve.sure            (free schedule)
+
+N = 4;
+
+system ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, 0 <= k < 1) {
+    Lm(i,j,k)  = Lm(i,j,k-1);                                  // L(i,j) enters on the (i,j) face
+    bb(i,j,k)  = bb(i,j,k-1);                                  // b(i)   enters on the (i,j) face
+    acc(i,j,k) = acc(i,j-1,k) + Lm(i,j,k-1) * x(j,j,k);        // reduce L(i,j)*x_j over +j (x_j on the diagonal)
+    x(i,j,k)   = ( bb(i,j,k-1) - acc(i,j-1,k) ) / Lm(i,j,k-1); // solve x_i = (b_i - sum_{j<i}) / L(i,i) on j=i
+}
+
+// tensor confluences
+input  L[N][N] ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = -1)        : Lm(i,j,k)  = L[i][j];  // lower triangle of L
+input  Bin[N]  ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = -1)        : bb(i,j,k)  = Bin[i];    // right-hand side b
+input          ((i,j,k) | 0 <= i < N, j = -1, 0 <= k < 1)               : acc(i,j,k) = 0;         // reduction seed
+output Xout[N] ((i,j,k) | 0 <= i < N, 0 <= j < N, i - j = 0, 0 <= k < 1) : Xout[i] = x(i,j,k);     // solution on the diagonal j = i
+
+// no linear tau: the diagonal fuses the reduction and the divide at one lattice point
+// (see the SCHEDULE note above); the free schedule is the substitution wavefront.
+
+// test bench:  L x = b  with lower-triangular L, b = [2, 11, 38, 100]  ->  x = [1,2,3,4]
+//   [2  0  0  0 ] [x0]   [  2 ]
+//   [3  4  0  0 ] [x1] = [ 11 ]      forward substitution: x0=1, x1=(11-3)/4=2,
+//   [5  6  7  0 ] [x2]   [ 38 ]      x2=(38-5-12)/7=3, x3=(100-8-18-30)/11=4
+//   [8  9 10 11 ] [x3]   [100 ]
+data L   = { 2,  0,  0,  0,
+             3,  4,  0,  0,
+             5,  6,  7,  0,
+             8,  9, 10, 11 };
+data Bin = { 2, 11, 38, 100 };
