@@ -58,6 +58,12 @@ if(DOMAINFLOW_BUILD_TESTING)
     add_test(NAME dfactl_sure_symm
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/symm.sure
                      --emit-schedule ${CMAKE_CURRENT_BINARY_DIR}/symm-schedule.json)
+    add_test(NAME dfactl_sure_lu
+             COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/lu.sure
+                     --emit-schedule ${CMAKE_CURRENT_BINARY_DIR}/lu-schedule.json)
+    add_test(NAME dfactl_sure_lu_propagate
+             COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/lu_propagate.sure
+                     --emit-schedule ${CMAKE_CURRENT_BINARY_DIR}/lu_propagate-schedule.json)
     add_test(NAME dfactl_sure_ger
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/ger.sure)
     add_test(NAME dfactl_sure_trmv

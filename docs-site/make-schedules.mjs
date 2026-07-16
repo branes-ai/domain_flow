@@ -62,6 +62,10 @@ const OPERATORS = [
   // triangular in-place matmul — free-schedule only (no linear tau; cf. qr)
   { op: 'trmm',  scale: { M: 12, N: 12 },       schedules: ['free'] },
   { op: 'symm',  scale: { M: 12, N: 12, K: 12 }, schedules: ['linear'] },
+  // LU (issue #42): the Schur SARE, and the pivot-propagation SURE (free schedule
+  // shows the propagation wavefront)
+  { op: 'lu',           scale: { N: 12 }, schedules: ['free'] },
+  { op: 'lu_propagate', scale: { N: 12 }, schedules: ['free'] },
 ];
 
 // Scale the size parameter(s) and scalar-fill the braced data bindings. The values
