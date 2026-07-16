@@ -8,6 +8,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Cholesky factorization** (issue #43): `A = L·Lᵀ` for symmetric positive-definite
+  `A` as an executable recurrence system — `docs/SURE/cholesky.sure`, the derivation
+  `docs/SURE/cholesky.md` (Theory), the lean reference
+  `docs/SURE/cholesky_decomposition.md` (SURE Algorithms / **Linear Algebra**, with a
+  schedule animation), `test_cholesky_sure` (dual-compiler, zero warnings) and a
+  `dfactl_sure_cholesky` emit test. It is LU specialized to `A = Aᵀ`: the symmetric
+  Schur update `a(i,j,k) = a(i,j,k-1) - a(i,k,k-1)·a(j,k,k-1)/a(k,k,k-1)` on the
+  trailing lower triangle. A SARE with the same benign forward affine dependence as
+  LU, so `τ = [1,1,2]` is legal. Elegantly, a **single** output face gives all of `L`:
+  `a(i,j,j-1)/√a(j,j,j-1)` yields `√`(pivot) on the diagonal and the multiplier below.
+  Because SPD guarantees positive pivots, Cholesky needs **no pivoting** — a clean SARE
+  (unlike LU, whose honest form would need the inexpressible partial pivoting).
+  Verified `L·Lᵀ = A` (`L = [[2,0,0],[1,2,0],[1,1,2]]`).
+- **docs-site: Theory / Linear-Algebra split for the factorizations.** Following the
+  BLAS Theory-vs-reference pattern (#87): the factorization *derivations* stay under
+  **Theory** (`lu.md`, `cholesky.md`), and a new **SURE Algorithms → Linear Algebra**
+  subsection holds **lean reference pages** (`lu_decomposition`, `cholesky_decomposition`)
+  with the SURE and its animation. The LU page was split accordingly (derivation in
+  Theory; SURE + both animations moved to the reference).
 - **LU factorization** (issue #42, first of the factorizations): Gaussian elimination
   `A = L·U` (no pivoting) as an executable recurrence system — `docs/SURE/lu.sure` +
   the uniformized `docs/SURE/lu_propagate.sure`, the derivation `docs/SURE/lu.md`

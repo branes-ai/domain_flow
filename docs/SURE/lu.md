@@ -38,8 +38,6 @@ dependence vector `(i-k, j-k, 1)` is always *forward*. Unlike QR's reduction-bro
 a **linear schedule exists**: `τ = [1,1,2]` is legal (and so is the free schedule).
 This is why LU tiles far more readily than QR.
 
-<div class="schedule-anim" data-src="schedules/lu-free.json" data-height="440" data-fps="4"></div>
-
 ## Extracting L and U
 
 Each cell finalizes at `k = min(i,j)-1`, so the factors leave on **super-diagonal**
@@ -92,17 +90,11 @@ LU stays a SARE; only the single step uniformizes.
 multiplier `j` columns across, cell `(i,j)` cannot fire until `t ≈ max(i,j)` — the
 broadcast's "everyone at once" becomes a diagonal **propagation wavefront**. That
 staircase is the cost the propagation trades for uniformity (it now tiles with halo
-exchange). Watch it below:
+exchange).
 
-<div class="schedule-anim" data-src="schedules/lu_propagate-free.json" data-height="440" data-fps="4"></div>
+---
 
-## Executable
-
-```text
-dfactl --sure docs/SURE/lu.sure            --tau 1,1,2    # the SARE
-dfactl --sure docs/SURE/lu_propagate.sure  --tau 1,1,1    # the propagation SURE
-```
-
-For `A = [[4,3,2],[8,7,5],[2,3,4]]`: `L·U = A` with
-`U = [[4,3,2],[0,1,1],[0,0,1.5]]`, `L = [[1,0,0],[2,1,0],[0.5,1.5,1]]`; and one Schur
-step gives the complement `[[0,0,0],[0,1,1],[0,1.5,3]]`.
+The executable specs, their schedules, and the animations of both the SARE and the
+propagation wavefront are on the reference page:
+[**LU decomposition**](lu_decomposition.md) under
+*SURE Algorithms → Linear Algebra*.

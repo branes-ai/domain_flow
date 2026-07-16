@@ -1,0 +1,40 @@
+// Cholesky factorization (issue #43): A = L * L^T for a symmetric positive-definite A.
+//
+// The right-looking symmetric elimination -- LU specialized to A = A^T, so there is
+// only ONE triangular factor and (because A is SPD) NO pivoting is ever needed. Let
+// a(i,j,k) be entry (i,j) after eliminating columns 0..k. Step k applies the symmetric
+// rank-1 Schur update to the trailing LOWER triangle (j <= i):
+//
+//   a(i,j,k) = a(i,j,k-1) - a(i,k,k-1) * a(j,k,k-1) / a(k,k,k-1)
+//
+// Like lu.sure this is a SARE (the column a(i,k,k-1)/a(j,k,k-1) and the pivot
+// a(k,k,k-1) are affine taps that broadcast over the trailing submatrix), but a
+// benign one: every consumer sits strictly below-and-right of the pivot, so the
+// dependence is forward and a LINEAR schedule tau = [1,1,2] exists (and the free
+// schedule). See docs/theory/cholesky for the derivation.
+//
+// Extraction -- a single output face gives all of L. Column j finalizes at k = j-1,
+// and one expression covers both cases: L(i,j) = a(i,j,j-1) / sqrt(a(j,j,j-1)), so
+//   - i = j (diagonal):  a(j,j,j-1)/sqrt(a(j,j,j-1)) = sqrt(a(j,j,j-1)) = L(j,j)
+//   - i > j (below):     a(i,j,j-1)/sqrt(a(j,j,j-1))                    = L(i,j)
+// The first column (j=0) is A[:,0]/sqrt(A[0,0]), read from the k=-1 seed halo.
+//
+// Run it:   dfactl --sure docs/SURE/cholesky.sure            (free schedule)
+//           dfactl --sure docs/SURE/cholesky.sure --tau 1,1,2
+
+N = 3;
+
+system ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, 0 <= k < N, k <= j - 1) {
+    a(i,j,k) = a(i,j,k-1) - a(i,k,k-1) * a(j,k,k-1) / a(k,k,k-1);           // symmetric Schur update
+}
+
+// tensor confluences
+input  A[N][N] ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = -1)                 : a(i,j,k) = A[i][j];              // lower triangle of A seeds the k=-1 halo
+output L[N][N] ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, -1 <= k < N, j - k = 1) : L[i][j] = a(i,j,k) / sqrt(a(j,j,k)); // lower Cholesky factor (column j finalizes at k=j-1)
+
+tau = [1, 1, 2];                 // canonical linear schedule (the trailing-domain affine taps are forward)
+
+// test bench:  SPD A = [[4,2,2],[2,5,3],[2,3,6]]  ->  L = [[2,0,0],[1,2,0],[1,1,2]],  L*L^T = A
+data A = { 4, 2, 2,
+           2, 5, 3,
+           2, 3, 6 };
