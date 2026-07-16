@@ -57,6 +57,7 @@ export default defineConfig({
             { label: 'Pipeline Schedules', slug: 'theory/pipelining-schedules' },
             { label: 'Conv2D', slug: 'theory/conv2d' },
             { label: 'QR Decomposition', slug: 'theory/qr-decomposition' },
+            { label: 'LU factorization', slug: 'theory/lu' },
             { label: 'Matrix–vector derivations', slug: 'theory/matrix-vector-operators' },
           ],
         },

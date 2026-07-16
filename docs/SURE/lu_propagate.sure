@@ -1,0 +1,66 @@
+// LU — pivot PROPAGATION (issue #42, step 2): one Gaussian-elimination step with
+// the pivot broadcast uniformized into a nearest-neighbour propagation.
+//
+// Step 1 (docs/SURE/lu.sure) is a SARE: the Schur update reads the pivot a(k,k,k-1),
+// the pivot row a(k,j,k-1) and the multiplier column a(i,k,k-1) via AFFINE taps that
+// project onto row/column k -- a broadcast to the whole trailing submatrix.
+//
+// This spec UNIFORMIZES that broadcast for a SINGLE elimination step (k = 0), where
+// the pivot row and multiplier column are the first row / first column of the INPUT
+// A, so they can seed nearest-neighbour propagations legally (input confluences read
+// tensors). Each affine broadcast becomes a constant-offset flow:
+//
+//   pr(i,j,k) = pr(i-1,j,k)     the pivot row A(0,j) PROPAGATES DOWN  +i
+//   pv(i,j,k) = pv(i-1,j,k)     the pivot     A(0,0) propagates down  +i
+//   mc(i,j,k) = mc(i,j-1,k)     the mult. col A(i,0) PROPAGATES ACROSS +j
+//   r(i,j,k)  = r(i,j,k-1) - g(i,j,k-1) * ( mc(i,j-1,k) / pv(i-1,j,k) ) * pr(i-1,j,k)
+//
+// Every dependence is now a constant offset -- a pure SURE (uniform). The rank-1
+// Schur term is applied EXACTLY ONCE via the ger inject->add->drain pattern (the gate
+// g is injected =1 only on the k=-1 halo, so the update fires at k=0 and drains at
+// k=1). The result r(i,j,1) is A(i,j) - (A(i,0)/A(0,0))*A(0,j) -- the Schur complement
+// (the pivot row and column are eliminated to 0; the trailing block is updated).
+//
+// WHY ONLY ONE STEP. The full multi-step LU cannot be uniformized this way: for k>0
+// the pivot row a(k,:,k-1) and pivot a(k,k,k-1) are COMPUTED values, and seeding a
+// propagation from a recurrence variable is an INTERNAL CONFLUENCE the DSL does not
+// have (`dfactl` rejects it: "input expressions may not read recurrence variables").
+// This is the same internal-confluence gap that keeps the MGS qr.sure a SARE -- see
+// docs/scaling/uniformization.md. So step 1 stays a SARE; only the single step here
+// is a pure SURE.
+//
+// WHAT THE FREE SCHEDULE SHOWS. Because the pivot must hop i rows down and the
+// multiplier j columns across, cell (i,j) cannot fire until t ~ max(i,j): the
+// broadcast's "everyone at once" becomes a diagonal PROPAGATION WAVEFRONT. That
+// staircase is the cost the propagation trades for uniformity (it now tiles with
+// halo exchange); the animation makes the wavefront visible.
+//
+// Run it:   dfactl --sure docs/SURE/lu_propagate.sure            (free schedule)
+//           dfactl --sure docs/SURE/lu_propagate.sure --tau 1,1,1
+
+N = 3;
+
+system ((i,j,k) | 0 <= i < N, 0 <= j < N, 0 <= k < 2) {
+    g(i,j,k)  = 0;                                                             // gate: nonzero only on k=-1 halo
+    pr(i,j,k) = pr(i-1,j,k);                                                   // pivot row A(0,j) propagates DOWN +i
+    pv(i,j,k) = pv(i-1,j,k);                                                   // pivot A(0,0) propagates DOWN +i
+    mc(i,j,k) = mc(i,j-1,k);                                                   // multiplier col A(i,0) propagates ACROSS +j
+    r(i,j,k)  = r(i,j,k-1) - g(i,j,k-1) * ( mc(i,j-1,k) / pv(i-1,j,k) ) * pr(i-1,j,k); // one Schur step
+}
+
+// tensor confluences
+input  A[N][N] ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1)  : r(i,j,k)  = A[i][j];  // A seeds r (the matrix being updated)
+input  Gate[1] ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1)  : g(i,j,k)  = Gate[0];  // gate injected once (=1)
+input          ((i,j,k) | i = -1, 0 <= j < N, 0 <= k < 2)  : pr(i,j,k) = A[0][j];  // pivot row seeded from A row 0
+input          ((i,j,k) | i = -1, 0 <= j < N, 0 <= k < 2)  : pv(i,j,k) = A[0][0];  // pivot seeded from A(0,0)
+input          ((i,j,k) | 0 <= i < N, j = -1, 0 <= k < 2)  : mc(i,j,k) = A[i][0];  // mult col seeded from A col 0
+output R[N][N] ((i,j,k) | 0 <= i < N, 0 <= j < N, k = 1)   : R[i][j] = r(i,j,k);   // Schur complement
+
+tau = [1, 1, 1];                 // canonical linear schedule (now a pure SURE)
+
+// test bench:  A = [[4,3,2],[8,7,5],[2,3,4]],  one Schur step ->
+//   R(i,j) = A(i,j) - (A(i,0)/A(0,0))*A(0,j) = [[0,0,0],[0,1,1],[0,1.5,3]]
+data A    = { 4, 3, 2,
+             8, 7, 5,
+             2, 3, 4 };
+data Gate = 1;

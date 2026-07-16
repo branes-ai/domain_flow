@@ -1,0 +1,53 @@
+// LU factorization (Gaussian elimination), no pivoting (issue #42, step 1):
+//
+//   A = L * U    with L unit-lower-triangular, U upper-triangular.
+//
+// The classic right-looking (Doolittle) Schur elimination on a 3-D domain (i,j,k),
+// where k is the elimination step. At step k the trailing submatrix is updated by
+// the rank-1 Schur complement:
+//
+//   a(i,j,k) = a(i,j,k-1) - ( a(i,k,k-1) / a(k,k,k-1) ) * a(k,j,k-1)
+//                                ^^^^^^^^^^^^^^^^^^^^^^   ^^^^^^^^^^^
+//                                l(i,k) = multiplier      u(k,j) = pivot row
+//
+// This is a SARE, not a SURE: the pivot a(k,k,k-1), the multiplier column a(i,k,k-1),
+// and the pivot row a(k,j,k-1) are read via AFFINE taps (index maps that project onto
+// row/column k). But note: the trailing domain has k <= i-1 and k <= j-1, so every
+// consumer (i,j,k) sits strictly below-and-right of the pivot (k,k,k-1). The
+// dependence vector (i-k, j-k, 1) is therefore always forward, and — unlike the
+// reduction-broadcast in the MGS qr.sure — a LINEAR schedule exists (tau = [1,1,2]);
+// the free schedule is also legal.
+//
+// Domain: (i,j,k) with k <= i-1 and k <= j-1 (the strict trailing submatrix at each
+// step). Cell (i,j) is updated for k = 0 .. min(i,j)-1, then finalizes:
+//   - U(i,j) for j >= i leaves at k = i-1 (the super-diagonal face i-k = 1); the
+//     first row (i=0) is A's first row, read from the k=-1 seed halo.
+//   - L(i,j) for i >  j is the multiplier a(i,j,j-1)/a(j,j,j-1), leaving on j-k = 1;
+//     the first column (j=0) is A[:,0]/A[0,0], again from the seed halo.
+//
+// No pivoting: partial pivoting is a *data-dependent* row permutation chosen at
+// runtime, which a static SURE index space cannot express (see lu.md). Step 2
+// (docs/SURE/lu_propagate.sure) uniformizes the pivot broadcast into a row-to-row
+// propagation.
+//
+// Run it:   dfactl --sure docs/SURE/lu.sure            (free schedule)
+//           dfactl --sure docs/SURE/lu.sure --tau 1,1,2
+
+N = 3;
+
+system ((i,j,k) | 0 <= i < N, 0 <= j < N, 0 <= k < N, k <= i - 1, k <= j - 1) {
+    a(i,j,k) = a(i,j,k-1) - ( a(i,k,k-1) / a(k,k,k-1) ) * a(k,j,k-1);       // Schur update
+}
+
+// tensor confluences
+input  A[N][N] ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1)                        : a(i,j,k) = A[i][j];          // A seeds the k=-1 halo
+output U[N][N] ((i,j,k) | 0 <= i < N, 0 <= j < N, -1 <= k < N, i - k = 1, i <= j) : U[i][j] = a(i,j,k);          // upper factor (row i finalizes at k=i-1)
+output L[N][N] ((i,j,k) | 0 <= i < N, 0 <= j < N, -1 <= k < N, j - k = 1, j < i)  : L[i][j] = a(i,j,k) / a(j,j,k); // unit-lower multipliers
+
+tau = [1, 1, 2];                 // canonical linear schedule (the trailing-domain affine taps are forward)
+
+// test bench:  A = [[4,3,2],[8,7,5],[2,3,4]]  ->
+//   U = [[4,3,2],[0,1,1],[0,0,1.5]],  L = [[1,0,0],[2,1,0],[0.5,1.5,1]];  L*U = A
+data A = { 4, 3, 2,
+           8, 7, 5,
+           2, 3, 4 };
