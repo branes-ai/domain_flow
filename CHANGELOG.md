@@ -8,6 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Triangular solve — `trsv`** (issue #49): forward substitution `L x = b` for a
+  lower-triangular `L`, the substitution engine behind every direct solver —
+  `docs/SURE/trsolve.sure`, the derivation `docs/SURE/trsolve.md` (Theory), the lean
+  reference `docs/SURE/triangular_solve.md` (SURE Algorithms / Linear Algebra, with a
+  schedule animation), `test_trsolve_sure` (dual-compiler, zero warnings) and a
+  `dfactl_sure_trsolve` emit test. Structurally **`trmv` run backwards**: the reduction
+  accumulates `Σ_{j<i} L(i,j)·x_j`, but `x_j` is now a *solved* value read via an affine
+  tap onto the diagonal `(j,j)` — a **SARE** (the solved `x` is broadcast down the
+  columns). **Free-schedule-only**, for a reason distinct from `trmm`: the off-diagonal
+  reduction and the divide fuse at the *same* diagonal lattice point, a zero-slack
+  self-dependence no linear `τ` can order (`τ·0 = 0`). The flux-legal `τ = [1,2,1]` is
+  rejected by the *legality* check, not by flux; the free schedule is the sequential
+  substitution wavefront. Verified `L x = b` reconstructs `x = [1,2,3,4]`. `trsm`
+  (multiple RHS) is this replicated across an independent, fully parallel RHS axis.
 - **LDLᵀ factorization** (issue #44): `A = L·D·Lᵀ` for a symmetric (possibly
   **indefinite**) matrix — `docs/SURE/ldlt.sure`, the derivation `docs/SURE/ldlt.md`
   (Theory), the lean reference `docs/SURE/ldlt_decomposition.md` (SURE Algorithms /
