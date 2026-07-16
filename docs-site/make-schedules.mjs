@@ -68,6 +68,7 @@ const OPERATORS = [
   { op: 'lu_propagate', scale: { N: 12 }, schedules: ['free'] },
   { op: 'cholesky',     scale: { N: 12 }, schedules: ['free'] },
   { op: 'ldlt',         scale: { N: 12 }, schedules: ['free'] },
+  { op: 'trsolve',      scale: { N: 12 }, schedules: ['free'] },
 ];
 
 // Scale the size parameter(s) and scalar-fill the braced data bindings. The values
