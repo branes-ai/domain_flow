@@ -59,6 +59,7 @@ export default defineConfig({
             { label: 'QR Decomposition', slug: 'theory/qr-decomposition' },
             { label: 'LU factorization', slug: 'theory/lu' },
             { label: 'Cholesky factorization', slug: 'theory/cholesky' },
+            { label: 'LDLᵀ factorization', slug: 'theory/ldlt' },
             { label: 'Matrix–vector derivations', slug: 'theory/matrix-vector-operators' },
           ],
         },
@@ -118,6 +119,7 @@ export default defineConfig({
               items: [
                 { label: 'LU — A = LU', slug: 'sure-algorithms/linear-algebra/lu_decomposition' },
                 { label: 'Cholesky — A = LLᵀ', slug: 'sure-algorithms/linear-algebra/cholesky_decomposition' },
+                { label: 'LDLᵀ — A = LDLᵀ', slug: 'sure-algorithms/linear-algebra/ldlt_decomposition' },
               ],
             },
           ],
