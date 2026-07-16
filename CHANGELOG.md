@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **RDG sections for the BLAS L2 operators** (issues #108–#113, epic #102): `gemv`,
+  `ger`, `trmv`, `symv`, `syr`, and `syr2` each gain a *Reduced dependency graph* section
+  — the node set, an arc table with the translation vector `θ` of every dependence, the
+  SURE classification, and the embedded RDG visualization. All six are genuine SUREs;
+  `syr`/`syr2` are the fully-parallel case where every arc is the same feed-axis
+  translation `[0,0,1]ᵀ`.
 - **RDG sections for the BLAS L1 operators** (issues #104–#107, epic #102): `axpy`,
   `dot`, `nrm2`, and `rot` each gain a *Reduced dependency graph* section in their
   derivation — the node set, an arc table with the translation vector `θ` of every

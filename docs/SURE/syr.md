@@ -31,3 +31,24 @@ constraint: the canonical **τ = [1,1,1]** is legal, as is the free schedule. Th
 wavefront sweeps the lower triangle.
 
 <div class="schedule-anim" data-src="schedules/syr-linear.json" data-height="440"></div>
+
+## Reduced dependency graph
+
+The [reduced dependency graph](reduced_dependency_graph.md) (RDG) draws the recurrence as
+one node per variable and one arc per dependence, each annotated with its **translation
+vector** `θ`. `syr`'s four variables are the scalar `alpha`, the symmetric matrix
+accumulator `r`, and the two reads `xx`, `yy` of the single vector `x` (the outer product
+is `x xᵀ`):
+
+| arc | θ | dependence |
+| --- | --- | --- |
+| `r → r` | `[0,0,1]ᵀ` | the rank-1 update applied once along the feed axis `k` |
+| `alpha → r` | `[0,0,1]ᵀ` | α enters the product |
+| `xx → r`, `yy → r` | `[0,0,1]ᵀ` | the two copies of `x` feed the outer product |
+| `xx → xx`, `yy → yy` | `[0,0,1]ᵀ` | each copy held on the feed axis |
+
+**Every** arc is the same feed-axis translation `[0,0,1]ᵀ` — `syr` is a fully parallel
+operator whose whole rank-1 update inject → add → drains along the single depth axis `k`,
+so `syr` is a genuine **SURE**.
+
+<div class="rdg" data-src="rdg/syr.json" data-height="560"></div>

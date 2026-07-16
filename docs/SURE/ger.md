@@ -32,3 +32,25 @@ Canonical linear schedule **τ = [1,1,1]**; also legal free. The wavefront sweep
 `(i,j)` plane; the two `k` layers are the add (`k=0`) and drain (`k=1`).
 
 <div class="schedule-anim" data-src="schedules/ger-linear.json" data-height="440"></div>
+
+## Reduced dependency graph
+
+The [reduced dependency graph](reduced_dependency_graph.md) (RDG) draws the recurrence as
+one node per variable and one arc per dependence, each annotated with its **translation
+vector** `θ`. `ger`'s four variables — the scalar `alpha`, the matrix accumulator `r`,
+and the two operands `xx`, `yy` — connect with constant offsets only:
+
+| arc | θ | dependence |
+| --- | --- | --- |
+| `r → r` | `[0,0,1]ᵀ` | the rank-1 update applied once along the feed axis `k` |
+| `alpha → r` | `[0,0,1]ᵀ` | α enters the outer product |
+| `xx → r` | `[0,1,0]ᵀ` | `x` feeds the outer product |
+| `yy → r` | `[1,0,0]ᵀ` | `y` feeds the outer product |
+| `xx → xx` | `[0,1,0]ᵀ` | `x` pipelined along `+j` |
+| `yy → yy` | `[1,0,0]ᵀ` | `y` pipelined along `+i` |
+
+Every arc is a translation vector, so `ger` is a genuine **SURE**: the outer product
+`A += α x yᵀ` injects once on the `k = -1` halo and drains along the feed axis, all by
+nearest-neighbour hops.
+
+<div class="rdg" data-src="rdg/ger.json" data-height="560"></div>

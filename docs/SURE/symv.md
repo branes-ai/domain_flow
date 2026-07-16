@@ -35,3 +35,27 @@ Box domain, so the canonical **τ = [1,1,1]** is legal, as is the free schedule.
 wavefront sweeps the `(i,j)` plane exactly as `gemv`.
 
 <div class="schedule-anim" data-src="schedules/symv-linear.json" data-height="440"></div>
+
+## Reduced dependency graph
+
+The [reduced dependency graph](reduced_dependency_graph.md) (RDG) draws the recurrence as
+one node per variable and one arc per dependence, each annotated with its **translation
+vector** `θ`. `symv`'s six variables mirror `gemv`'s — the symmetry lives in the *storage*
+(one triangle of `A`, read on two faces), not the dependence structure, which stays
+uniform:
+
+| arc | θ | dependence |
+| --- | --- | --- |
+| `acc → acc` | `[0,1,0]ᵀ` | the reduction chains along `+j` |
+| `a → acc` | `[0,0,1]ᵀ` | `A` (fed on `k`) enters the product |
+| `alpha → acc` | `[0,0,1]ᵀ` | α enters the product |
+| `xx → acc` | `[1,0,0]ᵀ` | `x` enters the product |
+| `a → a` | `[0,0,1]ᵀ` | `A` held on the feed axis |
+| `xx → xx` | `[1,0,0]ᵀ` | `x` pipelined across rows `+i` |
+| `alpha → alpha` | `[0,0,1]ᵀ` | α projected on the feed face |
+| `beta → beta` | `[1,0,0]ᵀ` | β projected on the `i = -1` face |
+| `yin → yin` | `[0,1,0]ᵀ` | the incoming `y` streamed along `+j` |
+
+Every arc is a translation vector, so `symv` is a genuine **SURE**.
+
+<div class="rdg" data-src="rdg/symv.json" data-height="620"></div>
