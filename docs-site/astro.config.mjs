@@ -58,6 +58,7 @@ export default defineConfig({
             { label: 'Conv2D', slug: 'theory/conv2d' },
             { label: 'QR Decomposition', slug: 'theory/qr-decomposition' },
             { label: 'LU factorization', slug: 'theory/lu' },
+            { label: 'Cholesky factorization', slug: 'theory/cholesky' },
             { label: 'Matrix–vector derivations', slug: 'theory/matrix-vector-operators' },
           ],
         },
@@ -108,6 +109,15 @@ export default defineConfig({
                 { label: 'syr2k — α(ABᵀ+BAᵀ) + βC', slug: 'sure-algorithms/blas-l3/syr2k' },
                 { label: 'trmm — B := αTB', slug: 'sure-algorithms/blas-l3/trmm' },
                 { label: 'symm — αAB + βC (sym)', slug: 'sure-algorithms/blas-l3/symm' },
+              ],
+            },
+            {
+              // Factorizations and solvers — lean reference (SURE + animation);
+              // the derivations live under Theory.
+              label: 'Linear Algebra',
+              items: [
+                { label: 'LU — A = LU', slug: 'sure-algorithms/linear-algebra/lu_decomposition' },
+                { label: 'Cholesky — A = LLᵀ', slug: 'sure-algorithms/linear-algebra/cholesky_decomposition' },
               ],
             },
           ],
