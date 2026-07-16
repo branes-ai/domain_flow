@@ -1,0 +1,18 @@
+{
+  "operator": "gemv",
+  "rank": 3,
+  "indexNames": ["i","j","k"],
+  "kind": "SURE",
+  "variables": ["a","acc","alpha","beta","xx","yin"],
+  "arcs": [
+    {"from":"a","to":"a","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"acc","to":"acc","kind":"uniform","theta":[0,1,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,-1,0]}},
+    {"from":"alpha","to":"acc","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"a","to":"acc","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"xx","to":"acc","kind":"uniform","theta":[1,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[-1,0,0]}},
+    {"from":"alpha","to":"alpha","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"beta","to":"beta","kind":"uniform","theta":[1,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[-1,0,0]}},
+    {"from":"xx","to":"xx","kind":"uniform","theta":[1,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[-1,0,0]}},
+    {"from":"yin","to":"yin","kind":"uniform","theta":[0,1,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,-1,0]}}
+  ]
+}

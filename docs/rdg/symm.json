@@ -1,0 +1,18 @@
+{
+  "operator": "symm",
+  "rank": 3,
+  "indexNames": ["i","j","k"],
+  "kind": "SURE",
+  "variables": ["a","alpha","b","beta","c","cin"],
+  "arcs": [
+    {"from":"a","to":"a","kind":"uniform","theta":[0,1,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,-1,0]}},
+    {"from":"alpha","to":"alpha","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"b","to":"b","kind":"uniform","theta":[1,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[-1,0,0]}},
+    {"from":"beta","to":"beta","kind":"uniform","theta":[1,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[-1,0,0]}},
+    {"from":"c","to":"c","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"alpha","to":"c","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"a","to":"c","kind":"uniform","theta":[0,1,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,-1,0]}},
+    {"from":"b","to":"c","kind":"uniform","theta":[1,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[-1,0,0]}},
+    {"from":"cin","to":"cin","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}}
+  ]
+}

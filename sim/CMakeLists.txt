@@ -73,6 +73,14 @@ if(DOMAINFLOW_BUILD_TESTING)
     add_test(NAME dfactl_sure_trsolve
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/trsolve.sure
                      --emit-schedule ${CMAKE_CURRENT_BINARY_DIR}/trsolve-schedule.json)
+    # reduced dependency graph export (issue #103): the emit must succeed for a SURE
+    # (gemv, all-uniform arcs) and a SARE (lu, affine pivot arcs)
+    add_test(NAME dfactl_rdg_gemv
+             COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/gemv.sure
+                     --emit-rdg ${CMAKE_CURRENT_BINARY_DIR}/gemv-rdg.json)
+    add_test(NAME dfactl_rdg_lu
+             COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/lu.sure
+                     --emit-rdg ${CMAKE_CURRENT_BINARY_DIR}/lu-rdg.json)
     add_test(NAME dfactl_sure_ger
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/ger.sure)
     add_test(NAME dfactl_sure_trmv

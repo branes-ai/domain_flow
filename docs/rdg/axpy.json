@@ -1,0 +1,13 @@
+{
+  "operator": "axpy",
+  "rank": 2,
+  "indexNames": ["i","j"],
+  "kind": "SURE",
+  "variables": ["a","x","y"],
+  "arcs": [
+    {"from":"a","to":"a","kind":"uniform","theta":[1,0],"map":{"A":[[1,0],[0,1]],"b":[-1,0]}},
+    {"from":"y","to":"y","kind":"uniform","theta":[0,1],"map":{"A":[[1,0],[0,1]],"b":[0,-1]}},
+    {"from":"a","to":"y","kind":"uniform","theta":[1,0],"map":{"A":[[1,0],[0,1]],"b":[-1,0]}},
+    {"from":"x","to":"y","kind":"uniform","theta":[0,1],"map":{"A":[[1,0],[0,1]],"b":[0,-1]}}
+  ]
+}

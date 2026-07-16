@@ -22,6 +22,7 @@
 #include <dfa/sim/legality.hpp>
 #include <dfa/sim/dfg_import.hpp>
 #include <dfa/sim/sure_parser.hpp>
+#include <dfa/sim/rdg.hpp>
 
 using namespace sw::dfa;
 using namespace sw::dfa::sim;
@@ -44,6 +45,7 @@ namespace {
             "  --schedule free|linear   free schedule [default], or the spec's linear tau\n"
             "  --tau t0,t1,...          override the linear scheduling vector (implies --schedule linear)\n"
             "  --emit-schedule <file>   (--sure only) write the schedule as JSON for the docs-site\n"
+            "  --emit-rdg <file>        (--sure only) write the reduced dependency graph as JSON\n"
             "                           3-D wavefront animation, then exit\n"
             "  --quiet                  suppress the numeric output, report schedule/memory only\n";
     }
@@ -228,6 +230,30 @@ namespace {
         js << "}\n";
     }
 
+    // Derive the operator name from a spec path: strip the directory and the
+    // trailing ".sure" (e.g. "docs/SURE/gemv.sure" -> "gemv").
+    std::string opNameFromPath(const std::string& path) {
+        std::string op = path;
+        auto slash = op.find_last_of("/\\");
+        if (slash != std::string::npos) op = op.substr(slash + 1);
+        if (op.size() > 5 && op.substr(op.size() - 5) == ".sure") op = op.substr(0, op.size() - 5);
+        return op;
+    }
+
+    // Parse a .sure program and write its Reduced Dependency Graph JSON (--emit-rdg).
+    // The RDG model and emitter live in <dfa/sim/rdg.hpp> (shared with the test).
+    int runSureRdg(const std::string& path, const std::string& rdgPath) {
+        SureSpec sure;
+        try { sure = parseSureFile(path); }
+        catch (const std::exception& e) { std::cerr << "error: " << e.what() << "\n"; return 2; }
+
+        std::ofstream out(rdgPath);
+        if (!out) { std::cerr << "error: cannot write '" << rdgPath << "'\n"; return 2; }
+        emitRdgJson(out, buildRdg(sure, opNameFromPath(path)));
+        std::cout << "wrote RDG JSON: " << rdgPath << "\n";
+        return 0;
+    }
+
     // Parse a .sure program and write its schedule JSON (--emit-schedule).
     int runSureEmit(const std::string& path, const std::string& emitPath,
                     const std::string& schedKind, const std::vector<int>& tauOverride, bool haveTau) {
@@ -235,10 +261,7 @@ namespace {
         try { sure = parseSureFile(path); }
         catch (const std::exception& e) { std::cerr << "error: " << e.what() << "\n"; return 2; }
 
-        std::string op = path;
-        auto slash = op.find_last_of("/\\");
-        if (slash != std::string::npos) op = op.substr(slash + 1);
-        if (op.size() > 5 && op.substr(op.size() - 5) == ".sure") op = op.substr(0, op.size() - 5);
+        std::string op = opNameFromPath(path);
 
         SureSimulator<double> sim(sure.system);
         std::vector<int> tau = haveTau ? tauOverride : sure.tau;
@@ -341,6 +364,7 @@ int main(int argc, char** argv) {
     std::string surePath;
     std::string schedKind = "free";
     std::string emitPath;
+    std::string rdgPath;
     std::vector<int> tauOverride;
     bool haveTau = false;
     bool quiet = false;
@@ -363,6 +387,11 @@ int main(int argc, char** argv) {
         if (a == "--emit-schedule") {
             if (++i >= argc) { std::cerr << "error: --emit-schedule needs a file path\n"; return 2; }
             emitPath = argv[i];
+            continue;
+        }
+        if (a == "--emit-rdg") {
+            if (++i >= argc) { std::cerr << "error: --emit-rdg needs a file path\n"; return 2; }
+            rdgPath = argv[i];
             continue;
         }
         if (a == "--schedule") {
@@ -397,6 +426,10 @@ int main(int argc, char** argv) {
     if (!dfgPath.empty() && !surePath.empty()) {
         std::cerr << "error: --dfg and --sure are mutually exclusive\n";
         return 2;
+    }
+    if (!rdgPath.empty()) {
+        if (surePath.empty()) { std::cerr << "error: --emit-rdg requires --sure <file>\n"; return 2; }
+        return runSureRdg(surePath, rdgPath);
     }
     if (!emitPath.empty()) {
         if (surePath.empty()) { std::cerr << "error: --emit-schedule requires --sure <file>\n"; return 2; }

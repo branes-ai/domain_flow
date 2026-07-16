@@ -12,6 +12,7 @@ src/content/docs/
 # assets copied into public/ by sync-content.mjs (source lives in docs/)
 public/images/
 public/schedules/
+public/rdg/
 
 # environment variables
 .env

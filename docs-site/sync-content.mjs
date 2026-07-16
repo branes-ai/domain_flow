@@ -93,6 +93,7 @@ const FILE_MAP = {
   'alignment_formalism.md':          'theory/alignment-formalism.md',
   'anchoring.md':                    'theory/anchoring.md',
   'pipelining_schedules.md':         'theory/pipelining-schedules.md',
+  'SURE/reduced_dependency_graph.md': 'theory/reduced_dependency_graph.md',
   'SURE/conv2d.md':                  'theory/conv2d.md',
   'SURE/QR_decomposition.md':        'theory/qr-decomposition.md',
   'SURE/lu.md':                      'theory/lu.md',
@@ -249,6 +250,16 @@ if (existsSync(schedSrc)) {
   mkdirSync(schedDest, { recursive: true });
   cpSync(schedSrc, schedDest, { recursive: true });
   console.log('  Copied docs/schedules/ → public/schedules/');
+}
+
+// 6. Copy the committed Reduced Dependency Graph JSON (issue #103) to public/ so the
+// docs build stays toolchain-free (regenerate via `npm run rdg`).
+const rdgSrc = join(DOCS, 'rdg');
+const rdgDest = join(PUB, 'rdg');
+if (existsSync(rdgSrc)) {
+  mkdirSync(rdgDest, { recursive: true });
+  cpSync(rdgSrc, rdgDest, { recursive: true });
+  console.log('  Copied docs/rdg/ → public/rdg/');
 }
 
 if (missingSources > 0) {
