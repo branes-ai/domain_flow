@@ -46,7 +46,9 @@ for `U`, `j-k=1` for `L`) because its factors are distinct.
 
 The Schur term `a(i,k)·a(j,k)/a(k,k)` is a scaled symmetric rank-1 update — the same
 `xxᵀ` shape as [`syrk`](syrk.md), applied here *in place* down the elimination. Blocked
-Cholesky is exactly a sequence of `syrk`/`trsm` trailing updates.
+Cholesky iterates over diagonal blocks: **factor** the diagonal block (a small Cholesky,
+`potrf`), **solve** the off-diagonal panel against it (`trsm`), then apply the **`syrk`**
+trailing update — and this rank-1 shape is the kernel of that trailing update.
 
 ## No pivoting — and why that matters
 
