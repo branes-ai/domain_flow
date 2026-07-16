@@ -1,0 +1,38 @@
+// LDL^T factorization (issue #44): A = L * D * L^T for a symmetric (possibly
+// INDEFINITE) matrix A, with L unit-lower-triangular and D diagonal.
+//
+// LDL^T is the square-root-free sibling of Cholesky: factoring out the diagonal D
+// avoids the sqrt, so it works for symmetric INDEFINITE A (D may have mixed signs),
+// where Cholesky's sqrt of a negative pivot would fail. The elimination is identical
+// to Cholesky's -- the same symmetric Schur update:
+//
+//   a(i,j,k) = a(i,j,k-1) - a(i,k,k-1) * a(j,k,k-1) / a(k,k,k-1)
+//
+// Only the EXTRACTION differs. Column j finalizes at k = j-1, giving
+//   D(j)   = a(j,j,j-1)                        the diagonal pivot (leaves on the diagonal)
+//   L(i,j) = a(i,j,j-1) / a(j,j,j-1),  i > j   the unit-lower multiplier
+// (L(j,j) = 1 implicitly). No sqrt anywhere. Like lu.sure/cholesky.sure this is a
+// SARE with a benign forward affine dependence, so tau = [1,1,2] is legal (and free).
+// See docs/theory/ldlt for the derivation.
+//
+// Run it:   dfactl --sure docs/SURE/ldlt.sure            (free schedule)
+//           dfactl --sure docs/SURE/ldlt.sure --tau 1,1,2
+
+N = 3;
+
+system ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, 0 <= k < N, k <= j - 1) {
+    a(i,j,k) = a(i,j,k-1) - a(i,k,k-1) * a(j,k,k-1) / a(k,k,k-1);           // symmetric Schur update
+}
+
+// tensor confluences
+input  A[N][N] ((i,j,k) | 0 <= i < N, 0 <= j < N, j <= i, k = -1)                        : a(i,j,k) = A[i][j];       // lower triangle of A seeds the k=-1 halo
+output L[N][N] ((i,j,k) | 0 <= i < N, 0 <= j < N, j < i, -1 <= k < N, j - k = 1)         : L[i][j] = a(i,j,k) / a(j,j,k); // unit-lower multipliers (i>j), column j finalizes at k=j-1
+output D[N]    ((i,j,k) | 0 <= i < N, 0 <= j < N, i <= j, j <= i, -1 <= k < N, i - k = 1) : D[i] = a(i,j,k);          // diagonal pivots (i=j)
+
+tau = [1, 1, 2];                 // canonical linear schedule (the trailing-domain affine taps are forward)
+
+// test bench:  INDEFINITE symmetric A = [[2,2,2],[2,-1,-1],[2,-1,3]]  ->
+//   L = [[1,0,0],[1,1,0],[1,1,1]],  D = diag(2,-3,4)  (mixed signs);  L D L^T = A
+data A = { 2,  2,  2,
+           2, -1, -1,
+           2, -1,  3 };

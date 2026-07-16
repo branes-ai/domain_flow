@@ -70,6 +70,7 @@ const FILE_MAP = {
   // ── SURE Algorithms: Linear Algebra (factorizations — lean reference + animation) ──
   'SURE/lu_decomposition.md':        'sure-algorithms/linear-algebra/lu_decomposition.md',
   'SURE/cholesky_decomposition.md':  'sure-algorithms/linear-algebra/cholesky_decomposition.md',
+  'SURE/ldlt_decomposition.md':      'sure-algorithms/linear-algebra/ldlt_decomposition.md',
   'SURE/syrk.md':                    'sure-algorithms/blas-l3/syrk.md',
   'SURE/syr2k.md':                   'sure-algorithms/blas-l3/syr2k.md',
   'SURE/trmm.md':                    'sure-algorithms/blas-l3/trmm.md',
@@ -95,6 +96,7 @@ const FILE_MAP = {
   'SURE/QR_decomposition.md':        'theory/qr-decomposition.md',
   'SURE/lu.md':                      'theory/lu.md',
   'SURE/cholesky.md':                'theory/cholesky.md',
+  'SURE/ldlt.md':                    'theory/ldlt.md',
   'matrix_vector_operators.md':      'theory/matrix-vector-operators.md',
 };
 

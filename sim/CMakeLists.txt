@@ -67,6 +67,9 @@ if(DOMAINFLOW_BUILD_TESTING)
     add_test(NAME dfactl_sure_cholesky
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/cholesky.sure
                      --emit-schedule ${CMAKE_CURRENT_BINARY_DIR}/cholesky-schedule.json)
+    add_test(NAME dfactl_sure_ldlt
+             COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/ldlt.sure
+                     --emit-schedule ${CMAKE_CURRENT_BINARY_DIR}/ldlt-schedule.json)
     add_test(NAME dfactl_sure_ger
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/ger.sure)
     add_test(NAME dfactl_sure_trmv

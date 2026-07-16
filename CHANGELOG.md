@@ -8,6 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **LDLᵀ factorization** (issue #44): `A = L·D·Lᵀ` for a symmetric (possibly
+  **indefinite**) matrix — `docs/SURE/ldlt.sure`, the derivation `docs/SURE/ldlt.md`
+  (Theory), the lean reference `docs/SURE/ldlt_decomposition.md` (SURE Algorithms /
+  Linear Algebra, with a schedule animation), `test_ldlt_sure` (dual-compiler, zero
+  warnings) and a `dfactl_sure_ldlt` emit test. The **square-root-free sibling of
+  Cholesky**: the elimination is the *same* symmetric Schur update, but factoring out
+  the diagonal `D` avoids the `√`, so it handles indefinite `A` (mixed-sign pivots).
+  Extraction uses two faces — unit-lower `L(i,j) = a(i,j,j-1)/a(j,j,j-1)` and the signed
+  diagonal `D(j) = a(j,j,j-1)`. A SARE with `τ = [1,1,2]` (same benign forward affine
+  dependence). Verified `L·D·Lᵀ = A` on an indefinite `A` (`D = diag(2,-3,4)`); the
+  test asserts `D` is indefinite. (True symmetric-indefinite robustness needs
+  Bunch–Kaufman pivoting — a data-dependent choice a static SURE can't express, like
+  LU's partial pivoting.)
 - **Cholesky factorization** (issue #43): `A = L·Lᵀ` for symmetric positive-definite
   `A` as an executable recurrence system — `docs/SURE/cholesky.sure`, the derivation
   `docs/SURE/cholesky.md` (Theory), the lean reference
