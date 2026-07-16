@@ -89,6 +89,7 @@ const FILE_MAP = {
   'pipelining_schedules.md':         'theory/pipelining-schedules.md',
   'SURE/conv2d.md':                  'theory/conv2d.md',
   'SURE/QR_decomposition.md':        'theory/qr-decomposition.md',
+  'SURE/lu.md':                      'theory/lu.md',
   'matrix_vector_operators.md':      'theory/matrix-vector-operators.md',
 };
 

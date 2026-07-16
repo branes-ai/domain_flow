@@ -8,6 +8,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **LU factorization** (issue #42, first of the factorizations): Gaussian elimination
+  `A = L·U` (no pivoting) as an executable recurrence system — `docs/SURE/lu.sure` +
+  the uniformized `docs/SURE/lu_propagate.sure`, the derivation `docs/SURE/lu.md`
+  (under Theory), `test_lu_sure` and `test_lu_propagate_sure` (dual-compiler, zero
+  warnings), and `dfactl_sure_lu` / `dfactl_sure_lu_propagate` emit tests. The
+  right-looking Schur elimination is a **SARE** (the pivot / pivot-row / multiplier-
+  column are affine taps that broadcast over the trailing submatrix) — but a *benign*
+  one: every consumer sits strictly below-and-right of the pivot, so a linear schedule
+  `τ = [1,1,2]` exists (LU tiles far more readily than QR). The test reconstructs `L`,
+  `U` from super-diagonal output faces and verifies `L·U = A`. A **step 2**
+  (`lu_propagate.sure`) uniformizes the pivot broadcast into a nearest-neighbour
+  **propagation** for a single elimination step (the pivot row / multiplier column
+  come from the input `A`, so they seed input-face propagations) — a pure SURE whose
+  free schedule shows the pivot/multiplier hopping across the array as a diagonal
+  wavefront. Two honest findings recorded: **partial pivoting cannot be a SURE** (a
+  data-dependent row permutation), and the **full** multi-step propagation needs the
+  internal-confluence DSL extension (later pivots are computed) — the same gap that
+  keeps the MGS QR a SARE.
 - **Complete BLAS operator catalog (L1 + L2 + L3) and the Scaling & Distribution docs
   section.** This spans the individual entries below (BLAS-2 `gemv`…`syr2`, BLAS-3
   `gemm`…`symm`, the tiling/hierarchy/DMM/composition pages, the Givens-QR flagship,
