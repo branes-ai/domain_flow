@@ -214,6 +214,25 @@ a per-lane coefficient (`data Alpha = { ... }` read along the `i = -1` edge)
 generalizes `axpy` to a diagonal scaling without changing the domain, the
 confluence structure, or the schedule.
 
+## Reduced dependency graph
+
+The [reduced dependency graph](reduced_dependency_graph.md) (RDG) draws the recurrence as
+one node per variable and one arc per dependence, each annotated with its **translation
+vector** `θ`. `axpy`'s three variables — the pipelined scalar `a` (= α), the input `x`,
+and the running result `y` — wire up with constant offsets only:
+
+| arc | θ | dependence |
+| --- | --- | --- |
+| `a → a` | `[1,0]ᵀ` | α pipelined across the lanes (`+i`) |
+| `y → y` | `[0,1]ᵀ` | the running `y` advances along the strip (`+j`) |
+| `a → y` | `[1,0]ᵀ` | α feeds the product |
+| `x → y` | `[0,1]ᵀ` | `x` feeds the product |
+
+Every arc is a translation vector — no matrix, no broadcast — so `axpy` is a genuine
+**SURE**: a fixed nearest-neighbour stencil, schedulable by a single linear `τ`.
+
+<div class="rdg" data-src="rdg/axpy.json" data-height="520"></div>
+
 ## Watch the schedule
 
 Under the linear schedule `τ = [1,1]` the wavefront sweeps diagonally across the lanes — the projected `alpha` pipeline and the streaming `y` advancing together. Shown at N = 12. Press play, or scrub; drag to orbit.

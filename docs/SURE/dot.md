@@ -145,6 +145,27 @@ this document's spec, checks the derived face normals, verifies $s = x^{\mathsf 
 against a direct reference, confirms free/linear schedule legality, and asserts the
 $O(1)$ accumulator footprint.
 
+## Reduced dependency graph
+
+The [reduced dependency graph](reduced_dependency_graph.md) (RDG) draws the recurrence as
+one node per variable and one arc per dependence, each annotated with its **translation
+vector** `θ`. `dot`'s three variables — the accumulator `s` and the two streamed operands
+`x`, `y` — connect with constant offsets only:
+
+| arc | θ | dependence |
+| --- | --- | --- |
+| `s → s` | `[1,0]ᵀ` | the accumulator chains along the reduction |
+| `x → s` | `[0,1]ᵀ` | `x` feeds the product |
+| `y → s` | `[0,1]ᵀ` | `y` feeds the product |
+| `x → x` | `[0,1]ᵀ` | `x` streamed to the accumulator |
+| `y → y` | `[0,1]ᵀ` | `y` streamed to the accumulator |
+
+Every arc is a translation vector, so `dot` is a genuine **SURE**. The self-loop
+`s → s` *is* the reduction chain — the source of the sequential dependence that makes the
+inner product a length-`N` wavefront with no parallelism to recover.
+
+<div class="rdg" data-src="rdg/dot.json" data-height="520"></div>
+
 ## Watch the schedule
 
 The inner product is a linear-chain reduction: the wavefront is a single point sweeping the accumulation from `i = 0` to `i = N-1` in `N` steps — a chain has no parallelism to recover. Shown at N = 16. Press play, or scrub; drag to orbit.

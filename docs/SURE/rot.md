@@ -136,6 +136,28 @@ this document's spec, checks the six input and two output face normals, verifies
 the rotated pair against the reference matrix *and* the norm-preserving invariant,
 and confirms free/linear schedule legality and the memory analysis.
 
+## Reduced dependency graph
+
+The [reduced dependency graph](reduced_dependency_graph.md) (RDG) draws the recurrence as
+one node per variable and one arc per dependence, each annotated with its **translation
+vector** `θ`. `rot` has six variables — the two rotation scalars `c`, `s`, the two
+operands `x`, `y`, and the two results `rx = c·x + s·y`, `ry = c·y − s·x` — all wired by
+constant offsets (grouped below; twelve arcs in all):
+
+| arc(s) | θ | dependence |
+| --- | --- | --- |
+| `c → c`, `s → s` | `[1,0]ᵀ` | the rotation scalars pipelined along `+i` |
+| `rx → rx`, `ry → ry` | `[0,1]ᵀ` | each result stream advances along `+j` |
+| `c → rx`, `s → rx` | `[1,0]ᵀ` | `c`, `s` feed the rotated `rx` |
+| `x → rx`, `y → rx` | `[0,1]ᵀ` | `x`, `y` feed `rx` |
+| `c → ry`, `s → ry` | `[1,0]ᵀ` | `c`, `s` feed the rotated `ry` |
+| `x → ry`, `y → ry` | `[0,1]ᵀ` | `x`, `y` feed `ry` |
+
+Every arc is a translation vector, so `rot` is a genuine **SURE**: the rotation scalars
+and operands pipeline through a fixed local stencil, no broadcast anywhere.
+
+<div class="rdg" data-src="rdg/rot.json" data-height="620"></div>
+
 ## Watch the schedule
 
 The six Givens-rotation flows — two projected scalars, two operands, two result streams — sweep the strip together under `τ = [1,1]`. Shown at N = 12. Press play, or scrub; drag to orbit.

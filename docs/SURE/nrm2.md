@@ -134,6 +134,25 @@ parses this document's spec, checks the derived face normals, verifies
 $\lVert x \rVert_2$ *through the sqrt epilogue* against a direct reference, confirms
 free/linear schedule legality, and asserts the $O(1)$ accumulator footprint.
 
+## Reduced dependency graph
+
+The [reduced dependency graph](reduced_dependency_graph.md) (RDG) draws the recurrence as
+one node per variable and one arc per dependence, each annotated with its **translation
+vector** `θ`. `nrm2` has just two variables — the accumulator `s` and the streamed input
+`x`:
+
+| arc | θ | dependence |
+| --- | --- | --- |
+| `s → s` | `[1,0]ᵀ` | the sum-of-squares accumulator chains along the reduction |
+| `x → s` | `[0,1]ᵀ` | `x` feeds the square |
+| `x → x` | `[0,1]ᵀ` | `x` streamed to the accumulator |
+
+Every arc is a translation vector, so `nrm2` is a genuine **SURE**. The terminal `√`
+is an epilogue on the output face, not a recurrence, so it contributes no arc — the RDG
+shows only the sum-of-squares chain.
+
+<div class="rdg" data-src="rdg/nrm2.json" data-height="460"></div>
+
 ## Watch the schedule
 
 The sum-of-squares reduction sweeps as a single point down the chain; the `sqrt` epilogue fires once at the terminal cell. Shown at N = 16. Press play, or scrub; drag to orbit.
