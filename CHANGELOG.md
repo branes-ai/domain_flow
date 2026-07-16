@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **RDG sections for the BLAS L1 operators** (issues #104–#107, epic #102): `axpy`,
+  `dot`, `nrm2`, and `rot` each gain a *Reduced dependency graph* section in their
+  derivation — the node set, an arc table with the translation vector `θ` of every
+  dependence, the SURE classification, and the embedded RDG visualization. All four are
+  confirmed genuine SUREs (every arc a translation vector; no affine/broadcast arc).
 - **Reduced Dependency Graph (RDG)** — infrastructure (issue #103, epic #102): the
   compact, finite representation of a SURE/SARE — one node per recurrence variable, one
   arc per dependence, each arc carrying its affine map `p ↦ Ap+b`. Ships:
