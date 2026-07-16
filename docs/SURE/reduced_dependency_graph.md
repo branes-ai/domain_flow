@@ -15,9 +15,12 @@ expanded graph two ways:
 - **one arc per dependence** — every instance of "this equation reads that operand"
   becomes a single labeled arc.
 
-The RDG is the object a systolic-array synthesizer reasons over. It is
-**schedule-independent** and **size-independent** — a property of the recurrence
-*form* alone — and it makes the SURE/SARE distinction visible at a glance.
+The RDG captures the SURE/SARE algorithm structure, and it is the object the
+**Domain Flow Compiler** reasons over: from it the compiler analyzes the operator's
+admissible **schedules** and **concurrency**, and derives the **domain flow program** —
+the kernel that programs the processing elements of the **KPU compute fabric**. It is
+**schedule-independent** and **size-independent** — a property of the recurrence *form*
+alone — and it makes the SURE/SARE distinction visible at a glance.
 
 ## Nodes and arcs
 
