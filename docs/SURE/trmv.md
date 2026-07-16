@@ -31,3 +31,26 @@ the canonical **τ = [1,2,1]** is legal, while the box-default `τ = [1,1,1]` is
 the lower triangle, each row completing on the diagonal.
 
 <div class="schedule-anim" data-src="schedules/trmv-linear.json" data-height="440"></div>
+
+## Reduced dependency graph
+
+The [reduced dependency graph](reduced_dependency_graph.md) (RDG) draws the recurrence as
+one node per variable and one arc per dependence, each annotated with its **translation
+vector** `θ`. `trmv`'s three variables — the accumulator `acc` and the two operands fed
+on the `(i,j)` face, the triangle `t` and the vector `xx` — connect with constant
+offsets only:
+
+| arc | θ | dependence |
+| --- | --- | --- |
+| `acc → acc` | `[0,1,0]ᵀ` | the reduction chains along `+j` (over `j ≤ i`) |
+| `t → acc` | `[0,0,1]ᵀ` | `T(i,j)` (fed on `k`) enters the product |
+| `xx → acc` | `[0,0,1]ᵀ` | `x(j)` (fed on `k`) enters the product |
+| `t → t` | `[0,0,1]ᵀ` | `T` held on the feed axis |
+| `xx → xx` | `[0,0,1]ᵀ` | `x` held on the feed axis |
+
+Every arc is a translation vector, so `trmv` is a genuine **SURE**. The triangular
+domain (`j ≤ i`) constrains the *schedule* — the diagonal outflux needs `τ_j > τ_i` —
+but leaves the dependence structure uniform: the RDG is identical in shape to a
+box mat-vec.
+
+<div class="rdg" data-src="rdg/trmv.json" data-height="520"></div>
