@@ -1,0 +1,14 @@
+{
+  "operator": "trmv",
+  "rank": 3,
+  "indexNames": ["i","j","k"],
+  "kind": "SURE",
+  "variables": ["acc","t","xx"],
+  "arcs": [
+    {"from":"acc","to":"acc","kind":"uniform","theta":[0,1,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,-1,0]}},
+    {"from":"t","to":"acc","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"xx","to":"acc","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"t","to":"t","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"xx","to":"xx","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}}
+  ]
+}

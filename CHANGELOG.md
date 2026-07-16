@@ -8,6 +8,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Reduced Dependency Graph (RDG)** — infrastructure (issue #103, epic #102): the
+  compact, finite representation of a SURE/SARE — one node per recurrence variable, one
+  arc per dependence, each arc carrying its affine map `p ↦ Ap+b`. Ships:
+  - `include/dfa/sim/rdg.hpp` — the shared RDG model (`buildRdg`, `emitRdgJson`): an arc
+    `s → v` is **uniform** when `A = I` (a translation `θ = −b`, nearest-neighbour) or
+    **affine** when `A ≠ I` (a projection/broadcast); any affine arc makes the system a
+    **SARE**. Merges identical arcs; schedule- and size-independent.
+  - `dfactl --emit-rdg <file>` — write a SURE/SARE's RDG as JSON.
+  - `docs-site/src/components/rdg.js` — a self-contained (no-dependency) SVG viewer,
+    embedded via `<div class="rdg" data-src="rdg/<op>.json">`; arcs are labeled with the
+    operand tuple reconstructed from `(A,b)` exactly as written in the spec
+    (`a(i,j-1,k)`, `a(k,k,k-1)`), uniform solid / affine dashed, with a SURE/SARE badge.
+  - `docs-site/make-rdg.mjs` (`npm run rdg`) generating the committed `docs/rdg/<op>.json`
+    for all 19 catalog operators; `sync-content.mjs` copies them to `public/rdg/`.
+  - the formalism doc `docs/SURE/reduced_dependency_graph.md` under **Theory**, with
+    worked examples (`gemv` — a genuine SURE; `lu` — a SARE with three affine pivot arcs).
+  - `test_rdg_sure` (dual-compiler, zero warnings) asserting the classification across
+    the catalog (all BLAS L1/L2/L3 are SUREs; `lu`/`cholesky`/`ldlt` are SAREs with 3
+    affine pivot arcs; `trsolve` is a SARE with 1 affine arc) plus `dfactl_rdg_*` emit
+    tests. The RDG is the natural setting for the upcoming neighbour-pivoting LU revisit.
 - **Triangular solve — `trsv`** (issue #49): forward substitution `L x = b` for a
   lower-triangular `L`, the substitution engine behind every direct solver —
   `docs/SURE/trsolve.sure`, the derivation `docs/SURE/trsolve.md` (Theory), the lean
