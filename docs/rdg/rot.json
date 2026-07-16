@@ -1,0 +1,21 @@
+{
+  "operator": "rot",
+  "rank": 2,
+  "indexNames": ["i","j"],
+  "kind": "SURE",
+  "variables": ["c","rx","ry","s","x","y"],
+  "arcs": [
+    {"from":"c","to":"c","kind":"uniform","theta":[1,0],"map":{"A":[[1,0],[0,1]],"b":[-1,0]}},
+    {"from":"rx","to":"rx","kind":"uniform","theta":[0,1],"map":{"A":[[1,0],[0,1]],"b":[0,-1]}},
+    {"from":"c","to":"rx","kind":"uniform","theta":[1,0],"map":{"A":[[1,0],[0,1]],"b":[-1,0]}},
+    {"from":"x","to":"rx","kind":"uniform","theta":[0,1],"map":{"A":[[1,0],[0,1]],"b":[0,-1]}},
+    {"from":"s","to":"rx","kind":"uniform","theta":[1,0],"map":{"A":[[1,0],[0,1]],"b":[-1,0]}},
+    {"from":"y","to":"rx","kind":"uniform","theta":[0,1],"map":{"A":[[1,0],[0,1]],"b":[0,-1]}},
+    {"from":"ry","to":"ry","kind":"uniform","theta":[0,1],"map":{"A":[[1,0],[0,1]],"b":[0,-1]}},
+    {"from":"s","to":"ry","kind":"uniform","theta":[1,0],"map":{"A":[[1,0],[0,1]],"b":[-1,0]}},
+    {"from":"x","to":"ry","kind":"uniform","theta":[0,1],"map":{"A":[[1,0],[0,1]],"b":[0,-1]}},
+    {"from":"c","to":"ry","kind":"uniform","theta":[1,0],"map":{"A":[[1,0],[0,1]],"b":[-1,0]}},
+    {"from":"y","to":"ry","kind":"uniform","theta":[0,1],"map":{"A":[[1,0],[0,1]],"b":[0,-1]}},
+    {"from":"s","to":"s","kind":"uniform","theta":[1,0],"map":{"A":[[1,0],[0,1]],"b":[-1,0]}}
+  ]
+}

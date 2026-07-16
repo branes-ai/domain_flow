@@ -1,0 +1,22 @@
+{
+  "operator": "syr2k",
+  "rank": 3,
+  "indexNames": ["i","j","k"],
+  "kind": "SURE",
+  "variables": ["ai","aj","alpha","beta","bi","bj","c","cin"],
+  "arcs": [
+    {"from":"ai","to":"ai","kind":"uniform","theta":[0,1,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,-1,0]}},
+    {"from":"aj","to":"aj","kind":"uniform","theta":[1,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[-1,0,0]}},
+    {"from":"alpha","to":"alpha","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"beta","to":"beta","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"bi","to":"bi","kind":"uniform","theta":[0,1,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,-1,0]}},
+    {"from":"bj","to":"bj","kind":"uniform","theta":[1,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[-1,0,0]}},
+    {"from":"c","to":"c","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"alpha","to":"c","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"ai","to":"c","kind":"uniform","theta":[0,1,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,-1,0]}},
+    {"from":"bj","to":"c","kind":"uniform","theta":[1,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[-1,0,0]}},
+    {"from":"bi","to":"c","kind":"uniform","theta":[0,1,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,-1,0]}},
+    {"from":"aj","to":"c","kind":"uniform","theta":[1,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[-1,0,0]}},
+    {"from":"cin","to":"cin","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}}
+  ]
+}

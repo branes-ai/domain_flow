@@ -1,0 +1,12 @@
+{
+  "operator": "nrm2",
+  "rank": 2,
+  "indexNames": ["i","j"],
+  "kind": "SURE",
+  "variables": ["s","x"],
+  "arcs": [
+    {"from":"s","to":"s","kind":"uniform","theta":[1,0],"map":{"A":[[1,0],[0,1]],"b":[-1,0]}},
+    {"from":"x","to":"s","kind":"uniform","theta":[0,1],"map":{"A":[[1,0],[0,1]],"b":[0,-1]}},
+    {"from":"x","to":"x","kind":"uniform","theta":[0,1],"map":{"A":[[1,0],[0,1]],"b":[0,-1]}}
+  ]
+}

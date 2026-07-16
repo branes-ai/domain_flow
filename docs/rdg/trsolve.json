@@ -1,0 +1,17 @@
+{
+  "operator": "trsolve",
+  "rank": 3,
+  "indexNames": ["i","j","k"],
+  "kind": "SARE",
+  "variables": ["Lm","acc","bb","x"],
+  "arcs": [
+    {"from":"Lm","to":"Lm","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"acc","to":"acc","kind":"uniform","theta":[0,1,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,-1,0]}},
+    {"from":"Lm","to":"acc","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"x","to":"acc","kind":"affine","map":{"A":[[0,1,0],[0,1,0],[0,0,1]],"b":[0,0,0]}},
+    {"from":"bb","to":"bb","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"bb","to":"x","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"acc","to":"x","kind":"uniform","theta":[0,1,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,-1,0]}},
+    {"from":"Lm","to":"x","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}}
+  ]
+}

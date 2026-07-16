@@ -55,6 +55,7 @@ export default defineConfig({
             { label: 'Aligning convex hulls', slug: 'theory/alignment-formalism' },
             { label: 'Geometric Transformation', slug: 'theory/anchoring' },
             { label: 'Pipeline Schedules', slug: 'theory/pipelining-schedules' },
+            { label: 'Reduced Dependency Graph', slug: 'theory/reduced_dependency_graph' },
             { label: 'Conv2D', slug: 'theory/conv2d' },
             { label: 'QR Decomposition', slug: 'theory/qr-decomposition' },
             { label: 'LU factorization', slug: 'theory/lu' },

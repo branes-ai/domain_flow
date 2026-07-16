@@ -14,8 +14,15 @@ import Default from '@astrojs/starlight/components/Head.astro';
     const { mountAll } = await import('./schedule-anim.js');
     mountAll();
   }
+  async function mountRdgs() {
+    if (!document.querySelector('.rdg[data-src]:not([data-mounted])')) return;
+    const { mountAll } = await import('./rdg.js');
+    mountAll();
+  }
+  function mountAllViewers() { mountSchedules(); mountRdgs(); }
   // deferred module scripts run after the DOM is parsed; re-run after Starlight's
-  // client-side navigations (view transitions) too.
-  mountSchedules();
-  document.addEventListener('astro:page-load', mountSchedules);
+  // client-side navigations (view transitions) too. Each importer is guarded by a
+  // presence check, so a page pays only for the viewers it actually embeds.
+  mountAllViewers();
+  document.addEventListener('astro:page-load', mountAllViewers);
 </script>
