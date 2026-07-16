@@ -31,3 +31,25 @@ As with `syr`, the result drains on the `k=1` face, so the canonical **τ = [1,1
 is legal, as is the free schedule. The wavefront sweeps the lower triangle.
 
 <div class="schedule-anim" data-src="schedules/syr2-linear.json" data-height="440"></div>
+
+## Reduced dependency graph
+
+The [reduced dependency graph](reduced_dependency_graph.md) (RDG) draws the recurrence as
+one node per variable and one arc per dependence, each annotated with its **translation
+vector** `θ`. `syr2`'s six variables are the scalar `alpha`, the symmetric accumulator
+`r`, and the two face-reads each of `x` (`xi`, `xj`) and `y` (`yi`, `yj`) — the two outer
+products of `A += α(x yᵀ + y xᵀ)`:
+
+| arc | θ | dependence |
+| --- | --- | --- |
+| `r → r` | `[0,0,1]ᵀ` | the rank-2 update applied once along the feed axis `k` |
+| `alpha → r` | `[0,0,1]ᵀ` | α enters the products |
+| `xi → r`, `yj → r` | `[0,0,1]ᵀ` | the `x yᵀ` outer product |
+| `yi → r`, `xj → r` | `[0,0,1]ᵀ` | the `y xᵀ` outer product |
+| `xi → xi`, `xj → xj`, `yi → yi`, `yj → yj` | `[0,0,1]ᵀ` | each face-read held on the feed axis |
+
+**Every** arc is the same feed-axis translation `[0,0,1]ᵀ`: like `syr`, `syr2` is a fully
+parallel operator whose rank-2 update inject → add → drains along the single depth axis
+`k` — a genuine **SURE**.
+
+<div class="rdg" data-src="rdg/syr2.json" data-height="620"></div>
