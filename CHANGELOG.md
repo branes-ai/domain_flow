@@ -8,6 +8,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Neighbour pivoting — the pivot compare-exchange as a SURE** (issue #42):
+  `docs/SURE/lu_neighbor.sure`, the derivation `docs/SURE/lu_neighbor.md` (Theory),
+  `test_lu_neighbor_sure` (dual-compiler, zero warnings), a `dfactl_sure_lu_neighbor`
+  emit test, and the committed RDG. Partial pivoting selects a pivot by a global argmax
+  and moves it an arbitrary distance — an **affine broadcast** that makes pivoted `PLU`
+  a SARE (inexpressible as a static uniform system). **Neighbour pivoting** restricts
+  every comparison and interchange to *adjacent* rows: a bubble-down compare-exchange
+  carries the max-magnitude value (and its original row index) to the pivot position
+  while each loser settles in place — `iamax`'s nearest-neighbour argmax carry, extended
+  to also exchange, via `gt`/`select`/`abs`. Every tap is a constant offset, so it is a
+  genuine **SURE** (RDG all translation vectors, `0` affine arcs) with a linear schedule
+  `τ = [1,1]` — uniformization of the pivot broadcast made visible against
+  [`lu`](docs/SURE/lu.md)'s three affine pivot arcs. Verified: `x = [1,-5,3,-2]` →
+  pivot `-5` (row 1), compare-exchanged column `[1,3,-2,-5]`. Documents the resolution of
+  #42 (partial-pivoting `PLU` is a SARE a static SURE cannot express; neighbour pivoting
+  is the SURE a domain-flow fabric can run).
 - **RDG sections for the factorizations & solver** (issues #119–#122, epic #102):
   `lu`, `cholesky`, `ldlt`, and `trsv` each gain a *Reduced dependency graph* section in
   their Theory derivation — node set, arc table, and the embedded RDG. These are the

@@ -66,6 +66,7 @@ const OPERATORS = [
   // shows the propagation wavefront)
   { op: 'lu',           scale: { N: 12 }, schedules: ['free'] },
   { op: 'lu_propagate', scale: { N: 12 }, schedules: ['free'] },
+  { op: 'lu_neighbor',  scale: { N: 12 }, schedules: ['linear'] },
   { op: 'cholesky',     scale: { N: 12 }, schedules: ['free'] },
   { op: 'ldlt',         scale: { N: 12 }, schedules: ['free'] },
   { op: 'trsolve',      scale: { N: 12 }, schedules: ['free'] },
