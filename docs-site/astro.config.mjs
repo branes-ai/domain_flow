@@ -64,6 +64,7 @@ export default defineConfig({
             { label: 'LDLᵀ factorization', slug: 'theory/ldlt' },
             { label: 'Triangular solve', slug: 'theory/trsolve' },
             { label: 'Least squares via QR', slug: 'theory/lstsq' },
+            { label: 'Stationary iteration', slug: 'theory/stationary' },
             { label: 'Matrix–vector derivations', slug: 'theory/matrix-vector-operators' },
           ],
         },

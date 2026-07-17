@@ -102,6 +102,7 @@ const FILE_MAP = {
   'SURE/ldlt.md':                    'theory/ldlt.md',
   'SURE/trsolve.md':                 'theory/trsolve.md',
   'SURE/lstsq.md':                   'theory/lstsq.md',
+  'SURE/stationary.md':               'theory/stationary.md',
   'matrix_vector_operators.md':      'theory/matrix-vector-operators.md',
 };
 
