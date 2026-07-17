@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **RDG sections for the factorizations & solver** (issues #119–#122, epic #102):
+  `lu`, `cholesky`, `ldlt`, and `trsv` each gain a *Reduced dependency graph* section in
+  their Theory derivation — node set, arc table, and the embedded RDG. These are the
+  **SARE** cases: the affine pivot/broadcast arcs render as **matrix** maps (dashed)
+  alongside the uniform Schur translation (solid). `lu`/`cholesky`/`ldlt` are one node
+  with three affine pivot arcs (projections onto row/column `k`); `trsv` is four nodes
+  with a single affine arc — the solved `x` broadcast off the diagonal `(i,j,k) ↦ (j,j,k)`.
+  Completes the per-operator RDG rollout (all 19 catalog operators).
 - **RDG sections for the BLAS L3 operators** (issues #114–#118, epic #102): `gemm`,
   `syrk`, `syr2k`, `trmm`, and `symm` each gain a *Reduced dependency graph* section —
   node set, arc table with the translation vector `θ` of every dependence, SURE

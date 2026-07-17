@@ -76,6 +76,32 @@ of `B`: add an independent RHS axis and the same triangular recurrence solves ea
 column. Nothing about the schedule changes — the extra axis is fully parallel — so the
 vector spec here captures the essential geometry.
 
+## Reduced dependency graph
+
+The [reduced dependency graph](reduced_dependency_graph.md) (RDG) draws the recurrence as
+one node per variable and one arc per dependence. `trsv`'s four variables — the row `Lm`,
+the right-hand side `bb`, the reduction `acc`, and the solution `x` — wire almost entirely
+with translation vectors, with one telling exception:
+
+| arc | dependence map | reads |
+| --- | --- | --- |
+| `Lm → Lm` | `[0,0,1]ᵀ` | `L` held on the feed axis |
+| `bb → bb` | `[0,0,1]ᵀ` | `b` held on the feed axis |
+| `acc → acc` | `[0,1,0]ᵀ` | the reduction chains along `+j` |
+| `Lm → acc` | `[0,0,1]ᵀ` | `L(i,j)` enters the product |
+| `x → acc` | affine `(i,j,k) ↦ (j,j,k)` | the solved `x(j)`, from the diagonal `(j,j)` |
+| `bb → x` | `[0,0,1]ᵀ` | `b(i)` feeds the solve |
+| `acc → x` | `[0,1,0]ᵀ` | the off-diagonal sum feeds the solve |
+| `Lm → x` | `[0,0,1]ᵀ` | the pivot `L(i,i)` divides |
+
+Seven arcs are translation vectors; the single **affine** arc `x → acc` — the map
+`(i,j,k) ↦ (j,j,k)` reading the solved `x` off the diagonal — is the broadcast that makes
+`trsv` a **SARE**. Where LU and Cholesky carry three affine pivot arcs, `trsv` carries
+just one, but a single matrix arc is enough to make the whole system affine. It renders
+dashed in the graph; the seven translations render solid.
+
+<div class="rdg" data-src="rdg/trsolve.json" data-height="560"></div>
+
 ---
 
 The executable spec, its free schedule, and the animation are on the reference page:

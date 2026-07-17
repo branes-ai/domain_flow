@@ -48,6 +48,27 @@ tiny/zero pivot; like [LU's partial pivoting](lu.md#partial-pivoting-is-not-a-su
 is a data-dependent choice a static SURE cannot express. The spec here is the
 unpivoted LDLᵀ, which needs non-singular leading minors.)
 
+## Reduced dependency graph
+
+The [reduced dependency graph](reduced_dependency_graph.md) (RDG) draws the recurrence as
+one node per variable and one arc per dependence. LDLᵀ shares Cholesky's elimination, so
+it shares Cholesky's RDG exactly — a **single** variable `a` with four self-loops:
+
+| arc | dependence map | reads |
+| --- | --- | --- |
+| `a → a` | translation `[0,0,1]ᵀ` | `a(i,j,k-1)`, the previous Schur value |
+| `a → a` | affine `(i,j,k) ↦ (i,k,k-1)` | column `k`, row `i`: `a(i,k,k-1)` |
+| `a → a` | affine `(i,j,k) ↦ (j,k,k-1)` | column `k`, row `j`: `a(j,k,k-1)` |
+| `a → a` | affine `(i,j,k) ↦ (k,k,k-1)` | the pivot `a(k,k,k-1)` |
+
+One **translation vector** and three **matrix** maps projecting onto column/pivot `k`, so
+LDLᵀ is a **SARE**. The `√`-free extraction changes only the *output faces*, not the
+elimination's dependence structure — which is why the RDG is identical to
+[Cholesky](cholesky.md)'s. The affine arcs render dashed, carrying their matrix; the
+uniform Schur arc renders solid.
+
+<div class="rdg" data-src="rdg/ldlt.json" data-height="560"></div>
+
 ---
 
 The executable spec, its schedule, and the animation are on the reference page:

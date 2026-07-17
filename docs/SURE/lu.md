@@ -92,6 +92,30 @@ broadcast's "everyone at once" becomes a diagonal **propagation wavefront**. Tha
 staircase is the cost the propagation trades for uniformity (it now tiles with halo
 exchange).
 
+## Reduced dependency graph
+
+The [reduced dependency graph](reduced_dependency_graph.md) (RDG) draws the recurrence as
+one node per variable and one arc per dependence. LU has a **single** variable `a` (the
+matrix eliminated in place), so its RDG is one node with four self-loops — and this is
+where the SURE/SARE line becomes visible:
+
+| arc | dependence map | reads |
+| --- | --- | --- |
+| `a → a` | translation `[0,0,1]ᵀ` | `a(i,j,k-1)`, the previous Schur value |
+| `a → a` | affine `(i,j,k) ↦ (i,k,k-1)` | the multiplier column `a(i,k,k-1)` |
+| `a → a` | affine `(i,j,k) ↦ (k,j,k-1)` | the pivot row `a(k,j,k-1)` |
+| `a → a` | affine `(i,j,k) ↦ (k,k,k-1)` | the pivot `a(k,k,k-1)` |
+
+The first arc is a **translation vector**; the other three are **matrix** maps — each
+projects every cell of the trailing submatrix onto row/column `k`, a broadcast. Those
+three affine arcs are exactly what make LU a **SARE**, and they are the arcs a
+neighbour-pivoting reformulation would uniformize into translations. In the
+graph the affine arcs render dashed, carrying their matrix; the uniform Schur arc renders
+solid, carrying `[0,0,1]ᵀ`. (This is the SARE worked example on the
+[RDG page](reduced_dependency_graph.md).)
+
+<div class="rdg" data-src="rdg/lu.json" data-height="560"></div>
+
 ---
 
 The executable specs, their schedules, and the animations of both the SARE and the
