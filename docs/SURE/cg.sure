@@ -1,0 +1,55 @@
+// Conjugate Gradient (issue #52): solve SPD A x = b by CG, K fixed iterations.
+//
+// Each CG step composes catalog kernels coupled by two scalars over the iteration k:
+//   Ap^k    = A p^k                       (SpMV / gemv, reduce over columns j)
+//   alpha^k = (r^k . r^k) / (p^k . Ap^k)  (two dots, reduce over components i)
+//   x^{k+1} = x^k + alpha^k p^k           (axpy)
+//   r^{k+1} = r^k - alpha^k Ap^k          (axpy)
+//   beta^k  = (r^{k+1}.r^{k+1})/(r^k.r^k) (dot, reused)
+//   p^{k+1} = r^{k+1} + beta^k p^k        (axpy)
+//
+// Index space (i,j,k): i = component (0..N-1), j = SpMV reduction (0..N-1), k = iteration.
+// Two reduction DIRECTIONS coexist: ap accumulates along +j (the SpMV), while the dots
+// pApd, rrd accumulate along +i (over components). The scalars are the dot ratios at
+// (N-1,N-1,k), broadcast back to every component -- affine taps, so CG is a SARE.
+//
+// State convention: the vectors at iteration k hold (x^k, r^k, p^k). The k = -1 halo
+// seeds the initial state x^0 = 0, r^0 = p^0 = b with alpha^{-1} = 0 (so the k = 0 cell
+// reproduces the initial state); the first real update lands at k = 1, so K-1 >= N gives
+// exact convergence for an N x N SPD system.
+//
+// Run it:   dfactl --sure docs/SURE/cg.sure            (free schedule)
+
+N = 3; K = 5;
+
+system ((i,j,k) | 0 <= i < N, 0 <= j < N, 0 <= k < K) {
+    am(i,j,k)   = am(i,j,k-1);                                                     // A(i,j), held across iterations
+    ap(i,j,k)   = ap(i,j-1,k) + am(i,j,k) * pv(j,N-1,k);                           // SpMV: Ap_i = sum_j A(i,j) p_j
+    pApd(i,j,k) = pApd(i-1,j,k) + pv(i,N-1,k) * ap(i,N-1,k);                       // dot p.Ap, reduce over i
+    rrd(i,j,k)  = rrd(i-1,j,k) + rv(i,N-1,k) * rv(i,N-1,k);                        // dot r.r,  reduce over i
+    alp(i,j,k)  = rrd(N-1,N-1,k) / pApd(N-1,N-1,k);                                // alpha^k = (r.r)/(p.Ap), broadcast
+    bet(i,j,k)  = rrd(N-1,N-1,k) / rrd(N-1,N-1,k-1);                               // beta^{k-1} = (r^k.r^k)/(r^{k-1}.r^{k-1})
+    xv(i,j,k)   = xv(i,j,k-1) + alp(i,j,k-1) * pv(i,N-1,k-1);                      // x^k = x^{k-1} + alpha^{k-1} p^{k-1}
+    rv(i,j,k)   = rv(i,j,k-1) - alp(i,j,k-1) * ap(i,N-1,k-1);                      // r^k = r^{k-1} - alpha^{k-1} Ap^{k-1}
+    pv(i,j,k)   = rv(i,j,k) + bet(i,j,k) * pv(i,N-1,k-1);                          // p^k = r^k + beta^{k-1} p^{k-1}
+}
+
+// tensor confluences
+input  A[N][N] ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1) : am(i,j,k)   = A[i][j];  // A held from k = -1
+input          ((i,j,k) | 0 <= i < N, j = -1, 0 <= k < K) : ap(i,j,k)   = 0;        // SpMV reduction seed (j=-1)
+input          ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1) : ap(i,j,k)   = 0;        // ap halo (unused at k=0, alpha^{-1}=0)
+input          ((i,j,k) | i = -1, 0 <= j < N, 0 <= k < K) : pApd(i,j,k) = 0;        // dot p.Ap seed (i=-1)
+input          ((i,j,k) | i = -1, 0 <= j < N, 0 <= k < K) : rrd(i,j,k)  = 0;        // dot r.r seed (i=-1)
+input          ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1) : rrd(i,j,k)  = 1;        // rr^{-1}=1 so beta^{-1} term is finite (x0)
+input          ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1) : alp(i,j,k)  = 0;        // alpha^{-1} = 0 (k=0 = initial state)
+input          ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1) : xv(i,j,k)   = 0;        // x^0 = 0
+input  B[N]    ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1) : rv(i,j,k)   = B[i];      // r^0 = b
+input          ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1) : pv(i,j,k)   = 0;        // p^{-1} halo (beta^{-1} term = 0)
+output X[N]    ((i,j,k) | 0 <= i < N, j = N-1, K-1 <= k, k < K) : X[i] = xv(i,j,k); // x after K-1 CG steps
+
+// test bench: SPD tridiagonal A = [[4,1,0],[1,4,1],[0,1,4]], b = [1,2,3].
+//   CG converges in <= N = 3 steps; K = 5 gives 4 updates -> the exact solution.
+data A = { 4, 1, 0,
+           1, 4, 1,
+           0, 1, 4 };
+data B = { 1, 2, 3 };
