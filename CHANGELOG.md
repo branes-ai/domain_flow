@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Conjugate Gradient solver** (issue #52): `docs/SURE/cg.sure`, the derivation
+  `docs/SURE/cg.md` (Theory), `test_cg_sure` (dual-compiler, zero warnings), a
+  `dfactl_sure_cg` emit test, and the committed RDG + schedule animation. The most
+  tightly coupled spec in the catalog: one CG step is a domain-flow graph of L1/L2 kernels
+  — a SpMV (`gemv`), two `dot`s, three `axpy`s — stitched by the scalars `α^k =
+  (r·r)/(p·Ap)` and `β^k = (r'·r')/(r·r)` feeding back over the iteration index `k`. Its
+  index space `(i,j,k)` carries **two reduction directions at once** — the SpMV along `+j`
+  and the two dots along `+i` — with the scalar ratios broadcast back to every component,
+  so CG is a **SARE** with 11 affine arcs (the most of any operator). Free-schedule only
+  (the scalar couplings and the same-cell `p^k = r^k + …` are zero-slack). Verified to
+  converge to the exact solution in `≤ N` steps on an SPD tridiagonal system
+  (`‖AX−b‖ = 0`). Completes the iterative-solver pair (with Jacobi #53).
 - **Stationary iterative solver — Jacobi** (issue #53): `docs/SURE/stationary.sure`, the
   derivation `docs/SURE/stationary.md` (Theory), `test_stationary_sure` (dual-compiler,
   zero warnings), a `dfactl_sure_stationary` emit test, and the committed RDG + schedule
