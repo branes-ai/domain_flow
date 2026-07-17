@@ -58,6 +58,27 @@ Cholesky is a *clean* SARE — unlike [LU](lu.md), where the honest factorizatio
 need partial pivoting (a data-dependent permutation that a static SURE cannot express).
 Cholesky sidesteps that obstruction entirely.
 
+## Reduced dependency graph
+
+The [reduced dependency graph](reduced_dependency_graph.md) (RDG) draws the recurrence as
+one node per variable and one arc per dependence. Like [LU](lu.md), Cholesky has a
+**single** variable `a`, so its RDG is one node with four self-loops:
+
+| arc | dependence map | reads |
+| --- | --- | --- |
+| `a → a` | translation `[0,0,1]ᵀ` | `a(i,j,k-1)`, the previous Schur value |
+| `a → a` | affine `(i,j,k) ↦ (i,k,k-1)` | column `k`, row `i`: `a(i,k,k-1)` |
+| `a → a` | affine `(i,j,k) ↦ (j,k,k-1)` | column `k`, row `j`: `a(j,k,k-1)` |
+| `a → a` | affine `(i,j,k) ↦ (k,k,k-1)` | the pivot `a(k,k,k-1)` |
+
+One **translation vector** and three **matrix** maps. Where LU reads a distinct
+multiplier column and pivot row, Cholesky's symmetry collapses both to **column `k`**,
+read at rows `i` and `j` — but the two affine taps still project onto `k`, so Cholesky is
+a **SARE** just like LU. The affine arcs render dashed in the graph, carrying their
+matrix; the uniform Schur arc renders solid.
+
+<div class="rdg" data-src="rdg/cholesky.json" data-height="560"></div>
+
 ---
 
 The executable spec, its schedule, and the animation are on the reference page:
