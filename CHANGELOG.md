@@ -8,6 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Least squares via QR — the first multi-operator pipeline** (issue #50):
+  `docs/SURE/lstsq.sure`, the derivation `docs/SURE/lstsq.md` (Theory),
+  `test_lstsq_sure` (dual-compiler, zero warnings), a `dfactl_sure_lstsq` emit test, and
+  the committed RDG + schedule animation. Solves `min ‖Ax − b‖₂` for a tall `A` as
+  `R x = Qᵀb` by **augmenting `b` as an extra column of `A`**: the same Givens rotations
+  that triangularize `A` carry `b` into `Qᵀb`, so one QR pass yields both `R` and
+  `c = Qᵀb` with **no explicit `Q`** — the *QR* and *apply `Qᵀ`* stages fused into one
+  domain flow. The third stage, back-substitution `R x = c` (trsv's upper-triangular
+  mirror), completes the pipeline. A SARE (the affine rotation broadcast, like
+  `qr_givens`) with a benign forward tap, so `τ = [1,1,1]` is legal. Verified without
+  ever forming `Q` by the sign-robust invariants `RᵀR = AᵀA` and `Rᵀc = Aᵀb`, then the
+  normal equations `AᵀA x = Aᵀb` after back-substitution (`x = [2.75,-1.45,0.75]` on a
+  tall Vandermonde).
 - **Neighbour pivoting — the pivot compare-exchange as a SURE** (issue #42):
   `docs/SURE/lu_neighbor.sure`, the derivation `docs/SURE/lu_neighbor.md` (Theory),
   `test_lu_neighbor_sure` (dual-compiler, zero warnings), a `dfactl_sure_lu_neighbor`

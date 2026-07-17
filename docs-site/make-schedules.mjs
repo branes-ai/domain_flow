@@ -36,6 +36,9 @@ const OPERATORS = [
   // N=12 so a T=4 tiling gives 3 blocks/axis — enough for the affine diagonal tap
   // r(i-1,p,p) to span >1 tile and show up as a long-range (collective) edge (#75).
   { op: 'qr_givens', scale: { M: 12, N: 12 }, schedules: ['free'] },
+  // least squares via QR: augmented Givens on [A|b]; a SARE with a benign forward
+  // affine tap, so the linear schedule is legal (unlike MGS qr)
+  { op: 'lstsq', scale: { M: 12, N: 8 }, schedules: ['linear'] },
   // BLAS L1 reductions — a wavefront point sweeping the accumulation chain
   { op: 'dot',   scale: { N: 16 }, schedules: ['linear'] },
   { op: 'nrm2',  scale: { N: 16 }, schedules: ['linear'] },

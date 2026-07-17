@@ -63,6 +63,7 @@ export default defineConfig({
             { label: 'Cholesky factorization', slug: 'theory/cholesky' },
             { label: 'LDLᵀ factorization', slug: 'theory/ldlt' },
             { label: 'Triangular solve', slug: 'theory/trsolve' },
+            { label: 'Least squares via QR', slug: 'theory/lstsq' },
             { label: 'Matrix–vector derivations', slug: 'theory/matrix-vector-operators' },
           ],
         },
