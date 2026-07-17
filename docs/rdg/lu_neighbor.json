@@ -1,0 +1,19 @@
+{
+  "operator": "lu_neighbor",
+  "rank": 2,
+  "indexNames": ["i","j"],
+  "kind": "SURE",
+  "variables": ["lo","pidx","piv","x","xi"],
+  "arcs": [
+    {"from":"x","to":"lo","kind":"uniform","theta":[0,1],"map":{"A":[[1,0],[0,1]],"b":[0,-1]}},
+    {"from":"piv","to":"lo","kind":"uniform","theta":[1,0],"map":{"A":[[1,0],[0,1]],"b":[-1,0]}},
+    {"from":"x","to":"pidx","kind":"uniform","theta":[0,1],"map":{"A":[[1,0],[0,1]],"b":[0,-1]}},
+    {"from":"piv","to":"pidx","kind":"uniform","theta":[1,0],"map":{"A":[[1,0],[0,1]],"b":[-1,0]}},
+    {"from":"xi","to":"pidx","kind":"uniform","theta":[0,1],"map":{"A":[[1,0],[0,1]],"b":[0,-1]}},
+    {"from":"pidx","to":"pidx","kind":"uniform","theta":[1,0],"map":{"A":[[1,0],[0,1]],"b":[-1,0]}},
+    {"from":"x","to":"piv","kind":"uniform","theta":[0,1],"map":{"A":[[1,0],[0,1]],"b":[0,-1]}},
+    {"from":"piv","to":"piv","kind":"uniform","theta":[1,0],"map":{"A":[[1,0],[0,1]],"b":[-1,0]}},
+    {"from":"x","to":"x","kind":"uniform","theta":[0,1],"map":{"A":[[1,0],[0,1]],"b":[0,-1]}},
+    {"from":"xi","to":"xi","kind":"uniform","theta":[0,1],"map":{"A":[[1,0],[0,1]],"b":[0,-1]}}
+  ]
+}

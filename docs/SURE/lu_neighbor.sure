@@ -1,0 +1,59 @@
+// LU neighbour pivoting (issue #42): the pivot compare-exchange as a pure SURE.
+//
+// Partial pivoting selects a pivot by an argmax over the WHOLE column and then moves
+// row argmax to the diagonal -- a data-dependent permutation whose reads project onto
+// the pivot row/column (an AFFINE broadcast). That is what makes pivoted LU a SARE and
+// is inexpressible as a static uniform system.
+//
+// NEIGHBOUR pivoting restricts every comparison and interchange to ADJACENT rows, so
+// the pivot is chosen and moved by a chain of nearest-neighbour compare-exchanges --
+// exactly `iamax`'s carry, but now it also EXCHANGES. This spec is one bubble-down
+// pass over a column: the max-magnitude entry is carried to the pivot position (here
+// the bottom, i = N-1) one adjacent compare-exchange at a time, and the "loser" of each
+// comparison settles in place. Every tap is a CONSTANT offset, so the whole thing is a
+// genuine SURE -- the RDG is all translation vectors, no affine arc.
+//
+//   piv(i,j)  = larger-|.| of ( x(i), piv(i-1) )     carry the max-magnitude value DOWN
+//   pidx(i,j) = its original row index                carry the winner's row index
+//   lo(i,j)   = smaller-|.| of ( x(i), piv(i-1) )     the loser settles at position i
+//
+// Reads are x(i,j-1) (fed once on j = -1) and the neighbour piv(i-1,j) -- both constant
+// offsets. The magnitude test uses the exact selection built-ins gt / select / abs (as
+// in iamax). The pivot (value + original row) leaves at i = N-1; the settled losers Lo
+// give the compare-exchanged column: the permuted column is [ Lo[1..N-1], Piv ].
+//
+// Contrast the affine pivot arcs of docs/SURE/lu.sure: neighbour pivoting UNIFORMIZES
+// the pivot broadcast into nearest-neighbour translations -- the RDG makes it visible.
+//
+// Run it:   dfactl --sure docs/SURE/lu_neighbor.sure
+//           dfactl --sure docs/SURE/lu_neighbor.sure --tau 1,1
+
+N = 4;
+
+// j is a depth-2 feed axis: operands enter on j = -1, the compare-exchange runs, and
+// the settled losers Lo drain on the j = 1 face (which gives Lo a proper outward normal;
+// the whole result would otherwise lie on a single j-plane with no orientation).
+system ((i,j) | 0 <= i < N, 0 <= j < 2) {
+    x(i,j)    = x(i,j-1);                                                            // column value, fed on j = -1
+    xi(i,j)   = xi(i,j-1);                                                           // its row index, fed on j = -1
+    piv(i,j)  = select(gt(abs(x(i,j-1)), abs(piv(i-1,j))), x(i,j-1), piv(i-1,j));    // carry max-|.| DOWN
+    pidx(i,j) = select(gt(abs(x(i,j-1)), abs(piv(i-1,j))), xi(i,j-1), pidx(i-1,j));  // carry the winner's row index
+    lo(i,j)   = select(gt(abs(x(i,j-1)), abs(piv(i-1,j))), piv(i-1,j), x(i,j-1));    // the loser settles at position i
+}
+
+// tensor confluences
+input  X[N]    ((i,j) | 0 <= i < N, j = -1)  : x(i,j)    = X[i];    // column, fed on j = -1
+input  Xi[N]   ((i,j) | 0 <= i < N, j = -1)  : xi(i,j)   = Xi[i];   // row index as data (body can't read the loop index)
+input          ((i,j) | i = -1, 0 <= j < 2)  : piv(i,j)  = 0;       // top halo: magnitude 0 loses to any |x|
+input          ((i,j) | i = -1, 0 <= j < 2)  : pidx(i,j) = -1;      // sentinel index
+output Piv[1]  ((i,j) | i = N-1, 0 <= j < 2) : Piv[0]  = piv(i,j);  // pivot value (max magnitude), at the bottom
+output Pidx[1] ((i,j) | i = N-1, 0 <= j < 2) : Pidx[0] = pidx(i,j); // pivot's ORIGINAL row index
+output Lo[N]   ((i,j) | 0 <= i < N, j = 1)   : Lo[i]   = lo(i,j);   // the settled losers, drained on the j = 1 face
+
+tau = [1, 1];                    // canonical legal wavefront schedule (as in iamax)
+
+// test bench:  column X = [1, -5, 3, -2]  (magnitudes 1,5,3,2).  Bubble-down by
+//   magnitude moves |-5| to the pivot (bottom): permuted column [1, 3, -2, -5],
+//   pivot value -5 from original row 1.  Lo = [0, 1, 3, -2]  (Lo[0]=0 discarded).
+data X  = { 1, -5, 3, -2 };
+data Xi = { 0,  1, 2,  3 };

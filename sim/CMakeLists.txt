@@ -64,6 +64,9 @@ if(DOMAINFLOW_BUILD_TESTING)
     add_test(NAME dfactl_sure_lu_propagate
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/lu_propagate.sure
                      --emit-schedule ${CMAKE_CURRENT_BINARY_DIR}/lu_propagate-schedule.json)
+    add_test(NAME dfactl_sure_lu_neighbor
+             COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/lu_neighbor.sure
+                     --emit-schedule ${CMAKE_CURRENT_BINARY_DIR}/lu_neighbor-schedule.json)
     add_test(NAME dfactl_sure_cholesky
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/cholesky.sure
                      --emit-schedule ${CMAKE_CURRENT_BINARY_DIR}/cholesky-schedule.json)
