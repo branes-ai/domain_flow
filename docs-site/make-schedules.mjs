@@ -39,6 +39,7 @@ const OPERATORS = [
   // least squares via QR: augmented Givens on [A|b]; a SARE with a benign forward
   // affine tap, so the linear schedule is legal (unlike MGS qr)
   { op: 'lstsq', scale: { M: 12, N: 8 }, schedules: ['linear'] },
+  { op: 'stationary', scale: { N: 8, K: 6 }, schedules: ['free'] },
   // BLAS L1 reductions — a wavefront point sweeping the accumulation chain
   { op: 'dot',   scale: { N: 16 }, schedules: ['linear'] },
   { op: 'nrm2',  scale: { N: 16 }, schedules: ['linear'] },

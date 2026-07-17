@@ -8,6 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Stationary iterative solver — Jacobi** (issue #53): `docs/SURE/stationary.sure`, the
+  derivation `docs/SURE/stationary.md` (Theory), `test_stationary_sure` (dual-compiler,
+  zero warnings), a `dfactl_sure_stationary` emit test, and the committed RDG + schedule
+  animation. The first *iterative* catalog entry: a recurrence over the iteration index
+  `k` whose body is a `gemv` (residual) + `axpy` (update), `x^k = x^{k-1} + D⁻¹(b −
+  Ax^{k-1})`. Reading the whole previous iterate is the matrix-vector gather (affine taps
+  projecting onto the solution face), so Jacobi is a **SARE** — a benign forward one (each
+  sweep reads only sweep `k-1`). **Free-schedule only** (the reduction and residual divide
+  fuse at the finishing cell, like the triangular solve): the free schedule is a *wide*
+  wavefront within a sweep (Jacobi's parallelism) that serializes across sweeps. The doc
+  contrasts **Gauss–Seidel**, whose `x^k_j` (`j<i`) read turns the sweep into an
+  intra-sweep triangular wavefront — the same body, different concurrency. Verified `K=8`
+  sweeps converge to `x=[1,1,1]` on a strongly diagonally dominant system.
 - **Least squares via QR — the first multi-operator pipeline** (issue #50):
   `docs/SURE/lstsq.sure`, the derivation `docs/SURE/lstsq.md` (Theory),
   `test_lstsq_sure` (dual-compiler, zero warnings), a `dfactl_sure_lstsq` emit test, and
