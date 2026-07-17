@@ -32,6 +32,7 @@ const OPERATORS = [
   'lu_neighbor',                                 // neighbour pivoting — the uniformized (SURE) pivot compare-exchange
   'lstsq',                                       // least squares via QR — the augmented-column pipeline
   'stationary',                                  // Jacobi stationary iteration (solvers)
+  'cg',                                         // conjugate gradient (solvers)
 ];
 
 function findDfactl() {

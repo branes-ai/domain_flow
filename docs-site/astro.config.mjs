@@ -65,6 +65,7 @@ export default defineConfig({
             { label: 'Triangular solve', slug: 'theory/trsolve' },
             { label: 'Least squares via QR', slug: 'theory/lstsq' },
             { label: 'Stationary iteration', slug: 'theory/stationary' },
+            { label: 'Conjugate Gradient', slug: 'theory/cg' },
             { label: 'Matrix–vector derivations', slug: 'theory/matrix-vector-operators' },
           ],
         },
