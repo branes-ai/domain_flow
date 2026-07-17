@@ -59,6 +59,14 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   const tileArg = typeof options.tile === 'number' ? [options.tile] : options.tile;
   const tileSizes = tileValid(tileArg) ? tileArg : null;
   const tileMode = !!tileSizes;
+  // ── dependency-arrow overlay (issue #142, Phase 3): when options.edges is set
+  //    and we're NOT in tile mode, replay each variable's taps to draw the
+  //    producer→consumer dependence for the firing wavefront — the equation taps
+  //    (constant offsets / affine maps) as arrows between lattice points. Reuses
+  //    the same tap-replay + per-frame bucketing as the tile overlay, so only the
+  //    wavefront's traffic draws each frame. Tile mode already draws its own
+  //    (cross-tile) edges, so the two overlays are mutually exclusive. ──────────
+  const edgesMode = !!options.edges && !tileMode;
   const ts = (d) => tileSizes[d] ?? tileSizes[0];
   const nTiles = [0, 1, 2].map((d) => tileMode ? Math.max(1, Math.ceil(((hi[d] ?? 0) - (lo[d] ?? 0) + 1) / ts(d))) : 1);
   const tileOf = (p) => [0, 1, 2].map((d) => Math.floor(((p[d] ?? 0) - (lo[d] ?? 0)) / ts(d)));
@@ -145,9 +153,10 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   //    traffic is drawn each frame. Tile mode only. ────────────────────────────
   const HALO_COLOR = new THREE.Color(0x35c759);
   const COLL_COLOR = new THREE.Color(0xff453a);
+  const DEP_COLOR = new THREE.Color(0x9db4d0);    // neutral steel — plain dependency arrows
   const EDGE_CAP = 200000;
-  let edgeBuckets = null, maxBucket = 0, haloTotal = 0, collTotal = 0, edgeCapped = false;
-  if (tileMode) {
+  let edgeBuckets = null, maxBucket = 0, haloTotal = 0, collTotal = 0, depTotal = 0, edgeCapped = false;
+  if (tileMode || edgesMode) {
     // index every activation by (variable name, point) so a tap resolves to a REAL
     // producer cell. A mapped coordinate can sit inside the global bounding box yet
     // be absent from the source variable's (e.g. triangular p ≤ q) domain — resolving
@@ -160,18 +169,28 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
     let count = 0;
     for (let i = 0; i < acts.length && !edgeCapped; i++) {
       const a = acts[i];
-      const consumerTile = tileOf(a.p);
+      const consumerTile = tileMode ? tileOf(a.p) : null;
       for (const tap of vars[a.vi]?.taps ?? []) {
         if (!Array.isArray(tap.A)) continue;
         const s = applyMap(tap.A, tap.b, a.raw);
         const j = actAt.get(`${tap.source}@${s.join(',')}`);
         if (j === undefined) continue;              // boundary/input read or out-of-domain — no compute edge
-        const st = tileOf(acts[j].p);
-        let lvl = 0;
-        for (let d = 0; d < 3; d++) lvl = Math.max(lvl, Math.abs(consumerTile[d] - st[d]));
-        if (lvl === 0) continue;                    // stays in the same tile
-        edgeBuckets[a.t - tMin].push({ from: positions[i], to: positions[j], level: lvl });
-        if (lvl === 1) haloTotal++; else collTotal++;
+        // Both overlays draw the SAME producer→consumer dependence; they differ only
+        // in which edges survive and how they're coloured. `from` is the consumer,
+        // `to` the producer — the per-frame refill gradient (edges mode) brightens
+        // the consumer end so the direction of data flow reads.
+        if (tileMode) {
+          const st = tileOf(acts[j].p);
+          let lvl = 0;
+          for (let d = 0; d < 3; d++) lvl = Math.max(lvl, Math.abs(consumerTile[d] - st[d]));
+          if (lvl === 0) continue;                  // stays in the same tile — not cross-tile traffic
+          edgeBuckets[a.t - tMin].push({
+            from: positions[i], to: positions[j], color: lvl === 1 ? HALO_COLOR : COLL_COLOR, level: lvl });
+          if (lvl === 1) haloTotal++; else collTotal++;
+        } else {                                    // edges mode: every compute dependence
+          edgeBuckets[a.t - tMin].push({ from: positions[i], to: positions[j], color: DEP_COLOR, level: 0 });
+          depTotal++;
+        }
         if (++count >= EDGE_CAP) { edgeCapped = true; break; }
       }
     }
@@ -179,7 +198,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   }
   // one LineSegments object, its draw range refilled per frame from the bucket
   let lineSeg = null;
-  if (tileMode && maxBucket > 0) {
+  if ((tileMode || edgesMode) && maxBucket > 0) {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(maxBucket * 6), 3));
     g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(maxBucket * 6), 3));
@@ -187,7 +206,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
       g, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.85 }));
     scene.add(lineSeg);
   }
-  let firingHalo = 0, firingColl = 0;
+  let firingHalo = 0, firingColl = 0, firingDep = 0;
 
   // ── per-frame state colouring ─────────────────────────────────────────────
   const dummy = new THREE.Object3D();
@@ -217,17 +236,22 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
     if (inst.instanceColor) inst.instanceColor.needsUpdate = true;
 
     // refill the cross-tile edges for the firing wavefront at this frame
-    firingHalo = 0; firingColl = 0;
+    firingHalo = 0; firingColl = 0; firingDep = 0;
     if (lineSeg) {
       const bucket = edgeBuckets[frame];
       const pos = lineSeg.geometry.attributes.position.array;
       const lc = lineSeg.geometry.attributes.color.array;
       for (let n = 0; n < bucket.length; n++) {
-        const e = bucket[n], c = e.level === 1 ? HALO_COLOR : COLL_COLOR, o = n * 6;
+        const e = bucket[n], c = e.color, o = n * 6;
         pos[o] = e.from[0]; pos[o + 1] = e.from[1]; pos[o + 2] = e.from[2];
         pos[o + 3] = e.to[0]; pos[o + 4] = e.to[1]; pos[o + 5] = e.to[2];
-        lc[o] = lc[o + 3] = c.r; lc[o + 1] = lc[o + 4] = c.g; lc[o + 2] = lc[o + 5] = c.b;
-        if (e.level === 1) firingHalo++; else firingColl++;
+        // from = consumer, to = producer. In edges mode fade the producer end so the
+        // segment reads as an arrow of data flow INTO the firing cell (cheaper than a
+        // per-edge arrowhead cone); tile edges keep a flat colour at both ends.
+        const dim = edgesMode ? 0.25 : 1;
+        lc[o] = c.r; lc[o + 1] = c.g; lc[o + 2] = c.b;
+        lc[o + 3] = c.r * dim; lc[o + 4] = c.g * dim; lc[o + 5] = c.b * dim;
+        if (tileMode) { if (e.level === 1) firingHalo++; else firingColl++; } else firingDep++;
       }
       lineSeg.geometry.setDrawRange(0, bucket.length * 2);
       lineSeg.geometry.attributes.position.needsUpdate = true;
@@ -246,8 +270,10 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
         `<div>wavefront: <b>${firing}</b> firing (parallelism)</div>` +
         `<div>fired ${fired} / ${acts.length}</div>` +
         (tileMode ? `<div>tiles: ${nTiles[0]}×${nTiles[1]}×${nTiles[2]} (T=${tileSizes.join('×')})</div>` : '') +
-        (lineSeg ? `<div>cross-tile: <b style="color:#35c759">${firingHalo}</b> halo · ` +
+        (lineSeg && tileMode ? `<div>cross-tile: <b style="color:#35c759">${firingHalo}</b> halo · ` +
           `<b style="color:#ff453a">${firingColl}</b> collective` +
+          (edgeCapped ? ' <span class="sa-warn">(capped)</span>' : '') + `</div>` : '') +
+        (lineSeg && edgesMode ? `<div>dependencies: <b style="color:#9db4d0">${firingDep}</b> firing` +
           (edgeCapped ? ' <span class="sa-warn">(capped)</span>' : '') + `</div>` : '');
     }
     options.onFrame?.(frame);
@@ -292,6 +318,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   return {
     frameCount,
     tileMode,
+    edgesMode,
     setFrame,
     play() { playing = true; },
     pause() { playing = false; },
@@ -325,6 +352,10 @@ export async function mountAll(root = document) {
     // "5,,10" is rejected wholesale by the viewer rather than mis-aligned to [5,10].
     const tileRaw = el.getAttribute('data-tile');
     const tile = tileRaw ? tileRaw.split(',').map((s) => Number(s.trim())) : [];
+    // data-edges → draw producer→consumer dependency arrows for the firing wavefront
+    // (issue #142, Phase 3). A bare attribute (no value) is enough to turn it on;
+    // ignored when data-tile is also present (tiles draw their own cross-tile edges).
+    const edges = el.hasAttribute('data-edges');
     el.style.height = `${height}px`;
 
     const canvas = document.createElement('canvas');
@@ -350,7 +381,7 @@ export async function mountAll(root = document) {
     let playing = false;
     const viewer = createScheduleViewer({
       canvas, hud, data,
-      options: { fps, tile, onFrame: (i) => { if (playing) scrub.value = String(i); } },
+      options: { fps, tile, edges, onFrame: (i) => { if (playing) scrub.value = String(i); } },
     });
     scrub.max = String(Math.max(0, viewer.frameCount - 1));
 
@@ -371,6 +402,12 @@ export async function mountAll(root = document) {
         s.innerHTML = `<i style="background:${cols[i % cols.length]}"></i>${v.name}`;
         leg.append(s);
       });
+      // dependency-arrow overlay legend (issue #142): the gradient reads producer → consumer
+      if (viewer.edgesMode) {
+        const s = document.createElement('span');
+        s.innerHTML = `<i style="background:#9db4d0"></i>dependency (producer → consumer)`;
+        leg.append(s);
+      }
       el.append(leg);
     }
 
