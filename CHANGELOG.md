@@ -8,6 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Symmetric eigensolver — cyclic Jacobi rotation** (issue #47):
+  `docs/SURE/eig_jacobi.sure`, the derivation `docs/SURE/eig_jacobi.md` (Theory),
+  `test_eig_jacobi_sure` (dual-compiler, zero warnings), a `dfactl_sure_eig_jacobi` emit
+  test, and the committed RDG + schedule animation. One two-sided Givens rotation
+  `A' = JᵀAJ` on the fixed pivot `(0,1)` that zeros the off-diagonal pair — the executable
+  heart of cyclic Jacobi. Done as two one-sided rotations (right-multiply the columns,
+  then left-multiply the rows); the "column/row is p or q?" test reads fed indicator
+  vectors + `select`, the angle uses `sqrt`/`abs`/`gt`/`select` (no `atan`), and the pivot
+  rows/columns are fixed-index affine taps — a **SARE**. Verified `A' = JᵀAJ` to machine
+  precision (pivot zeroed, symmetry + trace + Frobenius preserved ⇒ spectrum invariant).
+  The doc explains why the **full sweep is not a single SURE**: a changing pivot needs
+  data-dependent addressing of `A[p][p]`, `A[q][q]`, `A[p][q]` (the partial-pivoting
+  obstruction), so the sweep is a scheduled composition of these rotations.
 - **Conjugate Gradient solver** (issue #52): `docs/SURE/cg.sure`, the derivation
   `docs/SURE/cg.md` (Theory), `test_cg_sure` (dual-compiler, zero warnings), a
   `dfactl_sure_cg` emit test, and the committed RDG + schedule animation. The most

@@ -66,6 +66,7 @@ export default defineConfig({
             { label: 'Least squares via QR', slug: 'theory/lstsq' },
             { label: 'Stationary iteration', slug: 'theory/stationary' },
             { label: 'Conjugate Gradient', slug: 'theory/cg' },
+            { label: 'Symmetric eigensolver (Jacobi)', slug: 'theory/eig_jacobi' },
             { label: 'Matrix–vector derivations', slug: 'theory/matrix-vector-operators' },
           ],
         },
