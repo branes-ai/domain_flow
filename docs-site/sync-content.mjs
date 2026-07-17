@@ -97,6 +97,7 @@ const FILE_MAP = {
   'SURE/conv2d.md':                  'theory/conv2d.md',
   'SURE/QR_decomposition.md':        'theory/qr-decomposition.md',
   'SURE/lu.md':                      'theory/lu.md',
+  'SURE/lu_neighbor.md':             'theory/lu_neighbor.md',
   'SURE/cholesky.md':                'theory/cholesky.md',
   'SURE/ldlt.md':                    'theory/ldlt.md',
   'SURE/trsolve.md':                 'theory/trsolve.md',
