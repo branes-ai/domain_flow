@@ -1,0 +1,55 @@
+// Least squares via QR (issue #50):  min_x || A x - b ||_2  for a tall A (M >= N),
+// solved as  R x = Q^T b  -- the first multi-operator pipeline in the catalog.
+//
+// The elegant part is that Q is NEVER formed. Least squares needs only Q^T b, so we
+// AUGMENT b as an extra column of A and run the Givens QR (docs/SURE/qr_givens.sure) on
+// [A | b]: the same rotations that triangularize A transform its extra column into
+// Q^T b. One QR pass yields both R (the N x N upper-triangular factor) and c = Q^T b
+// (its first N components) -- the "QR factorization -> apply Q^T" stages fused into a
+// single domain flow, no explicit Q, no materialized intermediate. The remaining stage,
+// the triangular back-substitution R x = c, is trsv's upper-triangular mirror (see
+// docs/SURE/trsolve.md) and is shown in the derivation; the test performs it to recover x.
+//
+// Index space (i, p, q) exactly as qr_givens, but with q running one column further:
+//   i = row of A being merged (0..M-1),  p = pivot (0..N-1),  q = column updated
+//   (0..N, where q = N is the augmented b column),  p <= q.
+//   r(i,p,q) = R[p][q] after row i (q < N), or c[p] = (Q^T b)[p] after row i (q = N).
+//
+// Verifiable WITHOUT Q by the sign-robust invariants  R^T R = A^T A  and  R^T c = A^T b
+// (since R^T c = R^T Q^T b = (QR)^T b = A^T b); then R x = c gives A^T A x = A^T b, the
+// normal equations -- so x is the least-squares solution.
+//
+// A SARE, like qr_givens: the diagonal taps r(i-1,p,p), a(i,p-1,p) are affine (the
+// rotation broadcast along the row). But the dependence is benign and FORWARD (the
+// consumer at (i,p,q>=p) always reads a diagonal at q=p already resolved), so a linear
+// schedule exists -- the canonical tau = [1,1,1] is legal (as is the free schedule).
+//
+// Run it:   dfactl --sure docs/SURE/lstsq.sure            (free schedule)
+//           dfactl --sure docs/SURE/lstsq.sure --tau 1,1,1
+
+M = 4; N = 3;
+
+// q < N: the R columns.  q = N: the augmented b column, carrying Q^T b.
+system ((i,p,q) | 0 <= i < M, 0 <= p < N, 0 <= q < N+1, p <= q) {
+    r(i,p,q) = (r(i-1,p,p)*r(i-1,p,q) + a(i,p-1,p)*a(i,p-1,q))
+             / sqrt(r(i-1,p,p)*r(i-1,p,p) + a(i,p-1,p)*a(i,p-1,p) + 0.000000001);   // c*R + s*a
+    a(i,p,q) = (r(i-1,p,p)*a(i,p-1,q) - a(i,p-1,p)*r(i-1,p,q))
+             / sqrt(r(i-1,p,p)*r(i-1,p,p) + a(i,p-1,p)*a(i,p-1,p) + 0.000000001);   // -s*R + c*a
+}
+
+input          ((i,p,q) | i = -1, 0 <= p < N, 0 <= q < N+1, p <= q) : r(i,p,q) = 0;      // R (and c) start empty
+input A[M][N]  ((i,p,q) | 0 <= i < M, p = -1, 0 <= q < N)           : a(i,p,q) = A[i][q]; // rows of A stream in
+input B[M]     ((i,p,q) | 0 <= i < M, p = -1, N <= q, q < N+1)               : a(i,p,q) = B[i];    // b augmented as column N (q=N)
+output R[N][N] ((i,p,q) | i = M-1, 0 <= p < N, 0 <= q < N, p <= q)  : R[p][q] = r(i,p,q); // R after the last row
+output C[N]    ((i,p,q) | i = M-1, 0 <= p < N, N <= q, q < N+1)              : C[p]    = r(i,p,q); // c = Q^T b (q=N pinned by q<=N)
+
+tau = [1, 1, 1];                 // canonical linear schedule (benign forward affine taps)
+
+// tall 4x3 least squares:  A = [[1,1,1],[1,2,4],[1,3,9],[1,4,16]] (a Vandermonde), fit
+//   b = [2, 3, 5, 9] in the least-squares sense.  R^T R = A^T A, R^T c = A^T b, and the
+//   back-substitution R x = c gives the normal-equation solution (verified in the test).
+data A = { 1, 1,  1,
+           1, 2,  4,
+           1, 3,  9,
+           1, 4, 16 };
+data B = { 2, 3, 5, 9 };
