@@ -30,6 +30,7 @@ const OPERATORS = [
   'gemm', 'syrk', 'syr2k', 'trmm', 'symm',       // BLAS L3
   'lu', 'cholesky', 'ldlt', 'trsolve',           // factorizations & solvers
   'lu_neighbor',                                 // neighbour pivoting — the uniformized (SURE) pivot compare-exchange
+  'lstsq',                                        // least squares via QR — the augmented-column pipeline
 ];
 
 function findDfactl() {
