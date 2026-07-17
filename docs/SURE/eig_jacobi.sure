@@ -1,0 +1,59 @@
+// Symmetric eigensolver -- one cyclic-Jacobi rotation (issue #47).
+//
+// The cyclic Jacobi eigensolver drives a symmetric A toward diagonal (A = Q L Q^T) by a
+// sweep of two-sided Givens rotations, each zeroing one off-diagonal pair (p,q). This
+// spec is ONE such rotation, on the fixed pivot (p,q) = (0,1): the executable heart of
+// the method. The full sweep is NOT a single SURE -- as the pivot (p,q) changes each
+// step, computing the rotation reads A[p][p], A[q][q], A[p][q] at DATA-dependent indices
+// (a gather the DSL cannot express, the same obstruction as partial pivoting); see
+// eig_jacobi.md.
+//
+// A two-sided rotation A' = J^T A J is done as TWO one-sided rotations: right-multiply
+// A*J mixes columns p,q, then left-multiply J^T*(A J) mixes rows p,q. The rotation angle
+// zeros the (p,q) entry:
+//   tau = (A_qq - A_pp) / (2 A_pq),   t = sign(tau) / (|tau| + sqrt(tau^2 + 1)),
+//   c = 1/sqrt(t^2 + 1),              s = t c.
+// (If A_pq = 0 the division overflows and t -> 0, c -> 1, s -> 0: no rotation, as it
+// should be.) Angle uses only sqrt/abs/gt/select. The "am I column/row p or q?" test
+// reads FED indicator vectors Pind=[1,0,0], Qind=[0,1,0] (the body cannot read the loop
+// index), and the pivot rows/columns enter as fixed-index affine taps a0(i,0), a0(i,1),
+// bcol(0,j), bcol(1,j) -- so this is a SARE.
+//
+// Run it:   dfactl --sure docs/SURE/eig_jacobi.sure     (free schedule)
+
+N = 3;
+
+system ((i,j,k) | 0 <= i < N, 0 <= j < N, 0 <= k < 2) {
+    a0(i,j,k) = a0(i,j,k-1);                                                    // symmetric A, fed on k = -1
+    cp(i,j,k) = cp(i,j,k-1);                                                    // [ column j == p ]  (p = 0)
+    cq(i,j,k) = cq(i,j,k-1);                                                    // [ column j == q ]  (q = 1)
+    rp(i,j,k) = rp(i,j,k-1);                                                    // [ row i == p ]
+    rq(i,j,k) = rq(i,j,k-1);                                                    // [ row i == q ]
+    tau(i,j,k) = (a0(1,1,k-1) - a0(0,0,k-1)) / (2*a0(0,1,k-1));                 // (A_qq - A_pp)/(2 A_pq)
+    tt(i,j,k)  = select(gt(tau(i,j,k),0), 1, -1)
+               / (abs(tau(i,j,k)) + sqrt(tau(i,j,k)*tau(i,j,k) + 1));          // t = sign / (|tau| + sqrt(tau^2+1))
+    cs(i,j,k)  = 1 / sqrt(tt(i,j,k)*tt(i,j,k) + 1);                            // cos
+    sn(i,j,k)  = tt(i,j,k) * cs(i,j,k);                                        // sin
+    bcol(i,j,k) = select(cp(i,j,k-1), cs(i,j,k)*a0(i,0,k-1) - sn(i,j,k)*a0(i,1,k-1),
+                  select(cq(i,j,k-1), sn(i,j,k)*a0(i,0,k-1) + cs(i,j,k)*a0(i,1,k-1),
+                    a0(i,j,k-1)));                                              // right-multiply A*J (columns p,q)
+    arot(i,j,k) = select(rp(i,j,k-1), cs(i,j,k)*bcol(0,j,k) - sn(i,j,k)*bcol(1,j,k),
+                  select(rq(i,j,k-1), sn(i,j,k)*bcol(0,j,k) + cs(i,j,k)*bcol(1,j,k),
+                    bcol(i,j,k)));                                             // left-multiply J^T*(A J) (rows p,q)
+}
+
+// tensor confluences
+input  A[N][N] ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1) : a0(i,j,k) = A[i][j];  // symmetric A
+input  Pind[N] ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1) : cp(i,j,k) = Pind[j];  // p-column indicator
+input  Qind[N] ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1) : cq(i,j,k) = Qind[j];  // q-column indicator
+input          ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1) : rp(i,j,k) = Pind[i];  // p-row indicator (reuses Pind)
+input          ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1) : rq(i,j,k) = Qind[i];  // q-row indicator (reuses Qind)
+output R[N][N] ((i,j,k) | 0 <= i < N, 0 <= j < N, k = 1) : R[i][j] = arot(i,j,k); // A' = J^T A J
+
+// test bench: symmetric A = [[2,1,1],[1,3,1],[1,1,4]]; one rotation on (0,1) zeros A'[0][1],
+//   preserves the spectrum (orthogonal similarity): trace 9, Frobenius^2 = 35.
+data A    = { 2, 1, 1,
+             1, 3, 1,
+             1, 1, 4 };
+data Pind = { 1, 0, 0 };
+data Qind = { 0, 1, 0 };
