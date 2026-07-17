@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Singular Value Decomposition — one-sided Jacobi rotation** (issue #46):
+  `docs/SURE/svd.sure`, the derivation `docs/SURE/svd.md` (Theory), `test_svd_sure`
+  (dual-compiler, zero warnings), a `dfactl_sure_svd` emit test, and the committed RDG +
+  schedule animation. The SURE-native route to `A = UΣVᵀ`: one Givens rotation on the fixed
+  column pair `(0,1)` that makes those columns **orthogonal** (the sweep's kernel — at
+  convergence the column norms are the singular values). The angle comes from the `2×2`
+  Gram matrix (`α=a₀·a₀`, `β=a₁·a₁`, `γ=a₀·a₁` — three dot reductions over rows), and the
+  **one-sided** update right-multiplies by `J` (only columns `0,1` change), so it's simpler
+  than the two-sided eigenvalue rotation — a **SARE**. Verified `A' = AJ` to machine
+  precision (columns orthogonalized, singular values preserved via Frobenius invariance).
+  The doc derives both routes (one-sided Jacobi and Golub–Kahan bidiagonalization + QR) and
+  explains why neither full algorithm is a single SURE (data-dependent column pair / shift).
 - **Symmetric eigensolver — Householder tridiagonalization step** (issue #48):
   `docs/SURE/eig_qr.sure`, the derivation `docs/SURE/eig_qr.md` (Theory), `test_eig_qr_sure`
   (dual-compiler, zero warnings), a `dfactl_sure_eig_qr` emit test, and the committed RDG

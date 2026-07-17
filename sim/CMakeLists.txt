@@ -115,6 +115,9 @@ if(DOMAINFLOW_BUILD_TESTING)
     add_test(NAME dfactl_sure_eig_qr
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/eig_qr.sure
                      --emit-schedule ${CMAKE_CURRENT_BINARY_DIR}/eig_qr-schedule.json)
+    add_test(NAME dfactl_sure_svd
+             COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/svd.sure
+                     --emit-schedule ${CMAKE_CURRENT_BINARY_DIR}/svd-schedule.json)
     # schedule-animation export (issue #64): the emit must succeed for both schedules
     add_test(NAME dfactl_emit_matmul_linear
              COMMAND ${DFA_SIMULATOR} --sure ${DOMAINFLOW_ROOT}/docs/SURE/matmul.sure
