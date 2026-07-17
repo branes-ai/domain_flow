@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Symmetric eigensolver — Householder tridiagonalization step** (issue #48):
+  `docs/SURE/eig_qr.sure`, the derivation `docs/SURE/eig_qr.md` (Theory), `test_eig_qr_sure`
+  (dual-compiler, zero warnings), a `dfactl_sure_eig_qr` emit test, and the committed RDG
+  + schedule animation. Phase 1 of the QR-iteration eigensolver: one two-sided Householder
+  reflection `A' = HAH` (`H = I − βvvᵀ`) that zeros a column below its subdiagonal — the
+  building block that reduces a symmetric `A` to tridiagonal `T`. A rank-2 update composing
+  three row-reductions (`‖A[1:,0]‖²`, `vᵀv`, `vᵀAv`) and a column-reduction (`Av`) with fed
+  row masks and fixed-index affine taps — a **SARE**. Verified `A' = HAH` to machine
+  precision (column 0 zeroed below the subdiagonal, spectrum preserved: trace `18`,
+  Frobenius² `110`). The doc explains why the full reduction sweep and phase-2 QR iteration
+  are not single SUREs (data-dependent pivot column / shift), and contrasts convergence and
+  parallelism with the Jacobi eigensolver.
 - **Symmetric eigensolver — cyclic Jacobi rotation** (issue #47):
   `docs/SURE/eig_jacobi.sure`, the derivation `docs/SURE/eig_jacobi.md` (Theory),
   `test_eig_jacobi_sure` (dual-compiler, zero warnings), a `dfactl_sure_eig_jacobi` emit

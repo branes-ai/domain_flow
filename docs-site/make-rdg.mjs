@@ -34,6 +34,7 @@ const OPERATORS = [
   'stationary',                                  // Jacobi stationary iteration (solvers)
   'cg',                                         // conjugate gradient (solvers)
   'eig_jacobi',                                 // symmetric eigensolver — one Jacobi rotation
+  'eig_qr',                                     // symmetric eigensolver — one Householder tridiag step
 ];
 
 function findDfactl() {

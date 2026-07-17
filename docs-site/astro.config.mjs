@@ -67,6 +67,7 @@ export default defineConfig({
             { label: 'Stationary iteration', slug: 'theory/stationary' },
             { label: 'Conjugate Gradient', slug: 'theory/cg' },
             { label: 'Symmetric eigensolver (Jacobi)', slug: 'theory/eig_jacobi' },
+            { label: 'Symmetric eigensolver (QR iteration)', slug: 'theory/eig_qr' },
             { label: 'Matrix–vector derivations', slug: 'theory/matrix-vector-operators' },
           ],
         },
