@@ -1,0 +1,60 @@
+// Symmetric eigensolver, phase 1 -- one Householder tridiagonalization step (issue #48).
+//
+// The QR-iteration eigensolver has two phases: (1) Householder reflectors reduce a
+// symmetric A to tridiagonal T, then (2) implicit-shift QR iteration (bulge-chasing
+// Givens rotations) drives T to diagonal. This spec is ONE step of phase 1: the two-sided
+// Householder reflection A' = H A H that zeros column 0 BELOW the subdiagonal (rows >= 2),
+// leaving A'[1][0] = -sign(A[1][0]) ||A[1:,0]|| -- the executable heart of the reduction.
+//
+// H = I - beta v v^T is a rank-1 reflector; the symmetric update is rank-2:
+//   alpha = ||A[1:,0]||,   v[0]=0, v[1]=A[1][0]+sign(A[1][0]) alpha, v[i>=2]=A[i][0],
+//   beta  = 2 / (v^T v),   w = beta A v - (beta^2 (v^T A v)/2) v,
+//   A' = A - v w^T - w v^T.
+// It needs three reductions -- ||A[1:,0]||^2 and v^T v and v^T(Av) over rows i, and Av
+// over columns j -- plus the scalars alpha/beta/vAv broadcast back. The "row >= 1" and
+// "row == 1" masks are FED (the body cannot read the loop index); the pivot column A[i][0]
+// and the row/column vectors enter as fixed-index affine taps -- so it is a SARE.
+//
+// The FULL reduction sweeps column p = 0,1,..,N-2, and phase 2 iterates -- neither is a
+// single SURE (the changing pivot column p needs data-dependent addressing, the
+// partial-pivoting obstruction; see eig_qr.md). Contrast with the Jacobi eigensolver.
+//
+// Run it:   dfactl --sure docs/SURE/eig_qr.sure     (free schedule)
+
+N = 4;
+
+system ((i,j,k) | 0 <= i < N, 0 <= j < N, 0 <= k < 2) {
+    am(i,j,k)   = am(i,j,k-1);                                                       // symmetric A, fed on k=-1
+    sub(i,j,k)  = sub(i,j,k-1);                                                      // [ row >= 1 ] mask
+    e1(i,j,k)   = e1(i,j,k-1);                                                       // [ row == 1 ] mask
+    nrm(i,j,k)  = nrm(i-1,j,k) + sub(i,j,k)*am(i,0,k)*am(i,0,k);                     // ||A[1:,0]||^2, reduce over i
+    alpha(i,j,k)= sqrt(nrm(N-1,N-1,k));                                             // ||A[1:,0]|| (broadcast)
+    sgn(i,j,k)  = select(gt(am(1,0,k),0), 1, -1);                                    // sign(A[1][0]) (broadcast)
+    v(i,j,k)    = sub(i,j,k)*am(i,0,k) + e1(i,j,k)*sgn(i,j,k)*alpha(i,j,k);          // Householder vector (per row i)
+    vv(i,j,k)   = vv(i-1,j,k) + v(i,j,k)*v(i,j,k);                                   // v^T v, reduce over i
+    bet(i,j,k)  = 2 / vv(N-1,N-1,k);                                                // beta = 2/(v^T v) (broadcast)
+    av(i,j,k)   = av(i,j-1,k) + am(i,j,k)*v(j,N-1,k);                                // (A v)_i = sum_j A(i,j) v_j, reduce over j
+    vav(i,j,k)  = vav(i-1,j,k) + v(i,N-1,k)*av(i,N-1,k);                             // v^T A v, reduce over i
+    w(i,j,k)    = bet(i,j,k)*av(i,N-1,k)
+                - (bet(i,j,k)*bet(i,j,k)*vav(N-1,N-1,k)/2)*v(i,N-1,k);               // w = beta Av - (beta^2 vAv/2) v (per row)
+    arot(i,j,k) = am(i,j,k) - v(i,N-1,k)*w(j,N-1,k) - w(i,N-1,k)*v(j,N-1,k);         // A' = A - v w^T - w v^T
+}
+
+// tensor confluences
+input  A[N][N] ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1)  : am(i,j,k)  = A[i][j];  // symmetric A
+input  Sub[N]  ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1)  : sub(i,j,k) = Sub[i];    // [row>=1]
+input  E1[N]   ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1)  : e1(i,j,k)  = E1[i];     // [row==1]
+input          ((i,j,k) | i = -1, 0 <= j < N, 0 <= k < 2)  : nrm(i,j,k) = 0;         // norm reduction seed
+input          ((i,j,k) | i = -1, 0 <= j < N, 0 <= k < 2)  : vv(i,j,k)  = 0;         // v^T v seed
+input          ((i,j,k) | i = -1, 0 <= j < N, 0 <= k < 2)  : vav(i,j,k) = 0;         // v^T A v seed
+input          ((i,j,k) | 0 <= i < N, j = -1, 0 <= k < 2)  : av(i,j,k)  = 0;         // A v reduction seed (j=-1)
+output R[N][N] ((i,j,k) | 0 <= i < N, 0 <= j < N, k = 1)   : R[i][j] = arot(i,j,k);  // A' = H A H
+
+// test bench: symmetric A; one Householder step zeros column 0 below the subdiagonal
+//   (A'[2][0]=A'[3][0]=0), keeps A'[1][0]=-sign(A[1][0])||A[1:,0]||, preserves the spectrum.
+data A   = { 4, 1, 2, 1,
+             1, 3, 1, 2,
+             2, 1, 5, 1,
+             1, 2, 1, 6 };
+data Sub = { 0, 1, 1, 1 };
+data E1  = { 0, 1, 0, 0 };
