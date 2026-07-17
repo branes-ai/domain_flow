@@ -1,0 +1,61 @@
+// Singular Value Decomposition, one-sided Jacobi (issue #46): one column-orthogonalizing
+// rotation -- the SURE-native heart of the one-sided Jacobi SVD.
+//
+// One-sided Jacobi computes A = U Sigma V^T by sweeping column PAIRS (p,q) and applying a
+// Givens rotation to columns p,q of A that makes them ORTHOGONAL. At convergence A's
+// columns are mutually orthogonal: their norms are the singular values Sigma and their
+// normalized directions are U; the accumulated rotations are V. This spec is ONE such
+// rotation, on the fixed pair (p,q) = (0,1).
+//
+// The angle comes from the 2x2 Gram matrix of the two columns,
+//   alpha = a_0 . a_0,   beta = a_1 . a_1,   gamma = a_0 . a_1   (three dot reductions),
+//   zeta = (beta - alpha)/(2 gamma),   t = sign(zeta)/(|zeta| + sqrt(zeta^2 + 1)),
+//   c = 1/sqrt(t^2+1),   s = t c,
+// so the rotated Gram off-diagonal vanishes -- the columns become orthogonal. The update
+// is ONE-SIDED (right-multiply by J, only columns p,q change):
+//   a_0' = c a_0 - s a_1,   a_1' = s a_0 + c a_1.
+// The "is this column p or q?" test reads fed indicators; the pivot columns enter as
+// fixed-index affine taps a0(i,0), a0(i,1) -- so it is a SARE.
+//
+// The full cyclic sweep (all pairs, repeat to convergence) and the Golub-Kahan route
+// (Householder bidiagonalization + implicit-shift QR) are NOT single SUREs: the changing
+// pair (p,q) needs data-dependent addressing (the partial-pivoting obstruction). See svd.md.
+//
+// Run it:   dfactl --sure docs/SURE/svd.sure     (free schedule)
+
+M = 4; N = 3;
+
+system ((i,j,k) | 0 <= i < M, 0 <= j < N, 0 <= k < 2) {
+    a0(i,j,k)    = a0(i,j,k-1);                                                    // A, fed on k=-1
+    cp(i,j,k)    = cp(i,j,k-1);                                                    // [ column j == p ]  (p=0)
+    cq(i,j,k)    = cq(i,j,k-1);                                                    // [ column j == q ]  (q=1)
+    alpha(i,j,k) = alpha(i-1,j,k) + a0(i,0,k)*a0(i,0,k);                           // a_0 . a_0, reduce over rows i
+    beta(i,j,k)  = beta(i-1,j,k)  + a0(i,1,k)*a0(i,1,k);                           // a_1 . a_1, reduce over rows i
+    gamma(i,j,k) = gamma(i-1,j,k) + a0(i,0,k)*a0(i,1,k);                           // a_0 . a_1, reduce over rows i
+    zeta(i,j,k)  = (beta(M-1,N-1,k) - alpha(M-1,N-1,k)) / (2*gamma(M-1,N-1,k));    // (beta-alpha)/(2 gamma), broadcast
+    tt(i,j,k)    = select(gt(zeta(i,j,k),0), 1, -1)
+                 / (abs(zeta(i,j,k)) + sqrt(zeta(i,j,k)*zeta(i,j,k) + 1));         // t = sign/(|zeta|+sqrt(zeta^2+1))
+    cs(i,j,k)    = 1 / sqrt(tt(i,j,k)*tt(i,j,k) + 1);                              // cos
+    sn(i,j,k)    = tt(i,j,k) * cs(i,j,k);                                          // sin
+    arot(i,j,k)  = select(cp(i,j,k), cs(i,j,k)*a0(i,0,k) - sn(i,j,k)*a0(i,1,k),
+                   select(cq(i,j,k), sn(i,j,k)*a0(i,0,k) + cs(i,j,k)*a0(i,1,k),
+                     a0(i,j,k)));                                                  // one-sided: rotate columns p,q
+}
+
+// tensor confluences
+input  A[M][N] ((i,j,k) | 0 <= i < M, 0 <= j < N, k = -1) : a0(i,j,k) = A[i][j];  // A (tall, M >= N)
+input  Pind[N] ((i,j,k) | 0 <= i < M, 0 <= j < N, k = -1) : cp(i,j,k) = Pind[j];  // p-column indicator
+input  Qind[N] ((i,j,k) | 0 <= i < M, 0 <= j < N, k = -1) : cq(i,j,k) = Qind[j];  // q-column indicator
+input          ((i,j,k) | i = -1, 0 <= j < N, 0 <= k < 2) : alpha(i,j,k) = 0;      // a_0.a_0 seed
+input          ((i,j,k) | i = -1, 0 <= j < N, 0 <= k < 2) : beta(i,j,k)  = 0;      // a_1.a_1 seed
+input          ((i,j,k) | i = -1, 0 <= j < N, 0 <= k < 2) : gamma(i,j,k) = 0;      // a_0.a_1 seed
+output R[M][N] ((i,j,k) | 0 <= i < M, 0 <= j < N, k = 1)  : R[i][j] = arot(i,j,k); // A J: columns 0,1 orthogonalized
+
+// test bench: tall A (4x3) whose columns 0,1 are NOT orthogonal (a_0.a_1 = 4); one
+//   rotation makes them orthogonal (a_0'.a_1' = 0) and preserves the singular values.
+data A    = { 1, 2, 0,
+             2, 1, 1,
+             0, 1, 3,
+             1, 0, 2 };
+data Pind = { 1, 0, 0 };
+data Qind = { 0, 1, 0 };
