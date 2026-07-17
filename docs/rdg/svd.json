@@ -1,0 +1,33 @@
+{
+  "operator": "svd",
+  "rank": 3,
+  "indexNames": ["i","j","k"],
+  "kind": "SARE",
+  "variables": ["a0","alpha","arot","beta","cp","cq","cs","gamma","sn","tt","zeta"],
+  "arcs": [
+    {"from":"a0","to":"a0","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"alpha","to":"alpha","kind":"uniform","theta":[1,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[-1,0,0]}},
+    {"from":"a0","to":"alpha","kind":"affine","map":{"A":[[1,0,0],[0,0,0],[0,0,1]],"b":[0,0,0]}},
+    {"from":"cp","to":"arot","kind":"uniform","theta":[0,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,0]}},
+    {"from":"cs","to":"arot","kind":"uniform","theta":[0,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,0]}},
+    {"from":"a0","to":"arot","kind":"affine","map":{"A":[[1,0,0],[0,0,0],[0,0,1]],"b":[0,0,0]}},
+    {"from":"sn","to":"arot","kind":"uniform","theta":[0,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,0]}},
+    {"from":"a0","to":"arot","kind":"affine","map":{"A":[[1,0,0],[0,0,0],[0,0,1]],"b":[0,1,0]}},
+    {"from":"cq","to":"arot","kind":"uniform","theta":[0,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,0]}},
+    {"from":"a0","to":"arot","kind":"uniform","theta":[0,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,0]}},
+    {"from":"beta","to":"beta","kind":"uniform","theta":[1,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[-1,0,0]}},
+    {"from":"a0","to":"beta","kind":"affine","map":{"A":[[1,0,0],[0,0,0],[0,0,1]],"b":[0,1,0]}},
+    {"from":"cp","to":"cp","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"cq","to":"cq","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"tt","to":"cs","kind":"uniform","theta":[0,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,0]}},
+    {"from":"gamma","to":"gamma","kind":"uniform","theta":[1,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[-1,0,0]}},
+    {"from":"a0","to":"gamma","kind":"affine","map":{"A":[[1,0,0],[0,0,0],[0,0,1]],"b":[0,0,0]}},
+    {"from":"a0","to":"gamma","kind":"affine","map":{"A":[[1,0,0],[0,0,0],[0,0,1]],"b":[0,1,0]}},
+    {"from":"tt","to":"sn","kind":"uniform","theta":[0,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,0]}},
+    {"from":"cs","to":"sn","kind":"uniform","theta":[0,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,0]}},
+    {"from":"zeta","to":"tt","kind":"uniform","theta":[0,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,0]}},
+    {"from":"beta","to":"zeta","kind":"affine","map":{"A":[[0,0,0],[0,0,0],[0,0,1]],"b":[3,2,0]}},
+    {"from":"alpha","to":"zeta","kind":"affine","map":{"A":[[0,0,0],[0,0,0],[0,0,1]],"b":[3,2,0]}},
+    {"from":"gamma","to":"zeta","kind":"affine","map":{"A":[[0,0,0],[0,0,0],[0,0,1]],"b":[3,2,0]}}
+  ]
+}
