@@ -104,6 +104,7 @@ const FILE_MAP = {
   'SURE/lstsq.md':                   'theory/lstsq.md',
   'SURE/stationary.md':               'theory/stationary.md',
   'SURE/cg.md':                      'theory/cg.md',
+  'SURE/eig_jacobi.md':               'theory/eig_jacobi.md',
   'matrix_vector_operators.md':      'theory/matrix-vector-operators.md',
 };
 

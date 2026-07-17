@@ -41,6 +41,7 @@ const OPERATORS = [
   { op: 'lstsq', scale: { M: 12, N: 8 }, schedules: ['linear'] },
   { op: 'stationary', scale: { N: 8, K: 6 }, schedules: ['free'] },
   { op: 'cg',         scale: { N: 8, K: 6 }, schedules: ['free'] },
+  { op: 'eig_jacobi', scale: { N: 6 },   schedules: ['free'] },
   // BLAS L1 reductions — a wavefront point sweeping the accumulation chain
   { op: 'dot',   scale: { N: 16 }, schedules: ['linear'] },
   { op: 'nrm2',  scale: { N: 16 }, schedules: ['linear'] },
