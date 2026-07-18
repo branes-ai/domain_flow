@@ -426,6 +426,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
 // ── global mounter: turn every <div class="schedule-anim" data-src> into a
 //    viewer with canvas + play/pause/scrub + a variable legend ───────────────
 export async function mountAll(root = document) {
+  reserveScheduleSlots(root);
   const nodes = root.querySelectorAll('.schedule-anim[data-src]:not([data-mounted])');
   for (const el of nodes) {
     el.setAttribute('data-mounted', '1');
@@ -553,6 +554,7 @@ export async function mountAll(root = document) {
 //    the number of extra steps you watch it wait. Embed via
 //    <div class="schedule-compare" data-src-a=".../op-free.json" data-src-b=".../op-linear.json">.
 export async function mountCompareAll(root = document) {
+  reserveScheduleSlots(root);
   const nodes = root.querySelectorAll('.schedule-compare[data-src-a][data-src-b]:not([data-mounted])');
   for (const el of nodes) {
     el.setAttribute('data-mounted', '1');
@@ -673,11 +675,26 @@ export async function mountCompareAll(root = document) {
 // ── offline capture hook (issue #142, Phase 3): publish each mounted viewer on a global
 //    registry and tag its container with data-sv-index, so a headless driver (make-video.mjs)
 //    can step it frame-by-frame — `window.__scheduleViewers[i].setFrame(f)` / `.frameCount` —
-//    and screenshot the canvas per frame for the offline PNG→video path. Harmless in the
-//    browser (interactive controls still drive the same viewer); a no-op off-DOM. ──────────
+//    and read the canvas per frame for the offline PNG→video path. Harmless in the browser
+//    (interactive controls still drive the same viewer); a no-op off-DOM. ──────────────────
+//
+// Slots are RESERVED synchronously in DOM order before any fetch: mountAll and mountCompareAll
+// run concurrently and register only after their loads resolve, so without this the index a
+// container ends up with would depend on network timing — and the capture's --index would
+// drift between runs. Reserving up front pins data-sv-index to document order.
+function reserveScheduleSlots(root) {
+  if (typeof window === 'undefined') return;
+  const reg = (window.__scheduleViewers ||= []);
+  for (const el of root.querySelectorAll('.schedule-anim[data-src], .schedule-compare[data-src-a][data-src-b]')) {
+    if (el.dataset.svIndex != null) continue;         // already reserved
+    el.dataset.svIndex = String(reg.length);
+    reg.push(null);                                   // placeholder; filled when the viewer mounts
+  }
+}
 function registerViewer(el, handle) {
   if (typeof window === 'undefined') return;
   const reg = (window.__scheduleViewers ||= []);
-  el.dataset.svIndex = String(reg.length);
-  reg.push(handle);
+  const i = Number(el.dataset.svIndex);
+  if (Number.isInteger(i) && i >= 0) reg[i] = handle;  // fill the reserved slot
+  else { el.dataset.svIndex = String(reg.length); reg.push(handle); }   // fallback: reserve wasn't run
 }
