@@ -111,7 +111,25 @@ try {
   const frameCount = await pageObj.evaluate((i) => window.__scheduleViewers[i].frameCount, index);
   if (!frameCount || frameCount < 1) die(`viewer #${index} on /${page} reports frameCount=${frameCount}`);
   const region = pageObj.locator(selector).first();
-  if (!(await region.count())) die(`selector "${selector}" matched nothing on /${page}`);
+  const handle = await region.elementHandle();
+  if (!handle) die(`selector "${selector}" matched nothing on /${page}`);
+
+  // Grow the viewport if the capture region is taller than it (tall embeds), then scroll the
+  // region into view with a raw DOM call. We measure a clip rect and screenshot the VIEWPORT
+  // with that clip — element.screenshot() would wait for a "stable bounding box", which never
+  // settles on a page full of continuous requestAnimationFrame WebGL loops (it times out).
+  let box = await handle.boundingBox();
+  if (!box) die('could not measure the capture region — is it visible / has non-zero size?');
+  const needH = Math.ceil(box.height) + 80;
+  if (needH > height) { await pageObj.setViewportSize({ width, height: needH }); await pageObj.waitForTimeout(200); }
+  await handle.evaluate((n) => n.scrollIntoView({ block: 'center', inline: 'center' }));
+  await pageObj.waitForTimeout(150);
+  box = await handle.boundingBox();
+  const vp = pageObj.viewportSize();
+  const clip = {
+    x: Math.max(0, Math.round(box.x)), y: Math.max(0, Math.round(box.y)),
+    width: Math.min(Math.round(box.width), vp.width), height: Math.min(Math.round(box.height), vp.height),
+  };
 
   console.log(`make-video: capturing ${frameCount} frame(s) × ${loops} loop(s) …`);
   let n = 0;
@@ -122,7 +140,7 @@ try {
         window.__scheduleViewers[i].setFrame(frame);
         requestAnimationFrame(() => requestAnimationFrame(res));
       }), { i: index, frame: f });
-      await region.screenshot({ path: join(framesDir, `f${String(n++).padStart(5, '0')}.png`) });
+      await pageObj.screenshot({ path: join(framesDir, `f${String(n++).padStart(5, '0')}.png`), clip });
     }
   }
   await browser.close();
