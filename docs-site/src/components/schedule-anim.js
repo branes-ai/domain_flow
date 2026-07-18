@@ -107,7 +107,10 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   const frameCount = tMax - tMin + 1;
 
   // ── renderer / scene / camera ─────────────────────────────────────────────
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  // preserveDrawingBuffer keeps the rendered frame readable via canvas.toDataURL after
+  // compositing — the offline capture path (make-video.mjs) reads pixels that way. The cost
+  // is negligible for these small scenes and it's otherwise invisible to interactive use.
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
   renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio || 1, 2));
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0e1116);

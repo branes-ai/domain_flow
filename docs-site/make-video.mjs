@@ -33,7 +33,7 @@
  *   --keep-frames      leave the temp PNG dir in place (debug)
  */
 import { spawn, execFileSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, rmSync, existsSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, rmSync, existsSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname, extname } from 'node:path';
 
@@ -110,37 +110,33 @@ try {
   await pageObj.waitForTimeout(settle);
   const frameCount = await pageObj.evaluate((i) => window.__scheduleViewers[i].frameCount, index);
   if (!frameCount || frameCount < 1) die(`viewer #${index} on /${page} reports frameCount=${frameCount}`);
-  const region = pageObj.locator(selector).first();
-  const handle = await region.elementHandle();
-  if (!handle) die(`selector "${selector}" matched nothing on /${page}`);
+  // the selector must resolve to the <canvas> we read pixels from
+  const isCanvas = await pageObj.evaluate((sel) => {
+    const c = document.querySelector(sel);
+    return !!(c && typeof c.toDataURL === 'function');
+  }, selector);
+  if (!isCanvas) die(`selector "${selector}" did not match a <canvas> on /${page}`);
 
-  // Grow the viewport if the capture region is taller than it (tall embeds), then scroll the
-  // region into view with a raw DOM call. We measure a clip rect and screenshot the VIEWPORT
-  // with that clip — element.screenshot() would wait for a "stable bounding box", which never
-  // settles on a page full of continuous requestAnimationFrame WebGL loops (it times out).
-  let box = await handle.boundingBox();
-  if (!box) die('could not measure the capture region — is it visible / has non-zero size?');
-  const needH = Math.ceil(box.height) + 80;
-  if (needH > height) { await pageObj.setViewportSize({ width, height: needH }); await pageObj.waitForTimeout(200); }
-  await handle.evaluate((n) => n.scrollIntoView({ block: 'center', inline: 'center' }));
-  await pageObj.waitForTimeout(150);
-  box = await handle.boundingBox();
-  const vp = pageObj.viewportSize();
-  const clip = {
-    x: Math.max(0, Math.round(box.x)), y: Math.max(0, Math.round(box.y)),
-    width: Math.min(Math.round(box.width), vp.width), height: Math.min(Math.round(box.height), vp.height),
-  };
-
+  // Read the canvas pixels directly with canvas.toDataURL instead of a Playwright screenshot:
+  // both element- and page-level screenshots deadlock against the page's continuous
+  // requestAnimationFrame WebGL loops (they wait for a "stable"/committed frame that never
+  // comes). toDataURL is frame-exact and, as a bonus, captures the CANVAS ONLY — no HUD or
+  // controls — which is what a clean loop wants. It needs the renderer's drawing buffer to be
+  // preserved (WebGLRenderer preserveDrawingBuffer:true, set in schedule-anim.js).
   console.log(`make-video: capturing ${frameCount} frame(s) × ${loops} loop(s) …`);
   let n = 0;
   for (let l = 0; l < loops; l++) {
     for (let f = 0; f < frameCount; f++) {
-      // set the frame, then wait two animation frames so the render lands before the shot
-      await pageObj.evaluate(({ i, frame }) => new Promise((res) => {
+      // set the frame, render two animation frames so it lands, then grab the pixels
+      const dataUrl = await pageObj.evaluate(({ i, frame, sel }) => new Promise((res) => {
         window.__scheduleViewers[i].setFrame(frame);
-        requestAnimationFrame(() => requestAnimationFrame(res));
-      }), { i: index, frame: f });
-      await pageObj.screenshot({ path: join(framesDir, `f${String(n++).padStart(5, '0')}.png`), clip });
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          const c = document.querySelector(sel);
+          res(c ? c.toDataURL('image/png') : null);
+        }));
+      }), { i: index, frame: f, sel: selector });
+      if (!dataUrl || !dataUrl.startsWith('data:image/png')) die(`empty capture at frame ${f} — is preserveDrawingBuffer enabled?`);
+      writeFileSync(join(framesDir, `f${String(n++).padStart(5, '0')}.png`), Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64'));
     }
   }
   await browser.close();
