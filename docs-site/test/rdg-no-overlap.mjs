@@ -62,27 +62,56 @@ for (const op of OPS) {
     return dd < best.dd ? { name: n.name, dd } : best;
   }, { name: '?', dd: Infinity }).name;
 
+  const byName = new Map(nodes.map((n) => [n.name, n]));
   const paths = [...container.querySelectorAll('path.rdg-edge')];
-  const quads = paths.map((p) => parseQuad(p.getAttribute('d'))).filter(Boolean);
+  // per-arc record: pair, kind (from the path class), control point c, and |off| =
+  // distance from the pair midpoint to c along the normal = how far out the channel bows
+  const arcs = paths.map((p) => {
+    const g = parseQuad(p.getAttribute('d'));
+    if (!g) return null;
+    const a = nearest(g.s), b = nearest(g.e);
+    const pair = [a, b].sort().join('↔');
+    const na = byName.get(a), nb = byName.get(b);
+    const mid = [(na.x + nb.x) / 2, (na.y + nb.y) / 2];
+    const off = Math.hypot(g.c[0] - mid[0], g.c[1] - mid[1]);
+    const kind = p.classList.contains('rdg-affine') ? 'affine' : 'uniform';
+    return { pair, kind, c: g.c, off };
+  }).filter(Boolean);
 
-  // key: unordered node pair + control point ⇒ one physical channel
+  // (1) key: unordered node pair + control point ⇒ one physical channel
   const seen = new Map();
   const collisions = [];
-  for (const g of quads) {
-    const pair = [nearest(g.s), nearest(g.e)].sort().join('↔');
-    const key = `${pair}@${q(g.c[0])},${q(g.c[1])}`;
+  for (const g of arcs) {
+    const key = `${g.pair}@${q(g.c[0])},${q(g.c[1])}`;
     if (seen.has(key)) collisions.push(key); else seen.set(key, true);
   }
 
-  const nonSelf = quads.length;
-  if (collisions.length) {
+  // (2) affine arcs must sit on the OUTERMOST channels of their pair, so the multi-line
+  // matrix map has open peripheral space: within a pair, every affine arc's |off| must
+  // exceed every uniform arc's |off|.
+  const pairs = new Map();
+  for (const g of arcs) {
+    if (!pairs.has(g.pair)) pairs.set(g.pair, { aff: [], uni: [] });
+    (g.kind === 'affine' ? pairs.get(g.pair).aff : pairs.get(g.pair).uni).push(g.off);
+  }
+  const misplaced = [];
+  for (const [pair, { aff, uni }] of pairs) {
+    if (!aff.length || !uni.length) continue;
+    if (Math.min(...aff) <= Math.max(...uni) + 1e-6) misplaced.push(pair);
+  }
+
+  const nonSelf = arcs.length;
+  if (collisions.length || misplaced.length) {
     failures++;
-    console.log(`✗ ${op}: ${collisions.length} overlapping arc(s) of ${nonSelf} pair-arcs`);
-    for (const c of collisions) console.log(`    channel reused: ${c}`);
+    if (collisions.length) {
+      console.log(`✗ ${op}: ${collisions.length} overlapping arc(s) of ${nonSelf} pair-arcs`);
+      for (const c of collisions) console.log(`    channel reused: ${c}`);
+    }
+    for (const p of misplaced) console.log(`✗ ${op}: affine arc not on an outer channel for pair ${p}`);
   } else {
-    console.log(`✓ ${op}: ${nonSelf} pair-arcs, all on distinct channels`);
+    console.log(`✓ ${op}: ${nonSelf} pair-arcs, distinct channels, affine arcs outermost`);
   }
 }
 
-if (failures) { console.error(`\nFAILED: ${failures} operator(s) have overlapping arcs`); process.exit(1); }
-console.log('\nAll checked RDGs render with no overlapping arcs.');
+if (failures) { console.error(`\nFAILED: ${failures} operator(s) have RDG layout problems`); process.exit(1); }
+console.log('\nAll checked RDGs render with no overlapping arcs and affine maps on outer channels.');

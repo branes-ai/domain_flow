@@ -199,10 +199,26 @@ export function createRdgViewer(container, data) {
     const len = Math.hypot(dx, dy) || 1;
     const nx = -dy / len, ny = dx / len;                   // canonical unit normal (both directions)
     const M = list.length;
+    // Channel offsets, symmetric about the node-to-node line. An AFFINE arc carries a
+    // multi-line matrix map (p ↦ A·p + b) that needs room to render; a uniform arc's label
+    // is a one-line translation vector. So hand the affine arcs the OUTERMOST channels —
+    // largest |offset|, belly out in open peripheral space — and let the uniform arcs take
+    // the inner channels. Assigning strictly by insertion order (as before) could bury a
+    // matrix map on an inner channel between two other arcs: the QR-Givens (lstsq) graph
+    // was unreadable even once the arcs no longer overlapped.
+    const slots = Array.from({ length: M }, (_, k) => (k - (M - 1) / 2) * 40)
+      .sort((p, q) => Math.abs(q) - Math.abs(p) || p - q);  // outermost first; neg before pos
+    // stable order: affine arcs first (→ outer slots), then uniform (→ inner)
+    const order = [...list.keys()].sort((a, b) => {
+      const aff = (i) => (list[i].kind === 'affine' ? 0 : 1);
+      return aff(a) - aff(b) || a - b;
+    });
+    const offOf = new Array(M);
+    order.forEach((arcIdx, slotIdx) => { offOf[arcIdx] = slots[slotIdx]; });
     list.forEach((arc, k) => {
       const cls = arc.kind === 'affine' ? 'rdg-affine' : 'rdg-uniform';
       const marker = arc.kind === 'affine' ? 'url(#rdg-ah-aff)' : 'url(#rdg-ah)';
-      const off = (k - (M - 1) / 2) * 40;                  // one distinct channel per arc
+      const off = offOf[k];                                 // one distinct channel per arc
       const c = [mx + nx * off, my + ny * off];
       // draw between the arc's ACTUAL endpoints so the arrowhead points the true way; only
       // the channel (control point) comes from the canonical orientation
@@ -212,7 +228,10 @@ export function createRdgViewer(container, data) {
         class: `rdg-edge ${cls}`, 'marker-end': marker, fill: 'none',
         d: `M ${f2(s)} Q ${f2(c)} ${f2(e)}`,
       }));
-      addLabel(c[0], c[1], arc);
+      // push an affine arc's matrix map further out along the channel normal, beyond the
+      // belly into open space, so it clears the inner arc's label on the same side
+      const push = arc.kind === 'affine' && off !== 0 ? Math.sign(off) * 22 : 0;
+      addLabel(c[0] + nx * push, c[1] + ny * push, arc);
     });
   }
 

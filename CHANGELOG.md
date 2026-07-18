@@ -14,11 +14,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   normal. Previously arcs were grouped by the directed `(from,to)`, so reciprocal arcs laid
   out against opposite edge normals and collided — the least-squares-via-Givens-QR graph
   (`lstsq`) has four `a ↔ r` arcs (two each way) but only two curves appeared, drawn on top
-  of each other with stacked maps. Now all four render on distinct channels. Added
-  `docs-site/test/rdg-no-overlap.mjs` (wired as `npm test`, jsdom): it mounts the real
-  viewer on the committed RDG JSON and asserts no two arcs share a (node-pair, control-point)
-  channel — `lstsq`, `eig_qr`, and the rest of the catalog pass; the test flags the pre-fix
-  `lstsq` overlap. `jsdom` is now a declared devDependency.
+  of each other with stacked maps. Now all four render on distinct channels, and **affine
+  arcs are placed on the outermost channels** (with their matrix map nudged further out)
+  so the multi-line `p ↦ A·p + b` label has open peripheral space instead of being buried
+  on an inner channel between other arcs. Added `docs-site/test/rdg-no-overlap.mjs` (wired
+  as `npm test`, jsdom): it mounts the real viewer on the committed RDG JSON and asserts no
+  two arcs share a (node-pair, control-point) channel **and** that every affine arc sits
+  outside every uniform arc of its pair — `lstsq`, `eig_qr`, and the rest of the catalog
+  pass; the test flags both the pre-fix `lstsq` overlap and a mis-placed affine map.
+  `jsdom` is now a declared devDependency.
 - **Schedule animation — dependency arrows** (issue #142, Phase 3): an opt-in `data-edges`
   overlay in `docs-site/src/components/schedule-anim.js` that draws each recurrence's *taps*
   (the affine map `A·p + b` per source) as producer→consumer arrows into every firing cell.
