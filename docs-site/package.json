@@ -8,6 +8,7 @@
     "clean": "git clean -fXd src/content/docs/",
     "schedules": "node make-schedules.mjs",
     "rdg": "node make-rdg.mjs",
+    "video": "node make-video.mjs",
     "test": "node test/rdg-no-overlap.mjs",
     "dev": "node sync-content.mjs && astro dev",
     "build": "node sync-content.mjs && astro build",
@@ -23,6 +24,7 @@
     "three": "^0.184.0"
   },
   "devDependencies": {
-    "jsdom": "^29.1.1"
+    "jsdom": "^29.1.1",
+    "playwright": "^1.61.1"
   }
 }
