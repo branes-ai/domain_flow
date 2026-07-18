@@ -24,12 +24,13 @@
   overflow: hidden;
   background: #0e1116;
 }
-.schedule-anim canvas {
+.schedule-anim canvas,
+.schedule-compare canvas {
   display: block;
   width: 100%;
   height: 100%;
 }
-.schedule-anim .sa-hud {
+:is(.schedule-anim, .schedule-compare) .sa-hud {
   position: absolute;
   top: 8px;
   left: 10px;
@@ -40,7 +41,7 @@
   pointer-events: none;
   line-height: 1.5;
 }
-.schedule-anim .sa-hud.sa-warn {
+:is(.schedule-anim, .schedule-compare) .sa-hud.sa-warn {
   color: #ff6b6b;
   font-weight: 600;
 }
@@ -80,13 +81,84 @@
   text-shadow: 0 1px 2px #000;
   pointer-events: none;
 }
-.schedule-anim .sa-legend i {
+:is(.schedule-anim, .schedule-compare) .sa-legend i,
+.schedule-compare .sc-legend i {
   display: inline-block;
   width: 10px;
   height: 10px;
   border-radius: 2px;
   margin-right: 5px;
   vertical-align: middle;
+}
+
+/* ── side-by-side schedule comparison (issue #142) — two viewers in one .schedule-compare,
+   driven by a shared clock in src/components/schedule-anim.js ──────────────────────────── */
+.schedule-compare {
+  margin: 1.25rem 0;
+}
+.schedule-compare .sc-grid {
+  display: flex;
+  gap: 10px;
+}
+.schedule-compare .sc-pane {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  border: 1px solid var(--sl-color-gray-5, #30363d);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #0e1116;
+}
+.schedule-compare .sc-head {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  padding: 6px 10px;
+  font-family: var(--sl-font-mono, monospace);
+  font-size: 12px;
+  font-weight: 600;
+  color: #e6edf3;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(14, 17, 22, 0.85), rgba(14, 17, 22, 0));
+}
+.schedule-compare .sa-hud {
+  top: 30px;               /* clear the pane header */
+}
+.schedule-compare .sc-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.schedule-compare .sc-controls button {
+  background: rgba(0, 0, 0, 0.5);
+  color: #e6edf3;
+  border: 1px solid #30363d;
+  border-radius: 5px;
+  width: 30px;
+  height: 26px;
+  cursor: pointer;
+  font-size: 13px;
+  flex: none;
+}
+.schedule-compare .sc-controls .sa-scrub {
+  flex: 1;
+}
+.schedule-compare .sc-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 6px;
+  font-family: var(--sl-font-mono, monospace);
+  font-size: 11px;
+  color: #c9d1d9;
+}
+@media (max-width: 600px) {
+  .schedule-compare .sc-grid {
+    flex-direction: column;
+  }
 }
 
 /* ── Reduced Dependency Graph (issue #103) — the .rdg container is populated at

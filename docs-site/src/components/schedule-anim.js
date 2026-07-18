@@ -491,3 +491,106 @@ export async function mountAll(root = document) {
     fit.addEventListener('click', () => viewer.fitView());
   }
 }
+
+// ── side-by-side schedule comparison (issue #142, Phase 3): two viewers driven by ONE
+//    shared clock so the latency↔parallelism trade reads directly — e.g. free vs linear.
+//    Both advance at the same wall-clock step rate, so the shorter schedule finishes and
+//    HOLDS its completed lattice while the longer one keeps sweeping: the latency gap is
+//    the number of extra steps you watch it wait. Embed via
+//    <div class="schedule-compare" data-src-a=".../op-free.json" data-src-b=".../op-linear.json">.
+export async function mountCompareAll(root = document) {
+  const nodes = root.querySelectorAll('.schedule-compare[data-src-a][data-src-b]:not([data-mounted])');
+  for (const el of nodes) {
+    el.setAttribute('data-mounted', '1');
+    const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+    const resolve = (raw) => /^https?:/.test(raw) ? raw : `${base}/${raw.replace(/^\//, '')}`;
+    const height = el.getAttribute('data-height') || '420';
+    const fpsAttr = Number(el.getAttribute('data-fps'));
+    const fps0 = Number.isFinite(fpsAttr) && fpsAttr > 0 ? fpsAttr : 0;
+    // overlays pass through to BOTH panes; each is guarded downstream (e.g. the τ-plane is
+    // inert on a free schedule), so `data-plane` on a free-vs-linear compare lights up only
+    // the linear pane — exactly the contrast the comparison is meant to show.
+    const plane = el.hasAttribute('data-plane');
+    const edges = el.hasAttribute('data-edges');
+    const srcs = [el.getAttribute('data-src-a'), el.getAttribute('data-src-b')].map(resolve);
+
+    const mk = (cls) => Object.assign(document.createElement('div'), { className: cls });
+    const btn = (txt, title) => Object.assign(document.createElement('button'),
+      { type: 'button', textContent: txt, title });
+
+    const grid = mk('sc-grid');
+    const panes = srcs.map(() => {
+      const pane = mk('sc-pane'); pane.style.height = `${height}px`;
+      const head = mk('sc-head');
+      const canvas = document.createElement('canvas');
+      const hud = mk('sa-hud');
+      pane.append(head, canvas, hud);
+      grid.append(pane);
+      return { head, canvas, hud };
+    });
+    const bar = mk('sc-controls');
+    const play = btn('▶', 'play / pause');
+    const scrub = Object.assign(document.createElement('input'),
+      { type: 'range', className: 'sa-scrub', min: '0', max: '0', value: '0', step: '1' });
+    const fit = btn('⤢', 'reset view');
+    bar.append(play, scrub, fit);
+    el.append(grid, bar);
+
+    // fetch both schedules (a failed pane shows an inline warning; the other still runs)
+    const datas = [];
+    for (let i = 0; i < 2; i++) {
+      try {
+        const r = await fetch(srcs[i]);
+        if (!r.ok) throw new Error(`${r.status}`);
+        datas[i] = await r.json();
+      } catch (err) {
+        panes[i].hud.textContent = `failed to load ${srcs[i]}: ${err.message}`;
+        panes[i].hud.classList.add('sa-warn');
+      }
+    }
+
+    const viewers = [];
+    datas.forEach((data, i) => {
+      if (!data) return;
+      const v = createScheduleViewer({ canvas: panes[i].canvas, hud: panes[i].hud, data, options: { fps: fps0, plane, edges } });
+      v.pause();                                   // we drive frames from the shared clock
+      viewers.push(v);
+      const kind = data.schedule?.kind ?? '';
+      const tau = Array.isArray(data.schedule?.tau) ? ` τ=[${data.schedule.tau.map((n) => Number(n)).join(',')}]` : '';
+      panes[i].head.textContent = `${data.operator ?? 'schedule'} · ${kind}${tau} · latency ${data.latency ?? v.frameCount}`;
+    });
+    if (!viewers.length) continue;
+
+    // shared legend: variable colours (both panes share the palette), plus overlay hints
+    const first = datas.find(Boolean);
+    if (Array.isArray(first?.variables) && first.variables.length) {
+      const leg = mk('sc-legend');
+      const cols = ['#4fd1ff', '#ff9f0a', '#35c759', '#bf5af2', '#ffd60a', '#ff6482', '#64d2ff'];
+      first.variables.forEach((v, i) => {
+        const s = document.createElement('span');
+        s.innerHTML = `<i style="background:${cols[i % cols.length]}"></i>${v.name}`;
+        leg.append(s);
+      });
+      if (plane) { const s = document.createElement('span'); s.innerHTML = `<i style="background:#4fd1ff"></i>wavefront plane ⟂ τ`; leg.append(s); }
+      if (edges) { const s = document.createElement('span'); s.innerHTML = `<i style="background:#9db4d0"></i>dependency`; leg.append(s); }
+      el.append(leg);
+    }
+
+    // one clock for both: same step duration, so the shorter schedule clamps at its last
+    // frame (all fired) while the longer keeps advancing — the visible latency difference.
+    const maxFrames = Math.max(...viewers.map((v) => v.frameCount));
+    scrub.max = String(Math.max(0, maxFrames - 1));
+    const fps = fps0 || Math.max(1.5, Math.min(9, maxFrames / 7));
+    let frame = 0, playing = false, raf = 0, last = 0;
+    const apply = (f) => { frame = f; for (const v of viewers) v.setFrame(f); scrub.value = String(f); };
+    apply(0);
+    function loop(ts) {
+      raf = requestAnimationFrame(loop);
+      if (playing && maxFrames > 1 && ts - last > 1000 / fps) { last = ts; apply((frame + 1) % maxFrames); }
+    }
+    raf = requestAnimationFrame(loop);
+    play.addEventListener('click', () => { playing = !playing; play.textContent = playing ? '⏸' : '▶'; });
+    scrub.addEventListener('input', () => { playing = false; play.textContent = '▶'; apply(Number(scrub.value)); });
+    fit.addEventListener('click', () => { for (const v of viewers) v.fitView(); });
+  }
+}
