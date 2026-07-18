@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Schedule animation — offline PNG→video path** (issue #142, Phase 3): `docs-site/make-video.mjs`
+  (`npm run video`) renders one embedded schedule viewer frame-by-frame in a headless browser
+  and stitches the frames with ffmpeg into a committed `.mp4` / `.webm` / `.gif` — the same
+  offline path cortex uses, for a landing page / README / talk where the live WebGL viewer
+  isn't wanted. It serves the built `dist/` via `astro preview`, drives the viewer through a
+  new global capture hook (`window.__scheduleViewers[i].setFrame(f)` / `.frameCount`, with each
+  container tagged `data-sv-index`), and screenshots the canvas per frame. Local-only tooling
+  (Playwright + ffmpeg, like `make-schedules` needs `dfactl`), so the Pages build stays
+  toolchain-free; flags cover the target page, viewer index, output/codec, fps, size, and loops.
 - **Schedule animation — legality coloring** (issue #142, Phase 3): an opt-in `data-legality`
   overlay in `docs-site/src/components/schedule-anim.js` that replays each recurrence's taps
   and colours every dependence by its slack `Δt = t(consumer) − t(producer)` — **red** for a

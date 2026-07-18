@@ -478,6 +478,7 @@ export async function mountAll(root = document) {
       options: { fps, tile, edges, plane, legality, onFrame: (i) => { if (playing) scrub.value = String(i); } },
     });
     scrub.max = String(Math.max(0, viewer.frameCount - 1));
+    registerViewer(el, { setFrame: viewer.setFrame, frameCount: viewer.frameCount });
 
     // variable legend — suppressed in tile mode, where colour encodes the block
     // (one hue per tile) rather than the recurrence variable.
@@ -653,6 +654,7 @@ export async function mountCompareAll(root = document) {
     };
     const apply = (f) => { frame = f; for (const v of viewers) v.setFrame(f); scrub.value = String(f); };
     apply(0);
+    registerViewer(el, { setFrame: apply, frameCount: maxFrames });
     function loop(ts) {
       if (!el.isConnected) { dispose(); return; }
       raf = requestAnimationFrame(loop);
@@ -663,4 +665,16 @@ export async function mountCompareAll(root = document) {
     scrub.addEventListener('input', () => { playing = false; play.textContent = '▶'; apply(Number(scrub.value)); });
     fit.addEventListener('click', () => { for (const v of viewers) v.fitView(); });
   }
+}
+
+// ── offline capture hook (issue #142, Phase 3): publish each mounted viewer on a global
+//    registry and tag its container with data-sv-index, so a headless driver (make-video.mjs)
+//    can step it frame-by-frame — `window.__scheduleViewers[i].setFrame(f)` / `.frameCount` —
+//    and screenshot the canvas per frame for the offline PNG→video path. Harmless in the
+//    browser (interactive controls still drive the same viewer); a no-op off-DOM. ──────────
+function registerViewer(el, handle) {
+  if (typeof window === 'undefined') return;
+  const reg = (window.__scheduleViewers ||= []);
+  el.dataset.svIndex = String(reg.length);
+  reg.push(handle);
 }
