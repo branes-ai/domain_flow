@@ -305,3 +305,12 @@ speed is the latency↔memory trade the memory analysis quantifies: the free
 schedule's wider wavefronts hold a larger resident set.
 
 <div class="schedule-anim" data-src="schedules/matmul-free.json" data-height="460"></div>
+
+**Dependency arrows** — the same linear schedule with the recurrence's *taps* drawn
+as arrows into each firing cell: `a(i,j,k) ← a(i,j−1,k)`, `b(i,j,k) ← b(i−1,j,k)`,
+and the accumulation `c(i,j,k) ← c(i,j,k−1)`. Each arrow fades from its producer to
+the brighter consumer end, so the direction of data flow reads at a glance; only the
+firing wavefront's dependences are drawn at each step. This is the picture a systolic
+array realizes — every arrow is a wire between neighbouring cells.
+
+<div class="schedule-anim" data-src="schedules/matmul-linear.json" data-height="460" data-edges></div>
