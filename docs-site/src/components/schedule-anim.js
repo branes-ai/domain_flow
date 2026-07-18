@@ -107,7 +107,10 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   const frameCount = tMax - tMin + 1;
 
   // ── renderer / scene / camera ─────────────────────────────────────────────
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  // preserveDrawingBuffer keeps the rendered frame readable via canvas.toDataURL after
+  // compositing — the offline capture path (make-video.mjs) reads pixels that way. The cost
+  // is negligible for these small scenes and it's otherwise invisible to interactive use.
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
   renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio || 1, 2));
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0e1116);
@@ -423,6 +426,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
 // ── global mounter: turn every <div class="schedule-anim" data-src> into a
 //    viewer with canvas + play/pause/scrub + a variable legend ───────────────
 export async function mountAll(root = document) {
+  reserveScheduleSlots(root);
   const nodes = root.querySelectorAll('.schedule-anim[data-src]:not([data-mounted])');
   for (const el of nodes) {
     el.setAttribute('data-mounted', '1');
@@ -478,6 +482,7 @@ export async function mountAll(root = document) {
       options: { fps, tile, edges, plane, legality, onFrame: (i) => { if (playing) scrub.value = String(i); } },
     });
     scrub.max = String(Math.max(0, viewer.frameCount - 1));
+    registerViewer(el, { setFrame: viewer.setFrame, frameCount: viewer.frameCount });
 
     // variable legend — suppressed in tile mode, where colour encodes the block
     // (one hue per tile) rather than the recurrence variable.
@@ -549,6 +554,7 @@ export async function mountAll(root = document) {
 //    the number of extra steps you watch it wait. Embed via
 //    <div class="schedule-compare" data-src-a=".../op-free.json" data-src-b=".../op-linear.json">.
 export async function mountCompareAll(root = document) {
+  reserveScheduleSlots(root);
   const nodes = root.querySelectorAll('.schedule-compare[data-src-a][data-src-b]:not([data-mounted])');
   for (const el of nodes) {
     el.setAttribute('data-mounted', '1');
@@ -653,6 +659,7 @@ export async function mountCompareAll(root = document) {
     };
     const apply = (f) => { frame = f; for (const v of viewers) v.setFrame(f); scrub.value = String(f); };
     apply(0);
+    registerViewer(el, { setFrame: apply, frameCount: maxFrames });
     function loop(ts) {
       if (!el.isConnected) { dispose(); return; }
       raf = requestAnimationFrame(loop);
@@ -663,4 +670,31 @@ export async function mountCompareAll(root = document) {
     scrub.addEventListener('input', () => { playing = false; play.textContent = '▶'; apply(Number(scrub.value)); });
     fit.addEventListener('click', () => { for (const v of viewers) v.fitView(); });
   }
+}
+
+// ── offline capture hook (issue #142, Phase 3): publish each mounted viewer on a global
+//    registry and tag its container with data-sv-index, so a headless driver (make-video.mjs)
+//    can step it frame-by-frame — `window.__scheduleViewers[i].setFrame(f)` / `.frameCount` —
+//    and read the canvas per frame for the offline PNG→video path. Harmless in the browser
+//    (interactive controls still drive the same viewer); a no-op off-DOM. ──────────────────
+//
+// Slots are RESERVED synchronously in DOM order before any fetch: mountAll and mountCompareAll
+// run concurrently and register only after their loads resolve, so without this the index a
+// container ends up with would depend on network timing — and the capture's --index would
+// drift between runs. Reserving up front pins data-sv-index to document order.
+function reserveScheduleSlots(root) {
+  if (typeof window === 'undefined') return;
+  const reg = (window.__scheduleViewers ||= []);
+  for (const el of root.querySelectorAll('.schedule-anim[data-src], .schedule-compare[data-src-a][data-src-b]')) {
+    if (el.dataset.svIndex != null) continue;         // already reserved
+    el.dataset.svIndex = String(reg.length);
+    reg.push(null);                                   // placeholder; filled when the viewer mounts
+  }
+}
+function registerViewer(el, handle) {
+  if (typeof window === 'undefined') return;
+  const reg = (window.__scheduleViewers ||= []);
+  const i = Number(el.dataset.svIndex);
+  if (Number.isInteger(i) && i >= 0) reg[i] = handle;  // fill the reserved slot
+  else { el.dataset.svIndex = String(reg.length); reg.push(handle); }   // fallback: reserve wasn't run
 }

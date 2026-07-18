@@ -91,6 +91,26 @@
   vertical-align: middle;
 }
 
+/* ── landing-page clip (issue #142) — the committed offline render on the splash page ── */
+.landing-clip {
+  max-width: 760px;
+  margin: 2.5rem auto 1rem;
+  text-align: center;
+}
+.landing-clip video {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--sl-color-gray-5, #30363d);
+  border-radius: 10px;
+  background: #0e1116;
+}
+.landing-clip p {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--sl-color-gray-3, #9ca3af);
+  text-align: left;
+}
+
 /* ── side-by-side schedule comparison (issue #142) — two viewers in one .schedule-compare,
    driven by a shared clock in src/components/schedule-anim.js ──────────────────────────── */
 .schedule-compare {

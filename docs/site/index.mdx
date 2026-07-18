@@ -46,6 +46,17 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
   </Card>
 </CardGrid>
 
+<div class="landing-clip">
+  <video src="%BASE%/videos/matmul-linear.mp4" autoplay loop muted playsinline width="1252" height="916"></video>
+  <p>
+    A matrix-multiply recurrence executing under a linear schedule. The translucent
+    <strong>signature plane</strong> (normal to the scheduling vector <code>&tau;</code>) sweeps the
+    index space; every lattice point fires as the wavefront reaches it — the plane's motion
+    <em>is</em> the schedule and its cross-section is the parallelism. Rendered offline from the
+    live <a href="%BASE%/theory/matmul/">interactive viewer</a> with <code>npm run video</code>.
+  </p>
+</div>
+
 ## Why domain flow?
 
 Data movement — not arithmetic — dominates the energy cost of deep learning
