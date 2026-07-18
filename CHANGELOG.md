@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Schedule animation — τ-normal wavefront plane** (issue #142, Phase 3): an opt-in
+  `data-plane` overlay in `docs-site/src/components/schedule-anim.js` that draws the classic
+  domain-flow signature plane — a translucent quad whose normal is the scheduling vector `τ`,
+  positioned at the firing wavefront and swept through the lattice as time advances. The plane
+  is oriented once (`τ̂` via a quaternion) and each frame slid along `τ̂` to the mean signature
+  `σ = τ·p` of the firing set, so it tracks the bright wavefront (β offsets and gaps included);
+  it hides on any frame where nothing fires. Only meaningful for a **linear** schedule (a free
+  schedule has no single `τ`, so the overlay is inert there). Composes with the tile / edge
+  overlays. Demonstrated on the `matmul` linear-schedule embed via `data-plane`.
 - **RDG viewer — one channel per arc between a node pair** (issue #143):
   `docs-site/src/components/rdg.js` now groups arcs by the **unordered** node pair and
   assigns each its own parallel channel round-robin against a canonical (sorted-endpoint)

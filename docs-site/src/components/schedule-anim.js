@@ -67,6 +67,14 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   //    wavefront's traffic draws each frame. Tile mode already draws its own
   //    (cross-tile) edges, so the two overlays are mutually exclusive. ──────────
   const edgesMode = !!options.edges && !tileMode;
+  // ── τ-normal wavefront plane (issue #142, Phase 3): a translucent plane normal to the
+  //    scheduling vector τ, positioned at the firing wavefront and swept through the
+  //    lattice as time advances — the classic domain-flow linear-schedule picture (points
+  //    sequenced by their signature t = τ·p). Only meaningful for a linear schedule: a
+  //    free schedule has no single τ, so the plane is suppressed there. ─────────────────
+  const tauArr = Array.isArray(data.schedule?.tau) ? data.schedule.tau.map(Number) : null;
+  const planeMode = !!options.plane && !!tauArr
+    && tauArr.some((n) => Number.isFinite(n) && n !== 0);
   const ts = (d) => tileSizes[d] ?? tileSizes[0];
   const nTiles = [0, 1, 2].map((d) => tileMode ? Math.max(1, Math.ceil(((hi[d] ?? 0) - (lo[d] ?? 0) + 1) / ts(d))) : 1);
   const tileOf = (p) => [0, 1, 2].map((d) => Math.floor(((p[d] ?? 0) - (lo[d] ?? 0)) / ts(d)));
@@ -144,6 +152,32 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
     tileMode ? tileColor(tileId(a.p)) : new THREE.Color(PALETTE[a.vi % PALETTE.length]));
   const WHITE = new THREE.Color(0xffffff);
 
+  // ── τ-normal wavefront plane: a translucent quad whose normal is τ̂. Built once and
+  //    oriented here; setFrame slides it ALONG τ̂ to the mean signature of the firing set,
+  //    so it tracks the bright wavefront (β offsets and gaps included) and sweeps the cube.
+  const tau3 = new THREE.Vector3();
+  const tauHat3 = new THREE.Vector3(0, 0, 1);
+  const ctrVec = new THREE.Vector3(...ctr);
+  let tauLen = 1, tauHatDotCtr = 0, planeGrp = null;
+  if (planeMode) {
+    tau3.set(tauArr[0] || 0, rank > 1 ? (tauArr[1] || 0) : 0, rank > 2 ? (tauArr[2] || 0) : 0);
+    tauLen = tau3.length() || 1;
+    tauHat3.copy(tau3).normalize();
+    tauHatDotCtr = tauHat3.dot(ctrVec);
+    const size = span * 1.8 + 2;                          // spans the whole cross-section
+    const pg = new THREE.PlaneGeometry(size, size);
+    const fill = new THREE.Mesh(pg, new THREE.MeshBasicMaterial({
+      color: 0x4fd1ff, transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false }));
+    const border = new THREE.LineSegments(new THREE.EdgesGeometry(pg),
+      new THREE.LineBasicMaterial({ color: 0x4fd1ff, transparent: true, opacity: 0.5 }));
+    planeGrp = new THREE.Group();
+    planeGrp.add(fill, border);
+    // orient the quad's +z normal onto τ̂; setFrame only translates it after this
+    planeGrp.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tauHat3);
+    planeGrp.renderOrder = 2;
+    scene.add(planeGrp);
+  }
+
   // ── cross-tile dependency edges (issue #75): replay each variable's taps to
   //    find dependences that cross a tile boundary, and classify them — a
   //    |Δtile|∞ = 1 crossing is a HALO (nearest-neighbour, green); a longer jump
@@ -215,7 +249,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   function setFrame(f) {
     frame = Math.max(0, Math.min(frameCount - 1, Math.round(f)));
     const now = tMin + frame;
-    let firing = 0, fired = 0;
+    let firing = 0, fired = 0, sigSum = 0;
     for (let i = 0; i < acts.length; i++) {
       const t = acts[i].t;
       let s;
@@ -223,6 +257,8 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
         s = baseR * 0.72; col.copy(baseColors[i]).multiplyScalar(0.7); fired++;
       } else if (t === now) {              // the firing wavefront — bright, big
         s = baseR * 1.8; col.copy(baseColors[i]).lerp(WHITE, 0.6); firing++;
+        // accumulate the signature σ = τ·p of the firing set to place the τ-plane
+        if (planeGrp) { const p = acts[i].p; sigSum += tau3.x * p[0] + tau3.y * p[1] + tau3.z * p[2]; }
       } else {                             // pending — tiny, near-dark
         s = baseR * 0.5; col.copy(baseColors[i]).multiplyScalar(0.12);
       }
@@ -257,6 +293,18 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
       lineSeg.geometry.attributes.position.needsUpdate = true;
       lineSeg.geometry.attributes.color.needsUpdate = true;
     }
+
+    // slide the τ-plane to the firing set's mean signature: the plane {p : τ̂·p = along},
+    // laterally centred on the cube. Hidden on frames where nothing fires (a schedule gap).
+    if (planeGrp) {
+      if (firing > 0) {
+        planeGrp.visible = true;
+        const along = sigSum / firing / tauLen;   // τ̂·p on the firing plane
+        planeGrp.position.copy(ctrVec).addScaledVector(tauHat3, along - tauHatDotCtr);
+      } else {
+        planeGrp.visible = false;
+      }
+    }
     if (hud) {
       // tau is coerced to numbers so it can never carry markup; operator/kind are
       // escaped as they come straight from the fetched JSON.
@@ -269,6 +317,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
         `&nbsp; latency ${data.latency ?? frameCount}</div>` +
         `<div>wavefront: <b>${firing}</b> firing (parallelism)</div>` +
         `<div>fired ${fired} / ${acts.length}</div>` +
+        (planeMode ? `<div><span style="color:#4fd1ff">▬</span> wavefront plane ⟂ τ</div>` : '') +
         (tileMode ? `<div>tiles: ${nTiles[0]}×${nTiles[1]}×${nTiles[2]} (T=${tileSizes.join('×')})</div>` : '') +
         (lineSeg && tileMode ? `<div>cross-tile: <b style="color:#35c759">${firingHalo}</b> halo · ` +
           `<b style="color:#ff453a">${firingColl}</b> collective` +
@@ -319,6 +368,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
     frameCount,
     tileMode,
     edgesMode,
+    planeMode,
     setFrame,
     play() { playing = true; },
     pause() { playing = false; },
@@ -327,6 +377,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
       cancelAnimationFrame(raf); ro.disconnect(); controls.dispose();
       geo.dispose(); inst.material.dispose(); inst.dispose();
       if (lineSeg) { lineSeg.geometry.dispose(); lineSeg.material.dispose(); }
+      if (planeGrp) planeGrp.traverse((o) => { o.geometry?.dispose?.(); o.material?.dispose?.(); });
       renderer.dispose();
     },
   };
@@ -356,6 +407,9 @@ export async function mountAll(root = document) {
     // (issue #142, Phase 3). A bare attribute (no value) is enough to turn it on;
     // ignored when data-tile is also present (tiles draw their own cross-tile edges).
     const edges = el.hasAttribute('data-edges');
+    // data-plane → draw the translucent τ-normal wavefront plane (issue #142, Phase 3).
+    // A bare attribute turns it on; inert on free schedules (no τ). Composes with any mode.
+    const plane = el.hasAttribute('data-plane');
     el.style.height = `${height}px`;
 
     const canvas = document.createElement('canvas');
@@ -381,7 +435,7 @@ export async function mountAll(root = document) {
     let playing = false;
     const viewer = createScheduleViewer({
       canvas, hud, data,
-      options: { fps, tile, edges, onFrame: (i) => { if (playing) scrub.value = String(i); } },
+      options: { fps, tile, edges, plane, onFrame: (i) => { if (playing) scrub.value = String(i); } },
     });
     scrub.max = String(Math.max(0, viewer.frameCount - 1));
 
@@ -406,6 +460,12 @@ export async function mountAll(root = document) {
       if (viewer.edgesMode) {
         const s = document.createElement('span');
         s.innerHTML = `<i style="background:#9db4d0"></i>dependency (producer → consumer)`;
+        leg.append(s);
+      }
+      // τ-normal wavefront plane legend (issue #142)
+      if (viewer.planeMode) {
+        const s = document.createElement('span');
+        s.innerHTML = `<i style="background:#4fd1ff"></i>wavefront plane ⟂ τ`;
         leg.append(s);
       }
       el.append(leg);
