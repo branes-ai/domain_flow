@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Schedule animation — dependency arrows** (issue #142, Phase 3): an opt-in `data-edges`
+  overlay in `docs-site/src/components/schedule-anim.js` that draws each recurrence's *taps*
+  (the affine map `A·p + b` per source) as producer→consumer arrows into every firing cell.
+  It replays the same tap data the tile overlay uses — already emitted in every schedule JSON —
+  but in non-tile mode, bucketed by consumer firing time so only the wavefront's dependences
+  draw at each step. Direction reads via a colour gradient (producer end dim → consumer end
+  bright) rather than per-edge arrowhead geometry; the HUD gains a `dependencies: N firing`
+  readout and the legend a swatch. Mutually exclusive with tile mode (tiles draw their own
+  cross-tile edges). Demonstrated on the `matmul` page via `<div class="schedule-anim" … data-edges>`.
 - **Singular Value Decomposition — one-sided Jacobi rotation** (issue #46):
   `docs/SURE/svd.sure`, the derivation `docs/SURE/svd.md` (Theory), `test_svd_sure`
   (dual-compiler, zero warnings), a `dfactl_sure_svd` emit test, and the committed RDG +
