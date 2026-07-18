@@ -461,9 +461,13 @@ export async function mountAll(root = document) {
     } else if (Array.isArray(data.variables) && data.variables.length) {
       const leg = Object.assign(document.createElement('div'), { className: 'sa-legend' });
       const cols = ['#4fd1ff', '#ff9f0a', '#35c759', '#bf5af2', '#ffd60a', '#ff6482', '#64d2ff'];
+      // build each swatch from a text node — v.name comes from the fetched JSON (data-src
+      // can be an arbitrary URL), so it must never reach innerHTML
       data.variables.forEach((v, i) => {
         const s = document.createElement('span');
-        s.innerHTML = `<i style="background:${cols[i % cols.length]}"></i>${v.name}`;
+        const sw = document.createElement('i');
+        sw.style.background = cols[i % cols.length];
+        s.append(sw, String(v.name ?? ''));
         leg.append(s);
       });
       // dependency-arrow overlay legend (issue #142): the gradient reads producer → consumer
@@ -561,18 +565,24 @@ export async function mountCompareAll(root = document) {
     });
     if (!viewers.length) continue;
 
-    // shared legend: variable colours (both panes share the palette), plus overlay hints
+    // shared legend: variable colours (both panes share the palette), plus overlay hints.
+    // A swatch's label may be a variable name from the fetched JSON, so build it from a
+    // text node (never innerHTML) — data-src can be an arbitrary URL and must not be able
+    // to inject markup into the docs origin.
+    const swatch = (color, label) => {
+      const s = document.createElement('span');
+      const i = document.createElement('i');
+      i.style.background = color;
+      s.append(i, String(label ?? ''));
+      return s;
+    };
     const first = datas.find(Boolean);
     if (Array.isArray(first?.variables) && first.variables.length) {
       const leg = mk('sc-legend');
       const cols = ['#4fd1ff', '#ff9f0a', '#35c759', '#bf5af2', '#ffd60a', '#ff6482', '#64d2ff'];
-      first.variables.forEach((v, i) => {
-        const s = document.createElement('span');
-        s.innerHTML = `<i style="background:${cols[i % cols.length]}"></i>${v.name}`;
-        leg.append(s);
-      });
-      if (plane) { const s = document.createElement('span'); s.innerHTML = `<i style="background:#4fd1ff"></i>wavefront plane ⟂ τ`; leg.append(s); }
-      if (edges) { const s = document.createElement('span'); s.innerHTML = `<i style="background:#9db4d0"></i>dependency`; leg.append(s); }
+      first.variables.forEach((v, i) => leg.append(swatch(cols[i % cols.length], v.name)));
+      if (plane) leg.append(swatch('#4fd1ff', 'wavefront plane ⟂ τ'));
+      if (edges) leg.append(swatch('#9db4d0', 'dependency'));
       el.append(leg);
     }
 
@@ -581,10 +591,20 @@ export async function mountCompareAll(root = document) {
     const maxFrames = Math.max(...viewers.map((v) => v.frameCount));
     scrub.max = String(Math.max(0, maxFrames - 1));
     const fps = fps0 || Math.max(1.5, Math.min(9, maxFrames / 7));
-    let frame = 0, playing = false, raf = 0, last = 0;
+    let frame = 0, playing = false, raf = 0, last = 0, disposed = false;
+    // Head.astro remounts on client-side navigation; when this element is removed the
+    // shared loop tears itself and both viewers down, so detached canvases / WebGL
+    // contexts / RAF loops don't leak across pages.
+    const dispose = () => {
+      if (disposed) return;
+      disposed = true;
+      cancelAnimationFrame(raf);
+      for (const v of viewers) v.dispose();
+    };
     const apply = (f) => { frame = f; for (const v of viewers) v.setFrame(f); scrub.value = String(f); };
     apply(0);
     function loop(ts) {
+      if (!el.isConnected) { dispose(); return; }
       raf = requestAnimationFrame(loop);
       if (playing && maxFrames > 1 && ts - last > 1000 / fps) { last = ts; apply((frame + 1) % maxFrames); }
     }
