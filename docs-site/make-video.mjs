@@ -75,7 +75,9 @@ mkdirSync(dirname(out), { recursive: true });
 
 // ── serve the built site (astro preview honours the /domain_flow base) ───────
 console.log('make-video: starting astro preview …');
-const preview = spawn('npx', ['astro', 'preview'], { stdio: ['ignore', 'pipe', 'inherit'] });
+// detached ⇒ its own process group, so cleanup can kill the WHOLE tree (npx → astro → the
+// server child); otherwise the orphaned server keeps the port and Node's event loop alive.
+const preview = spawn('npx', ['astro', 'preview'], { stdio: ['ignore', 'pipe', 'inherit'], detached: true });
 const baseUrl = await new Promise((resolve, reject) => {
   const to = setTimeout(() => reject(new Error('astro preview did not report a URL within 30s')), 30000);
   let buf = '';
@@ -88,7 +90,8 @@ const baseUrl = await new Promise((resolve, reject) => {
 });
 
 const cleanup = () => {
-  preview.kill('SIGTERM');
+  // negative pid → signal the whole process group (astro preview + its children)
+  try { if (preview.pid) process.kill(-preview.pid, 'SIGTERM'); } catch { /* already gone */ }
   if (!keepFrames) rmSync(framesDir, { recursive: true, force: true });
 };
 
@@ -155,3 +158,6 @@ try {
 } finally {
   cleanup();
 }
+// force exit: even after the group is signalled, a lingering child pipe can keep the event
+// loop alive; the work is done and flushed, so don't wait on it.
+process.exit(0);
