@@ -73,8 +73,12 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   //    sequenced by their signature t = τ·p). Only meaningful for a linear schedule: a
   //    free schedule has no single τ, so the plane is suppressed there. ─────────────────
   const tauArr = Array.isArray(data.schedule?.tau) ? data.schedule.tau.map(Number) : null;
-  const planeMode = !!options.plane && !!tauArr
-    && tauArr.some((n) => Number.isFinite(n) && n !== 0);
+  // Project τ to 3-D (dims ≥ rank contribute 0), then require EVERY used component to be
+  // finite before enabling the plane — validating just one (`.some`) would let a stray
+  // non-finite in another dimension (e.g. τ = [1, Infinity, 0]) turn the plane on and then
+  // produce NaN coordinates once τ̂ is normalized.
+  const tau3Arr = [0, 1, 2].map((d) => (d < rank ? tauArr?.[d] : 0));
+  const planeMode = !!options.plane && tau3Arr.every(Number.isFinite) && tau3Arr.some((n) => n !== 0);
   const ts = (d) => tileSizes[d] ?? tileSizes[0];
   const nTiles = [0, 1, 2].map((d) => tileMode ? Math.max(1, Math.ceil(((hi[d] ?? 0) - (lo[d] ?? 0) + 1) / ts(d))) : 1);
   const tileOf = (p) => [0, 1, 2].map((d) => Math.floor(((p[d] ?? 0) - (lo[d] ?? 0)) / ts(d)));
@@ -160,7 +164,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   const ctrVec = new THREE.Vector3(...ctr);
   let tauLen = 1, tauHatDotCtr = 0, planeGrp = null;
   if (planeMode) {
-    tau3.set(tauArr[0] || 0, rank > 1 ? (tauArr[1] || 0) : 0, rank > 2 ? (tauArr[2] || 0) : 0);
+    tau3.set(...tau3Arr);                                // every component validated finite above
     tauLen = tau3.length() || 1;
     tauHat3.copy(tau3).normalize();
     tauHatDotCtr = tauHat3.dot(ctrVec);
@@ -447,6 +451,12 @@ export async function mountAll(root = document) {
         `<span>colour = tile block · box = tile boundary · white = firing wavefront</span>` +
         `<span><i style="background:#35c759"></i>halo edge (nearest tile)</span>` +
         `<span><i style="background:#ff453a"></i>collective edge (long-range)</span>`;
+      // the τ-plane composes with tile mode, so surface it in this legend branch too
+      if (viewer.planeMode) {
+        const s = document.createElement('span');
+        s.innerHTML = `<i style="background:#4fd1ff"></i>wavefront plane ⟂ τ`;
+        leg.append(s);
+      }
       el.append(leg);
     } else if (Array.isArray(data.variables) && data.variables.length) {
       const leg = Object.assign(document.createElement('div'), { className: 'sa-legend' });
