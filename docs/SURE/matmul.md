@@ -308,6 +308,15 @@ schedule's wider wavefronts hold a larger resident set.
 
 <div class="schedule-anim" data-src="schedules/matmul-free.json" data-height="460"></div>
 
+**Free vs linear, side by side** — both driven by one clock at the same step rate.
+Press play: the **free** schedule (left) finishes in 29 steps and then *holds* its
+completed lattice while the **linear** schedule (right) keeps sweeping to step 43 —
+the 14 extra steps you watch it wait *are* the latency difference. The free schedule
+buys that shorter latency with wider wavefronts (more parallelism, a larger resident
+set); the linear schedule trades latency for a smaller, regular, systolic footprint.
+
+<div class="schedule-compare" data-src-a="schedules/matmul-free.json" data-src-b="schedules/matmul-linear.json" data-height="420"></div>
+
 **Dependency arrows** — the same linear schedule with the recurrence's *taps* drawn
 as arrows into each firing cell: `a(i,j,k) ← a(i,j−1,k)`, `b(i,j,k) ← b(i−1,j,k)`,
 and the accumulation `c(i,j,k) ← c(i,j,k−1)`. Each arrow fades from its producer to
