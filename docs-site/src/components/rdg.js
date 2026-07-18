@@ -228,10 +228,21 @@ export function createRdgViewer(container, data) {
         class: `rdg-edge ${cls}`, 'marker-end': marker, fill: 'none',
         d: `M ${f2(s)} Q ${f2(c)} ${f2(e)}`,
       }));
-      // push an affine arc's matrix map further out along the channel normal, beyond the
-      // belly into open space, so it clears the inner arc's label on the same side
-      const push = arc.kind === 'affine' && off !== 0 ? Math.sign(off) * 22 : 0;
-      addLabel(c[0] + nx * push, c[1] + ny * push, arc);
+      // Outboard label placement (issue #143): sit each map OUTSIDE its own arc and grow
+      // it AWAY from the graph, so reciprocal maps never stack and a matrix never straddles
+      // the arc. `off`'s sign gives the outward direction along the channel normal; the
+      // normal's orientation says whether that side is left/right (vertical node line) or
+      // above/below (horizontal node line). A centered anchor would push half the label
+      // back over the arcs — instead anchor start/end (grow left/right) or align the block
+      // fully above/below. Affine maps (multi-line matrix) get a bit more clearance.
+      const sgn = Math.sign(off);
+      const ox = nx * sgn, oy = ny * sgn;                 // outward unit vector for this arc
+      const gap = off === 0 ? 0 : (arc.kind === 'affine' ? 16 : 8);
+      const place = off === 0 ? {}
+        : (Math.abs(ox) >= Math.abs(oy)
+            ? { anchor: ox > 0 ? 'start' : 'end' }        // maps go left / right
+            : { vAlign: oy > 0 ? 'below' : 'above' });    // maps go above / below
+      addLabel(c[0] + ox * gap, c[1] + oy * gap, arc, place);
     });
   }
 
@@ -241,15 +252,23 @@ export function createRdgViewer(container, data) {
     return [A[0] + (dx / d) * r, A[1] + (dy / d) * r];
   }
 
-  // A (possibly multi-line) arc label centered at (x, y).
-  function addLabel(x, y, arc) {
+  // A (possibly multi-line) arc label anchored at (x, y). `place.anchor` (start|middle|end)
+  // grows the text left/right; `place.vAlign` (above|middle|below) puts the whole block
+  // above or below y instead of centered — together they let the caller push a map fully
+  // outboard of its arc (issue #143). Defaults reproduce the old centered placement.
+  function addLabel(x, y, arc, place = {}) {
     const cls = arc.kind === 'affine' ? 'rdg-affine' : 'rdg-uniform';
+    const anchor = place.anchor || 'middle';
     const lines = arcLabelLines(arc);
     const lh = 13;
+    const n = lines.length;
+    // startDy = baseline offset of the FIRST line relative to y (subsequent lines +lh)
+    const startDy = place.vAlign === 'above' ? -((n - 1) * lh) - 4   // block ends just above y
+      : place.vAlign === 'below' ? 14                                 // block starts just below y
+      : -((n - 1) / 2) * lh + 4;                                      // centered on y
     const g = el('g', { class: `rdg-label ${cls}` });
     g.append(el('title', {}, arcTitle(arc)));
-    const t = el('text', { x: x.toFixed(1), y: y.toFixed(1), 'text-anchor': 'middle' });
-    const startDy = -((lines.length - 1) / 2) * lh + 4;
+    const t = el('text', { x: x.toFixed(1), y: y.toFixed(1), 'text-anchor': anchor });
     lines.forEach((ln, i) => {
       t.append(el('tspan', { x: x.toFixed(1), dy: (i === 0 ? startDy : lh).toFixed(1) }, ln));
     });
