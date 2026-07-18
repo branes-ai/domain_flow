@@ -347,10 +347,17 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
           (edgeCapped ? ' <span class="sa-warn">(capped)</span>' : '') + `</div>` : '') +
         (edgesMode ? `<div>dependencies: <b style="color:#9db4d0">${firingDep}</b> firing` +
           (edgeCapped ? ' <span class="sa-warn">(capped)</span>' : '') + `</div>` : '') +
-        (legalityMode ? `<div>schedule: ${violTotal === 0
-            ? '<b style="color:#35c759">✓ legal</b>'
-            : `<b style="color:#ff453a">✗ ${violTotal} violation${violTotal === 1 ? '' : 's'}</b>`}` +
-          (edgeCapped ? ' <span class="sa-warn">(capped)</span>' : '') + `</div>` +
+        (legalityMode ? `<div>schedule: ${
+            violTotal > 0
+              // a violation is conclusive even when capped — the schedule IS illegal
+              ? `<b style="color:#ff453a">✗ ${violTotal} violation${violTotal === 1 ? '' : 's'}</b>`
+              // but "✓ legal" requires having checked EVERY dependence: when the edge
+              // builder hit its cap, an unchecked edge could still be a violation, so
+              // withhold the certification rather than claim legality on partial data
+              : (edgeCapped
+                  ? '<b style="color:#ff9f0a">⚠ legality incomplete</b>'
+                  : '<b style="color:#35c759">✓ legal</b>')
+          }${edgeCapped ? ' <span class="sa-warn">(capped)</span>' : ''}</div>` +
           `<div>firing deps: <b style="color:#35c759">${firingTight}</b> tight · ${firingSlack} slack` +
           (firingViol ? ` · <b style="color:#ff453a">${firingViol} violated</b>` : '') + `</div>` : '');
     }
