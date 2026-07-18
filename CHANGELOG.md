@@ -8,6 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **RDG viewer — one channel per arc between a node pair** (issue #143):
+  `docs-site/src/components/rdg.js` now groups arcs by the **unordered** node pair and
+  assigns each its own parallel channel round-robin against a canonical (sorted-endpoint)
+  normal. Previously arcs were grouped by the directed `(from,to)`, so reciprocal arcs laid
+  out against opposite edge normals and collided — the least-squares-via-Givens-QR graph
+  (`lstsq`) has four `a ↔ r` arcs (two each way) but only two curves appeared, drawn on top
+  of each other with stacked maps. Now all four render on distinct channels. Added
+  `docs-site/test/rdg-no-overlap.mjs` (wired as `npm test`, jsdom): it mounts the real
+  viewer on the committed RDG JSON and asserts no two arcs share a (node-pair, control-point)
+  channel — `lstsq`, `eig_qr`, and the rest of the catalog pass; the test flags the pre-fix
+  `lstsq` overlap. `jsdom` is now a declared devDependency.
 - **Singular Value Decomposition — one-sided Jacobi rotation** (issue #46):
   `docs/SURE/svd.sure`, the derivation `docs/SURE/svd.md` (Theory), `test_svd_sure`
   (dual-compiler, zero warnings), a `dfactl_sure_svd` emit test, and the committed RDG +
