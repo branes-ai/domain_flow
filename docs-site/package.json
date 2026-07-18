@@ -8,6 +8,7 @@
     "clean": "git clean -fXd src/content/docs/",
     "schedules": "node make-schedules.mjs",
     "rdg": "node make-rdg.mjs",
+    "test": "node test/rdg-no-overlap.mjs",
     "dev": "node sync-content.mjs && astro dev",
     "build": "node sync-content.mjs && astro build",
     "preview": "astro preview",
@@ -20,5 +21,8 @@
     "remark-math": "^6.0.0",
     "sharp": "^0.34",
     "three": "^0.184.0"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1"
   }
 }
