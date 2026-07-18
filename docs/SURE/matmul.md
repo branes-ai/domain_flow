@@ -325,3 +325,17 @@ firing wavefront's dependences are drawn at each step. This is the picture a sys
 array realizes — every arrow is a wire between neighbouring cells.
 
 <div class="schedule-anim" data-src="schedules/matmul-linear.json" data-height="460" data-edges></div>
+
+**Legality** — a schedule is *legal* only if every dependence has its producer fire
+**strictly before** its consumer: `Δt = t(consumer) − t(producer) ≥ 1`. Here each
+dependence is coloured by that slack — **bright green** when `Δt = 1` (*tight*: the
+producer's value is consumed the very next step, so this dependence is on the critical
+path and binds the latency), **dim green** when `Δt > 1` (*slack*: the value waits),
+and **red** for any `Δt ≤ 0` (a violation — the schedule would read a value before it
+exists). The HUD certifies the whole schedule `✓ legal`. This is the **free** schedule:
+notice it mixes tight and slack dependences — it fires some producers early (slack) to
+widen its wavefronts, which is exactly how it beats the linear schedule's latency. The
+linear schedule, by contrast, is *all tight* (`τ·θ = 1` for every tap `θ`): a pure
+nearest-neighbour systolic flow.
+
+<div class="schedule-anim" data-src="schedules/matmul-free.json" data-height="460" data-legality></div>

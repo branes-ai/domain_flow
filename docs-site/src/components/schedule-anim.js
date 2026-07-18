@@ -66,7 +66,14 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   //    the same tap-replay + per-frame bucketing as the tile overlay, so only the
   //    wavefront's traffic draws each frame. Tile mode already draws its own
   //    (cross-tile) edges, so the two overlays are mutually exclusive. ──────────
-  const edgesMode = !!options.edges && !tileMode;
+  // ── legality overlay (issue #142, Phase 3): replay the taps and colour each dependence
+  //    by its slack Δt = t(consumer) − t(producer). A schedule is LEGAL iff every dependence
+  //    has Δt ≥ 1 (the producer fires strictly before the consumer); Δt ≤ 0 is a violation
+  //    (red). Among the legal ones, Δt = 1 is a latency-binding "tight" dependence (bright
+  //    green) and Δt > 1 has slack (dim green). Shares the edge machinery below and is
+  //    mutually exclusive with the tile / edge overlays. ────────────────────────────────
+  const legalityMode = !!options.legality && !tileMode;
+  const edgesMode = !!options.edges && !tileMode && !legalityMode;
   // ── τ-normal wavefront plane (issue #142, Phase 3): a translucent plane normal to the
   //    scheduling vector τ, positioned at the firing wavefront and swept through the
   //    lattice as time advances — the classic domain-flow linear-schedule picture (points
@@ -192,9 +199,13 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   const HALO_COLOR = new THREE.Color(0x35c759);
   const COLL_COLOR = new THREE.Color(0xff453a);
   const DEP_COLOR = new THREE.Color(0x9db4d0);    // neutral steel — plain dependency arrows
+  const LEGAL_TIGHT = new THREE.Color(0x35c759);  // Δt = 1 — legal & latency-binding
+  const LEGAL_SLACK = new THREE.Color(0x1f7a3f);  // Δt > 1 — legal, has slack
+  const VIOL_COLOR = new THREE.Color(0xff453a);   // Δt ≤ 0 — dependence violated (illegal)
   const EDGE_CAP = 200000;
   let edgeBuckets = null, maxBucket = 0, haloTotal = 0, collTotal = 0, depTotal = 0, edgeCapped = false;
-  if (tileMode || edgesMode) {
+  let tightTotal = 0, slackTotal = 0, violTotal = 0;   // legality tallies over the whole schedule
+  if (tileMode || edgesMode || legalityMode) {
     // index every activation by (variable name, point) so a tap resolves to a REAL
     // producer cell. A mapped coordinate can sit inside the global bounding box yet
     // be absent from the source variable's (e.g. triangular p ≤ q) domain — resolving
@@ -225,6 +236,12 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
           edgeBuckets[a.t - tMin].push({
             from: positions[i], to: positions[j], color: lvl === 1 ? HALO_COLOR : COLL_COLOR, level: lvl });
           if (lvl === 1) haloTotal++; else collTotal++;
+        } else if (legalityMode) {                  // colour by slack Δt = t(cons) − t(prod)
+          const dt = a.t - acts[j].t;
+          const kind = dt <= 0 ? 2 : (dt === 1 ? 1 : 0);   // 2 = violation, 1 = tight, 0 = slack
+          const color = kind === 2 ? VIOL_COLOR : (kind === 1 ? LEGAL_TIGHT : LEGAL_SLACK);
+          edgeBuckets[a.t - tMin].push({ from: positions[i], to: positions[j], color, level: kind });
+          if (kind === 2) violTotal++; else if (kind === 1) tightTotal++; else slackTotal++;
         } else {                                    // edges mode: every compute dependence
           edgeBuckets[a.t - tMin].push({ from: positions[i], to: positions[j], color: DEP_COLOR, level: 0 });
           depTotal++;
@@ -236,7 +253,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   }
   // one LineSegments object, its draw range refilled per frame from the bucket
   let lineSeg = null;
-  if ((tileMode || edgesMode) && maxBucket > 0) {
+  if ((tileMode || edgesMode || legalityMode) && maxBucket > 0) {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(maxBucket * 6), 3));
     g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(maxBucket * 6), 3));
@@ -244,7 +261,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
       g, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.85 }));
     scene.add(lineSeg);
   }
-  let firingHalo = 0, firingColl = 0, firingDep = 0;
+  let firingHalo = 0, firingColl = 0, firingDep = 0, firingTight = 0, firingSlack = 0, firingViol = 0;
 
   // ── per-frame state colouring ─────────────────────────────────────────────
   const dummy = new THREE.Object3D();
@@ -275,8 +292,8 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
     inst.instanceMatrix.needsUpdate = true;
     if (inst.instanceColor) inst.instanceColor.needsUpdate = true;
 
-    // refill the cross-tile edges for the firing wavefront at this frame
-    firingHalo = 0; firingColl = 0; firingDep = 0;
+    // refill the overlay edges for the firing wavefront at this frame
+    firingHalo = 0; firingColl = 0; firingDep = 0; firingTight = 0; firingSlack = 0; firingViol = 0;
     if (lineSeg) {
       const bucket = edgeBuckets[frame];
       const pos = lineSeg.geometry.attributes.position.array;
@@ -291,7 +308,9 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
         const dim = edgesMode ? 0.25 : 1;
         lc[o] = c.r; lc[o + 1] = c.g; lc[o + 2] = c.b;
         lc[o + 3] = c.r * dim; lc[o + 4] = c.g * dim; lc[o + 5] = c.b * dim;
-        if (tileMode) { if (e.level === 1) firingHalo++; else firingColl++; } else firingDep++;
+        if (tileMode) { if (e.level === 1) firingHalo++; else firingColl++; }
+        else if (legalityMode) { if (e.level === 2) firingViol++; else if (e.level === 1) firingTight++; else firingSlack++; }
+        else firingDep++;
       }
       lineSeg.geometry.setDrawRange(0, bucket.length * 2);
       lineSeg.geometry.attributes.position.needsUpdate = true;
@@ -327,7 +346,20 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
           `<b style="color:#ff453a">${firingColl}</b> collective` +
           (edgeCapped ? ' <span class="sa-warn">(capped)</span>' : '') + `</div>` : '') +
         (edgesMode ? `<div>dependencies: <b style="color:#9db4d0">${firingDep}</b> firing` +
-          (edgeCapped ? ' <span class="sa-warn">(capped)</span>' : '') + `</div>` : '');
+          (edgeCapped ? ' <span class="sa-warn">(capped)</span>' : '') + `</div>` : '') +
+        (legalityMode ? `<div>schedule: ${
+            violTotal > 0
+              // a violation is conclusive even when capped — the schedule IS illegal
+              ? `<b style="color:#ff453a">✗ ${violTotal} violation${violTotal === 1 ? '' : 's'}</b>`
+              // but "✓ legal" requires having checked EVERY dependence: when the edge
+              // builder hit its cap, an unchecked edge could still be a violation, so
+              // withhold the certification rather than claim legality on partial data
+              : (edgeCapped
+                  ? '<b style="color:#ff9f0a">⚠ legality incomplete</b>'
+                  : '<b style="color:#35c759">✓ legal</b>')
+          }${edgeCapped ? ' <span class="sa-warn">(capped)</span>' : ''}</div>` +
+          `<div>firing deps: <b style="color:#35c759">${firingTight}</b> tight · ${firingSlack} slack` +
+          (firingViol ? ` · <b style="color:#ff453a">${firingViol} violated</b>` : '') + `</div>` : '');
     }
     options.onFrame?.(frame);
   }
@@ -373,6 +405,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
     tileMode,
     edgesMode,
     planeMode,
+    legalityMode,
     setFrame,
     play() { playing = true; },
     pause() { playing = false; },
@@ -411,6 +444,9 @@ export async function mountAll(root = document) {
     // (issue #142, Phase 3). A bare attribute (no value) is enough to turn it on;
     // ignored when data-tile is also present (tiles draw their own cross-tile edges).
     const edges = el.hasAttribute('data-edges');
+    // data-legality → colour each dependence by its slack Δt (issue #142, Phase 3): red
+    // violation, bright-green tight (Δt=1), dim-green slack. A bare attribute turns it on.
+    const legality = el.hasAttribute('data-legality');
     // data-plane → draw the translucent τ-normal wavefront plane (issue #142, Phase 3).
     // A bare attribute turns it on; inert on free schedules (no τ). Composes with any mode.
     const plane = el.hasAttribute('data-plane');
@@ -439,7 +475,7 @@ export async function mountAll(root = document) {
     let playing = false;
     const viewer = createScheduleViewer({
       canvas, hud, data,
-      options: { fps, tile, edges, plane, onFrame: (i) => { if (playing) scrub.value = String(i); } },
+      options: { fps, tile, edges, plane, legality, onFrame: (i) => { if (playing) scrub.value = String(i); } },
     });
     scrub.max = String(Math.max(0, viewer.frameCount - 1));
 
@@ -482,6 +518,16 @@ export async function mountAll(root = document) {
         s.innerHTML = `<i style="background:#4fd1ff"></i>wavefront plane ⟂ τ`;
         leg.append(s);
       }
+      // legality overlay legend (issue #142): slack Δt of each dependence
+      if (viewer.legalityMode) {
+        for (const [color, label] of [['#35c759', 'tight (Δt=1)'], ['#1f7a3f', 'slack (Δt>1)'], ['#ff453a', 'violation (Δt≤0)']]) {
+          const s = document.createElement('span');
+          const sw = document.createElement('i');
+          sw.style.background = color;
+          s.append(sw, label);
+          leg.append(s);
+        }
+      }
       el.append(leg);
     }
 
@@ -516,6 +562,7 @@ export async function mountCompareAll(root = document) {
     // the linear pane — exactly the contrast the comparison is meant to show.
     const plane = el.hasAttribute('data-plane');
     const edges = el.hasAttribute('data-edges');
+    const legality = el.hasAttribute('data-legality');
     const srcs = [el.getAttribute('data-src-a'), el.getAttribute('data-src-b')].map(resolve);
 
     const mk = (cls) => Object.assign(document.createElement('div'), { className: cls });
@@ -556,7 +603,7 @@ export async function mountCompareAll(root = document) {
     const viewers = [];
     datas.forEach((data, i) => {
       if (!data) return;
-      const v = createScheduleViewer({ canvas: panes[i].canvas, hud: panes[i].hud, data, options: { fps: fps0, plane, edges } });
+      const v = createScheduleViewer({ canvas: panes[i].canvas, hud: panes[i].hud, data, options: { fps: fps0, plane, edges, legality } });
       v.pause();                                   // we drive frames from the shared clock
       viewers.push(v);
       const kind = data.schedule?.kind ?? '';
@@ -583,6 +630,9 @@ export async function mountCompareAll(root = document) {
       first.variables.forEach((v, i) => leg.append(swatch(cols[i % cols.length], v.name)));
       if (plane) leg.append(swatch('#4fd1ff', 'wavefront plane ⟂ τ'));
       if (edges) leg.append(swatch('#9db4d0', 'dependency'));
+      if (legality) {
+        leg.append(swatch('#35c759', 'tight (Δt=1)'), swatch('#1f7a3f', 'slack (Δt>1)'), swatch('#ff453a', 'violation'));
+      }
       el.append(leg);
     }
 
