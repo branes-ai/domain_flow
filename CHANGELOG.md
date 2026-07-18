@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Schedule animation — side-by-side comparison** (issue #142, Phase 3): a new
+  `<div class="schedule-compare" data-src-a=… data-src-b=…>` embed (mounted by
+  `mountCompareAll` in `docs-site/src/components/schedule-anim.js`) renders two schedule
+  viewers driven by **one shared clock** at the same wall-clock step rate. The shorter
+  schedule finishes and *holds* its completed lattice while the longer keeps sweeping, so
+  the **latency↔parallelism trade reads directly** — the extra steps you watch the fast one
+  wait are the latency gap (matmul free 29 vs linear 43 = 14 steps). Overlays (`data-plane`,
+  `data-edges`) pass through to both panes, each guarded downstream (the τ-plane lights up
+  only the linear pane). Per-pane HUD + header (operator · kind · latency), a shared legend,
+  and a responsive grid that stacks on narrow screens. Demonstrated on the `matmul` page.
 - **Schedule animation — τ-normal wavefront plane** (issue #142, Phase 3): an opt-in
   `data-plane` overlay in `docs-site/src/components/schedule-anim.js` that draws the classic
   domain-flow signature plane — a translucent quad whose normal is the scheduling vector `τ`,

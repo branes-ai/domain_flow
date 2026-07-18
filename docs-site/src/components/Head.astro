@@ -10,9 +10,12 @@ import Default from '@astrojs/starlight/components/Head.astro';
 
 <script>
   async function mountSchedules() {
-    if (!document.querySelector('.schedule-anim[data-src]:not([data-mounted])')) return;
-    const { mountAll } = await import('./schedule-anim.js');
-    mountAll();
+    const anim = document.querySelector('.schedule-anim[data-src]:not([data-mounted])');
+    const compare = document.querySelector('.schedule-compare[data-src-a]:not([data-mounted])');
+    if (!anim && !compare) return;
+    const mod = await import('./schedule-anim.js');
+    if (anim) mod.mountAll();
+    if (compare) mod.mountCompareAll();
   }
   async function mountRdgs() {
     if (!document.querySelector('.rdg[data-src]:not([data-mounted])')) return;
