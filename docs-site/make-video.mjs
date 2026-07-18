@@ -8,10 +8,10 @@
  * path branes-ai/cortex uses. The output is COMMITTED (like docs/schedules/*.json), so the
  * GitHub-Pages build stays toolchain-free; only whoever regenerates a clip needs the tools.
  *
- * LOCAL-ONLY PREREQUISITES (not in package.json, to keep normal installs light):
- *   npm  i -D playwright         # the driver
- *   npx  playwright install chromium
- *   ffmpeg on PATH               # the encoder  (e.g. `apt install ffmpeg` / `brew install ffmpeg`)
+ * LOCAL-ONLY PREREQUISITES. `playwright` is a devDependency, but its browser binaries and
+ * ffmpeg are large / out-of-band, so they are NOT pulled by a normal `npm install`:
+ *   npx  playwright install chromium   # ~180 MB browser, one-time
+ *   ffmpeg on PATH                     # the encoder  (e.g. `apt install ffmpeg` / `brew install ffmpeg`)
  *
  * USAGE (build first so dist/ exists — the script serves it via `astro preview`):
  *   npm run build
