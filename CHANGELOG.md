@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Schedule animation — legality coloring** (issue #142, Phase 3): an opt-in `data-legality`
+  overlay in `docs-site/src/components/schedule-anim.js` that replays each recurrence's taps
+  and colours every dependence by its slack `Δt = t(consumer) − t(producer)` — **red** for a
+  violation (`Δt ≤ 0`: the schedule would read a value before it exists), **bright green** for
+  a *tight* dependence (`Δt = 1`, latency-binding / on the critical path), and **dim green**
+  for *slack* (`Δt > 1`). The HUD certifies the whole schedule `✓ legal` / `✗ N violations`
+  and reports the firing wavefront's tight/slack/violated tallies. Reuses the tap-replay +
+  per-frame bucketing of the edge overlay; mutually exclusive with the tile/edge overlays;
+  composes with the τ-plane and the side-by-side compare. Demonstrated on the `matmul` free
+  schedule, which mixes tight and slack dependences (the linear schedule is all-tight).
 - **Schedule animation — side-by-side comparison** (issue #142, Phase 3): a new
   `<div class="schedule-compare" data-src-a=… data-src-b=…>` embed (mounted by
   `mountCompareAll` in `docs-site/src/components/schedule-anim.js`) renders two schedule
