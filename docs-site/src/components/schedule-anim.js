@@ -273,7 +273,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
         (lineSeg && tileMode ? `<div>cross-tile: <b style="color:#35c759">${firingHalo}</b> halo · ` +
           `<b style="color:#ff453a">${firingColl}</b> collective` +
           (edgeCapped ? ' <span class="sa-warn">(capped)</span>' : '') + `</div>` : '') +
-        (lineSeg && edgesMode ? `<div>dependencies: <b style="color:#9db4d0">${firingDep}</b> firing` +
+        (edgesMode ? `<div>dependencies: <b style="color:#9db4d0">${firingDep}</b> firing` +
           (edgeCapped ? ' <span class="sa-warn">(capped)</span>' : '') + `</div>` : '');
     }
     options.onFrame?.(frame);
