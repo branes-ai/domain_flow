@@ -31,7 +31,15 @@ resource contention.
 The same matrix-multiply recurrence under two schedules, driven by one clock: the data-flow-earliest
 (**free**) schedule on the left finishes in 29 steps and holds, while the **linear** schedule on the
 right keeps sweeping to 43 — the extra steps are the latency it trades for a smaller, regular,
-systolic footprint. The documentation site renders the catalog as **interactive 3-D animations**
+systolic footprint.
+
+<video src="https://github.com/branes-ai/domain_flow/raw/main/docs-site/public/videos/matmul-linear.mp4" controls muted loop width="900"></video>
+
+Zooming in on that linear schedule: the translucent **signature plane** (normal to the scheduling
+vector τ) sweeps the index space — each lattice point fires as the wavefront reaches it, so the
+plane's motion *is* the schedule and its cross-section is the parallelism.
+
+The documentation site renders the catalog as **interactive 3-D animations**
 (wavefront sweeps, the τ-normal signature plane, dependency arrows, legality coloring) plus
 node-link **Reduced Dependency Graphs** for every SURE/SARE operator. Explore them live at
 [branes-ai.github.io/domain_flow](https://branes-ai.github.io/domain_flow/theory/matmul/); the clips
