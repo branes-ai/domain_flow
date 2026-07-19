@@ -165,6 +165,22 @@ Available options:
 - `DOMAINFLOW_DSE` - Build design space exploration tools (default: OFF)
 - `DOMAINFLOW_VISUALIZATION` - Build visualization tools (default: OFF)
 
+Structure of the build:
+
+|          Option           |       Adds subdir       |           Requires           |
+|---------------------------|-------------------------|------------------------------|
+| DOMAINFLOW_MATPLOT_TOOLS  | plots/                  | Matplot++ ← your first error │
+| DOMAINFLOW_VISUALIZATION  | tools/viz/              | CGAL (+ Qt6) ← this error    |
+| DOMAINFLOW_MLIR_TOOLS     | tools/opt, tools/import | MLIR/LLVM                    |
+| DOMAINFLOW_DATABASE_TOOLS | (database)              | DB libs                      |
+| DOMAINFLOW_TOOLS          | tools/rdg, tools/dfg    | —                            |
+| DOMAINFLOW_DSE            | tools/dse               | —                            |
+| DOMAINFLOW_POLYHEDRAL     | src/polyhedral          | —                            |
+
+The key point: kpu-sim consumes domain_flow only as an IR/polyhedral library (kpu_dataflow / kpu_compiler link it for math). It uses none of these
+tools/viz/plots. So for the kpu-sim build, DOMAINFLOW_VISUALIZATION, DOMAINFLOW_MATPLOT_TOOLS, and the rest should all be OFF — none of Matplot++, CGAL,
+Qt6, or MLIR is needed.
+
 ## Useful Commands
 
 ```bash
