@@ -47,13 +47,14 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 </CardGrid>
 
 <div class="landing-clip">
-  <video src="%BASE%/videos/matmul-linear.mp4" autoplay loop muted playsinline width="1252" height="916"></video>
+  <video src="%BASE%/videos/matmul-compare.mp4" autoplay loop muted playsinline width="1248" height="836"></video>
   <p>
-    A matrix-multiply recurrence executing under a linear schedule. The translucent
-    <strong>signature plane</strong> (normal to the scheduling vector <code>&tau;</code>) sweeps the
-    index space; every lattice point fires as the wavefront reaches it — the plane's motion
-    <em>is</em> the schedule and its cross-section is the parallelism. Rendered offline from the
-    live <a href="%BASE%/theory/matmul/">interactive viewer</a> with <code>npm run video</code>.
+    The same matrix-multiply recurrence under two schedules, driven by one clock. <strong>Left</strong>,
+    the data-flow-earliest (<em>free</em>) schedule finishes in 29 steps and holds; <strong>right</strong>,
+    the <em>linear</em> schedule keeps sweeping to 43 — the extra steps you watch it wait
+    <em>are</em> the latency it trades for a smaller, regular, systolic footprint. Making that
+    latency&#8596;parallelism choice explicit is the point of the analysis. Rendered offline from the
+    live <a href="%BASE%/theory/matmul/">interactive viewers</a> with <code>npm run video</code>.
   </p>
 </div>
 
