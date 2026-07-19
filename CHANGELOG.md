@@ -13,7 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   holds while linear keeps sweeping, the latency gap on one clock). It now leads the docs
   **landing page** (replacing the single τ-plane clip) and headlines a new *Visualizing
   schedules* section in the repo `README.md`. Generated with
-  `npm run video -- --page theory/matmul --index 2` — the compare embed composites both panes.
+  `npm run video -- --page theory/matmul --index 2 --out public/videos/matmul-compare.mp4 --width 1280 --height 620`
+  — the compare embed composites both panes (the 1248×836 output is that viewport's two-pane composite).
 - **Schedule animation — offline PNG→video path + landing-page clip** (issue #142, Phase 3):
   `docs-site/make-video.mjs` (`npm run video`) renders one embedded schedule viewer frame-by-frame
   in a headless browser and stitches the frames with ffmpeg into a committed `.mp4` / `.webm` /
