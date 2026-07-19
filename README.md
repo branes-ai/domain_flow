@@ -26,14 +26,14 @@ resource contention.
 
 ## Visualizing schedules
 
-<video src="https://github.com/branes-ai/domain_flow/raw/main/docs-site/public/videos/matmul-compare.mp4" controls muted loop width="900"></video>
+![Matmul under the free vs linear schedule, side by side](docs-site/public/videos/matmul-compare.gif)
 
 The same matrix-multiply recurrence under two schedules, driven by one clock: the data-flow-earliest
 (**free**) schedule on the left finishes in 29 steps and holds, while the **linear** schedule on the
 right keeps sweeping to 43 — the extra steps are the latency it trades for a smaller, regular,
 systolic footprint.
 
-<video src="https://github.com/branes-ai/domain_flow/raw/main/docs-site/public/videos/matmul-linear.mp4" controls muted loop width="900"></video>
+![Matmul linear schedule with the tau-normal signature plane sweeping the index space](docs-site/public/videos/matmul-linear.gif)
 
 Zooming in on that linear schedule: the translucent **signature plane** (normal to the scheduling
 vector τ) sweeps the index space — each lattice point fires as the wavefront reaches it, so the

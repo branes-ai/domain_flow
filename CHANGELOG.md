@@ -12,7 +12,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `docs-site/public/videos/matmul-compare.mp4` (the side-by-side compare — free finishes and
   holds while linear keeps sweeping, the latency gap on one clock). It now leads the docs
   **landing page** (replacing the single τ-plane clip) and heads a new *Visualizing schedules*
-  section in the repo `README.md`, followed there by the τ-plane single-schedule clip. Generated with
+  section in the repo `README.md`, followed there by the τ-plane single-schedule clip. The README
+  embeds these as inline GIFs (GitHub's markdown doesn't play a `<video>` pointing at a raw file
+  URL); the docs landing page uses the higher-quality `.mp4`. Generated with
   `npm run video -- --page theory/matmul --index 2 --out public/videos/matmul-compare.mp4 --width 1280 --height 620`
   — the compare embed composites both panes (the 1248×836 output is that viewport's two-pane composite).
 - **Schedule animation — offline PNG→video path + landing-page clip** (issue #142, Phase 3):
