@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Stationary iteration (Jacobi) — plane-shift reformulation** (issue #53): `docs/SURE/stationary.sure`
+  now moves the residual divide **one plane up** (to the `j = N` update plane) so it reads the
+  completed reduction `acc(i,N-1,k)` as a translation `[0,+1,0]` instead of a `[0,0,0]` fusion at
+  the finishing cell, and reads the propagated operands one step back along their carries (the gemv
+  trick). This **breaks the zero-slack fusion**: Jacobi is now **linearly schedulable**
+  (`τ = [-1, 1, 2N]`, was free-only), the RDG drops from **two affine arcs to one** (the `xs→xs`
+  self-broadcast became a uniform `k`-carry; only the honest matrix-vector gather `xs→acc` stays
+  affine — a SARE, since the DSL can't feed a solved `x` back through a uniform pipeline), and peak
+  live memory falls ~5×. The docs page (`docs/SURE/stationary.md`) now embeds the RDG plus **both**
+  the free and linear wavefront animations; `test_stationary_sure` and the emit/RDG goldens were
+  updated to assert the new structure (linear `τ` legal, one affine arc). Dual-compiler, zero warnings.
+
 ### Added
 
 - **Free-vs-linear comparison clip + README showcase**: a second offline render,
