@@ -32,6 +32,7 @@ const OPERATORS = [
   'lu_neighbor',                                 // neighbour pivoting — the uniformized (SURE) pivot compare-exchange
   'lstsq',                                       // least squares via QR — the augmented-column pipeline
   'stationary',                                  // Jacobi stationary iteration (solvers)
+  'gauss_seidel',                                // Gauss-Seidel stationary iteration (per-equation domains)
   'cg',                                         // conjugate gradient (solvers)
   'eig_jacobi',                                 // symmetric eigensolver — one Jacobi rotation
   'eig_qr',                                     // symmetric eigensolver — one Householder tridiag step

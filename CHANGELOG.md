@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **SURE DSL — per-equation domains** and the **Gauss–Seidel** operator (issue #53): the SURE
+  parser (`include/dfa/sim/sure_parser.hpp`) now accepts an optional per-equation domain
+  restriction on an equation's LHS — `name(i,j,k | j <= i) = …` — intersecting that equation's
+  domain with the system domain (the coverage check and equation build honor it; the simulator
+  and legality already enumerated per-equation domains). This unlocks **Gauss–Seidel**
+  (`docs/SURE/gauss_seidel.sure`, `test_gauss_seidel_sure`, committed RDG + free schedule),
+  whose lower/upper sum split — `Σ_{j<i} A_ij x^k_j` (this sweep) and `Σ_{j>i} A_ij x^{k-1}_j`
+  (previous sweep) — becomes two reductions on complementary sub-domains (`accL` on `j<i`,
+  `accU` on `i<j<N`), so the `k`-vs-`k-1` choice is structural rather than a per-point
+  conditional. It's a free-schedule-only SARE (the lower reduction is a triangular substitution
+  wavefront, so no linear `τ` orders it) and converges to the exact `[1,1,1]` in fewer sweeps
+  than Jacobi. The *Stationary iteration* page now nests each method's Schedule + RDG under its
+  own `##` section, with Jacobi's (free + linear) and Gauss–Seidel's (free) animations. Dual-compiler.
+
 ### Changed
 
 - **Stationary iteration (Jacobi) — plane-shift reformulation** (issue #53): `docs/SURE/stationary.sure`

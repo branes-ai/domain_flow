@@ -40,6 +40,7 @@ const OPERATORS = [
   // affine tap, so the linear schedule is legal (unlike MGS qr)
   { op: 'lstsq', scale: { M: 12, N: 8 }, schedules: ['linear'] },
   { op: 'stationary', scale: { N: 6, K: 6 }, schedules: ['free', 'linear'] },
+  { op: 'gauss_seidel', scale: { N: 6, K: 6 }, schedules: ['free'] },
   { op: 'cg',         scale: { N: 8, K: 6 }, schedules: ['free'] },
   { op: 'eig_jacobi', scale: { N: 6 },   schedules: ['free'] },
   { op: 'eig_qr',     scale: { N: 6 },   schedules: ['free'] },

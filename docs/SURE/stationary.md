@@ -34,7 +34,7 @@ tap `xs(j,N,k-1)` reads unknown `j`'s finished value for *every* row `i`, an **a
 sweep reads only sweep `k-1`. For the bundled strongly diagonally dominant system
 (`A = 10·I + (ones−I)`, `b = 12·1`), `K = 8` sweeps converge to `x = [1,1,1]`.
 
-## Schedule — breaking the [0,0,0] fusion
+### Schedule — breaking the [0,0,0] fusion
 
 Naively, each row's reduction and its residual divide would **fuse at the finishing cell**
 `(i, N-1, k)`: `xs` there reads the completed `acc(i,N-1,k)` at the *same* lattice point — a
@@ -56,24 +56,7 @@ has slack ≥ 1. The result is **both schedulable ways**:
   *staggered* rather than all at once). That a linear `τ` exists **is** the payoff of the
   plane-shift.
 
-## Contrast — Gauss–Seidel serializes the sweep
-
-Gauss–Seidel uses the *newest* components as soon as they are available:
-
-$$
-x^{k}_i \;=\; \frac{1}{A_{ii}}\Bigl( b_i - \sum_{j<i} A_{ij}\,x^{k}_j - \sum_{j>i} A_{ij}\,x^{k-1}_j \Bigr).
-$$
-
-The `j<i` sum reads **this sweep's** `x^{k}_j`, so row `i` cannot start until rows
-`0..i-1` of the *same* sweep have finished — an **intra-sweep triangular wavefront**, the
-[`trsolve`](trsolve.md) dependence pattern layered inside each iteration. Gauss–Seidel
-usually converges in fewer sweeps (it reuses fresh data), but each sweep is *serial across
-rows* rather than parallel. In RDG/schedule terms the two methods differ by exactly one
-tap direction — `x^{k-1}` (Jacobi, parallel sweep) versus `x^{k}` for `j<i` (Gauss–Seidel,
-triangular sweep) — a crisp illustration that the same operator body yields very different
-concurrency depending on which iterate a dependence reads.
-
-## The RDG
+### The RDG
 
 **One** affine arc — the `xs → acc` gather that reads the previous iterate across all rows —
 marks Jacobi a SARE; everything else (the reduction chain, the held `A`, the propagated
@@ -83,8 +66,8 @@ became a uniform `k`-carry) and no linear schedule at all.
 
 <div class="rdg" data-src="rdg/stationary.json" data-height="620"></div>
 
-Below, the same Jacobi sweep under both schedules. **Free** (left of the story): each sweep's
-rows fire together — the wide wavefront is the parallelism, and sweep blocks march along `k`.
+Below, the same Jacobi sweep under both schedules. **Free**: each sweep's rows fire together —
+the wide wavefront is the parallelism, and sweep blocks march along `k`.
 
 <div class="schedule-anim" data-src="schedules/stationary-free.json" data-height="380"></div>
 
@@ -93,3 +76,51 @@ proof that the `[0,0,0]` fusion is gone. (`τ_i < 0` staggers the rows, so it re
 single parallel sweep than the free schedule and more like a systolic front.)
 
 <div class="schedule-anim" data-src="schedules/stationary-linear.json" data-height="380"></div>
+
+## Gauss–Seidel — the newest components
+
+Gauss–Seidel uses the *newest* components as soon as they are available:
+
+$$
+x^{k}_i \;=\; \frac{1}{A_{ii}}\Bigl( b_i - \sum_{j<i} A_{ij}\,x^{k}_j - \sum_{j>i} A_{ij}\,x^{k-1}_j \Bigr).
+$$
+
+The `j<i` sum reads **this sweep's** `x^{k}_j`, so row `i` cannot start until rows
+`0..i-1` of the *same* sweep have finished — an **intra-sweep triangular wavefront**, the
+[`trsolve`](trsolve.md) dependence pattern layered inside each iteration. In RDG/schedule
+terms the two methods differ by exactly one tap direction — `x^{k-1}` (Jacobi, parallel
+sweep) versus `x^{k}` for `j<i` (Gauss–Seidel, triangular sweep) — a crisp illustration that
+the same operator body yields very different concurrency depending on which iterate a
+dependence reads.
+
+### Schedule — the triangular sweep
+
+Gauss–Seidel usually converges in fewer sweeps (it reuses fresh data), but each sweep is
+*serial across rows* rather than parallel. The lower-triangular `x^{k}_j` (`j<i`) dependence
+is exactly [`trsolve`](trsolve.md)'s substitution wavefront, and — like `trsolve` — it fuses
+the reduction and the divide at the diagonal, a zero-slack self-dependence: Gauss–Seidel is
+**free-schedule only**. The free schedule is the diagonal substitution front, one row after
+another, nested inside each `k` sweep.
+
+### The RDG
+
+Expressing the `j<i` / `j>i` split needs each half of the sum on its **own sub-domain** — the
+executable spec (`docs/SURE/gauss_seidel.sure`) uses **per-equation domains**:
+
+```text
+accL(i,j,k | j < i)        = accL(i,j-1,k) + A(i,j) * xs(j,N,k);    // lower, reads THIS sweep
+accU(i,j,k | i < j, j < N) = accU(i,j+1,k) + A(i,j) * xs(j,N,k-1);  // upper, reads LAST sweep
+xs(i,j,k) = ( b_i - accL(i,i-1,k) - accU(i,i+1,k) ) / A(i,i);       // solve on the j=N plane
+```
+
+so the `k`-vs-`k-1` choice is *structural* (which variable) rather than a per-point test. The
+RDG is a **SARE with four affine arcs** — the two matrix-vector gathers (`xs→accL`, `xs→accU`)
+and the two diagonal-adjacent solve reads (`accL→xs` at `j=i-1`, `accU→xs` at `j=i+1`).
+
+<div class="rdg" data-src="rdg/gauss_seidel.json" data-height="620"></div>
+
+The free schedule is the **triangular substitution front**: row `i`'s lower sum reads
+`x^k_j` for `j<i`, produced by the solves of earlier rows *this* sweep, so the rows fire in
+order — nested inside each `k` sweep. Contrast the wide, parallel Jacobi wavefront above.
+
+<div class="schedule-anim" data-src="schedules/gauss_seidel-free.json" data-height="380"></div>
