@@ -4,16 +4,19 @@
 // Equations (issue #53, docs/SURE/stationary.sure). K fixed sweeps of the residual form
 //   x^{k}_i = x^{k-1}_i + ( b_i - sum_j A(i,j) x^{k-1}_j ) / A(i,i),
 // a gemv reduction over j plus an axpy update, iterated over k. Reading the whole
-// previous iterate is the matrix-vector gather (affine taps) -- a SARE, but a benign
-// forward one (each sweep reads only sweep k-1). Free-schedule only: like the triangular
-// solve, each row's reduction and its residual divide fuse at (i,N-1,k).
+// previous iterate is the matrix-vector gather (one affine tap) -- a SARE, but a benign
+// forward one (each sweep reads only sweep k-1). The residual divide is moved ONE PLANE UP
+// (to the j = N update plane), so it reads the completed acc(i,N-1,k) as a translation
+// [0,+1,0] instead of a [0,0,0] fusion at (i,N-1,k); with the other operands read one step
+// back along their carries, every dependence has slack and the system is LINEARLY SCHEDULABLE
+// (declared tau = [-1,1,2N]-family), unlike the fused reduce-then-divide form.
 //
 // This test parses the executable doc and checks:
-//   - the parsed structure and the derived confluence face normals
+//   - the parsed structure (a linear tau is declared) and the derived confluence face normals
 //   - the iterate converges: X = x^{K-1} solves A x = b (small residual), and X ~ the
 //     exact solution [1,1,1] of the bundled strongly-diagonally-dominant system
-//   - the RDG is a SARE (the affine x^{k-1} gather)
-//   - the free schedule is legal, and no linear tau is (the reduce-then-divide fusion)
+//   - the RDG is a SARE with exactly ONE affine arc (the x^{k-1} gather)
+//   - BOTH the free schedule and the declared linear tau are legal (the [0,0,0] fusion is broken)
 
 #include <iostream>
 #include <string>
@@ -31,23 +34,27 @@ int main() {
     try {
         SureSpec spec = parseSureFile(std::string(SURE_DOCS_DIR) + "/stationary.sure");
 
-        // ---- parsed structure (free-only: no linear tau declared) ----
+        // ---- parsed structure (a linear tau is now declared) ----
         ok &= (spec.indexNames == std::vector<std::string>{ "i", "j", "k" });
-        ok &= spec.tau.empty();
-        ok &= (spec.inputs.size() == 5);   // A, B, Diag, acc seed, X0
+        ok &= (spec.tau == std::vector<int>{ -1, 1, 14 });   // linear wavefront (was free-only)
+        ok &= (spec.inputs.size() == 6);   // A, xs i=N halo, B, Diag, acc seed, X0
         ok &= (spec.outputs.size() == 1);  // X
-        std::cout << "parsed structure (indices, no tau, 5 inputs, 1 output): "
+        std::cout << "parsed structure (indices, linear tau, 6 inputs, 1 output): "
                   << (ok ? "PASS" : "FAIL") << "\n";
 
         // ---- derived confluence orientation: outward face normals ----
-        // A and X0 held from k=-1 (0,0,-1); b/Diag/seed on j=-1 (0,-1,0); X on j=N-1 (0,1,0).
-        bool nok = true;
+        // A/X0 held from k=-1 (0,0,-1); b/Diag/acc-seed on j=-1 (0,-1,0); the xs update-plane
+        // halo on i=N (1,0,0); the result X on the j=N update plane (0,1,0).
+        int nk = 0, njm = 0, ni = 0;
         for (const auto& in : spec.inputs) {
-            if (in.tensor == "A" || in.tensor == "X0") nok &= (in.normal == std::vector<int>{ 0, 0, -1 });
-            else                                       nok &= (in.normal == std::vector<int>{ 0, -1, 0 });
+            if      (in.normal == std::vector<int>{ 0,  0, -1 }) ++nk;   // A, X0
+            else if (in.normal == std::vector<int>{ 0, -1,  0 }) ++njm;  // B, Diag, acc seed
+            else if (in.normal == std::vector<int>{ 1,  0,  0 }) ++ni;   // xs i=N halo
         }
-        nok &= (spec.outputs.front().normal == std::vector<int>{ 0, 1, 0 });
-        std::cout << "derived face normals (A/x0 on k=-1, result on j=N-1): " << (nok ? "PASS" : "FAIL") << "\n";
+        bool nok = (nk == 2) && (njm == 3) && (ni == 1)
+                && (spec.outputs.front().normal == std::vector<int>{ 0, 1, 0 });
+        std::cout << "derived face normals (A/x0 on k=-1, seeds on j=-1, halo on i=N, result on j=N): "
+                  << (nok ? "PASS" : "FAIL") << "\n";
         ok &= nok;
 
         // ---- run: X = x after K sweeps, verify it solves A x = b ----
@@ -75,23 +82,27 @@ int main() {
                   << (conv ? "PASS" : "FAIL") << "\n";
         ok &= conv;
 
-        // ---- the RDG is a SARE (the affine x^{k-1} gather) ----
+        // ---- the RDG is a SARE with exactly ONE affine arc (the x^{k-1} gather) ----
         Rdg g = buildRdg(spec, "stationary");
         int affine = 0;
         for (const auto& a : g.arcs) if (!a.uniform) ++affine;
-        std::cout << "RDG is a SARE (affine matrix-vector gather of x^{k-1}): "
-                  << (g.isSare() && affine > 0 ? "PASS" : "FAIL")
+        std::cout << "RDG is a SARE with one affine arc (the matrix-vector gather of x^{k-1}): "
+                  << (g.isSare() && affine == 1 ? "PASS" : "FAIL")
                   << "  (" << g.arcs.size() << " arcs, " << affine << " affine)\n";
-        ok &= g.isSare() && affine > 0;
+        ok &= g.isSare() && affine == 1;
 
-        // ---- free schedule legal; no linear tau (reduce-then-divide fusion) ----
+        // ---- BOTH the free schedule and the declared linear tau are legal ----
+        // The plane-shift breaks the [0,0,0] fusion, so a linear tau now orders the system
+        // (a naive tau like [1,1,1] is still rejected -- the affine gather needs tau_k >= 2N).
         ExplicitSchedule freeSched = sim.computeFreeSchedule();
-        bool fl = checkLegality(spec.system, freeSched).legal;
-        bool linRejected = !checkLegality(spec.system, LinearSchedule({ 1, 1, 1 })).legal;
-        std::cout << "  free: " << checkLegality(spec.system, freeSched) << "\n";
-        std::cout << "free legal, linear tau rejected (free-only, as for trsv): "
-                  << (fl && linRejected ? "PASS" : "FAIL") << "\n";
-        ok &= fl && linRejected;
+        bool fl  = checkLegality(spec.system, freeSched).legal;
+        bool lin = checkLegality(spec.system, LinearSchedule(spec.tau)).legal;
+        bool naiveRejected = !checkLegality(spec.system, LinearSchedule({ 1, 1, 1 })).legal;
+        std::cout << "  free:   " << checkLegality(spec.system, freeSched) << "\n";
+        std::cout << "  linear: " << checkLegality(spec.system, LinearSchedule(spec.tau)) << "\n";
+        std::cout << "free legal AND declared linear tau legal (fusion broken; naive tau still rejected): "
+                  << (fl && lin && naiveRejected ? "PASS" : "FAIL") << "\n";
+        ok &= fl && lin && naiveRejected;
     } catch (const std::exception& e) {
         std::cout << "EXCEPTION: " << e.what() << "\n";
         ok = false;

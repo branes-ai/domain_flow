@@ -272,6 +272,7 @@ namespace sw {
 
                     std::vector<std::string> indexNames;      // system index vector
                     Domain systemDomain;
+                    std::vector<LinCon> sysCons;              // the system-header constraints (for per-equation domains)
                     std::vector<long> sysLo, sysHi;           // domain bounding box
                     std::vector<IndexPoint> sysPoints;        // enumerated domain, for orientation + coverage
 
@@ -280,6 +281,7 @@ namespace sw {
                         std::string name;
                         std::vector<TapDecl> taps;
                         ExprPtr body;
+                        std::vector<LinCon> cons;             // optional per-equation domain restriction (e.g. j <= i)
                         int line = 0;
                     };
                     struct InFace {
@@ -429,6 +431,7 @@ namespace sw {
                         parseIndexHeader(indexNames);
                         std::vector<LinCon> cons = parseConstraints(indexNames);
                         expectPunct(")");
+                        sysCons = cons;                                   // kept for per-equation domain restrictions
                         systemDomain = buildDomain(indexNames, cons, sysLo, sysHi);
                         // the enumerated (constraint-filtered) domain: used to orient
                         // face planes as supporting hyperplanes and for coverage checks
@@ -689,17 +692,20 @@ namespace sw {
                     void parseEquation() {
                         int line = cur().line;
                         std::string name = expectIdent();
-                        expectSystemIndexList();
-                        expectPunct("=");
                         EqDecl eq;
                         eq.name = name;
                         eq.line = line;
+                        expectSystemIndexList(eq);        // parses (i,j,k) and an optional | domain restriction
+                        expectPunct("=");
                         eq.body = parseExpr(eq);
                         expectPunct(";");
                         eqs.push_back(std::move(eq));
                     }
 
-                    void expectSystemIndexList() {
+                    // The equation's LHS index list, optionally restricted to a per-equation SUB-DOMAIN of the
+                    // system domain: "name(i,j,k | j <= i) = ...". The restriction is intersected with the system
+                    // domain, so the equation is computed only where it holds (e.g. a lower-triangular reduction).
+                    void expectSystemIndexList(EqDecl& eq) {
                         expectPunct("(");
                         for (std::size_t i = 0; i < indexNames.size(); ++i) {
                             std::string id = expectIdent();
@@ -707,6 +713,7 @@ namespace sw {
                                 fail("indices must match the system index vector ('" + id + "')");
                             if (i + 1 < indexNames.size()) expectPunct(",");
                         }
+                        if (atPunct("|")) { ++pos; eq.cons = parseConstraints(indexNames); }
                         expectPunct(")");
                     }
 
@@ -851,9 +858,10 @@ namespace sw {
                         bool known = false;
                         for (const auto& eq : eqs) known |= (eq.name == face.var);
                         if (!known) failAt(line, "input for unknown recurrence variable '" + face.var + "'");
-                        expectSystemIndexList();
+                        EqDecl scratch;             // input expressions may not contain taps (or a domain restriction)
+                        expectSystemIndexList(scratch);
+                        if (!scratch.cons.empty()) failAt(line, "an input face's LHS may not carry a domain restriction");
                         expectPunct("=");
-                        EqDecl scratch;             // input expressions may not contain taps
                         inFaceExpr = true;
                         face.expr = parseExpr(scratch);
                         inFaceExpr = false;
@@ -977,8 +985,17 @@ namespace sw {
                                 if (f.var == eq.name) faces.push_back({ f.region, f.expr });
                             ExprPtr body = eq.body;
                             std::string name = eq.name;
+                            // per-equation domain: the system domain intersected with any LHS restriction
+                            // (e.g. j <= i). Points outside are boundaries, resolved via input faces like any tap.
+                            Domain eqDomain = systemDomain;
+                            if (!eq.cons.empty()) {
+                                std::vector<LinCon> combined = sysCons;
+                                combined.insert(combined.end(), eq.cons.begin(), eq.cons.end());
+                                std::vector<long> lo, hi;
+                                eqDomain = buildDomain(indexNames, combined, lo, hi);
+                            }
                             spec.system.add(Equation<double>{
-                                eq.name, systemDomain, std::move(taps),
+                                eq.name, eqDomain, std::move(taps),
                                 [body](const std::vector<double>& t, const IndexPoint&) {
                                     return suredetail::evalExpr(*body, &t, nullptr, nullptr);
                                 },
@@ -998,10 +1015,20 @@ namespace sw {
                         }
 
                         // coverage: every out-of-domain tap image lands on exactly one
-                        // input face of its variable (equation taps and output taps)
-                        for (const auto& eq : eqs)
+                        // input face of its variable (equation taps and output taps). Each
+                        // equation is checked over ITS domain -- a per-equation restriction
+                        // (e.g. j <= i) means its taps are only exercised on that sub-domain.
+                        for (const auto& eq : eqs) {
+                            std::vector<IndexPoint> eqPoints = sysPoints;
+                            if (!eq.cons.empty()) {
+                                std::vector<LinCon> combined = sysCons;
+                                combined.insert(combined.end(), eq.cons.begin(), eq.cons.end());
+                                std::vector<long> lo, hi;
+                                eqPoints = buildDomain(indexNames, combined, lo, hi).enumerate();
+                            }
                             for (const auto& t : eq.taps)
-                                checkCoverage(t, sysPoints, eq.line, "equation for '" + eq.name + "'");
+                                checkCoverage(t, eqPoints, eq.line, "equation for '" + eq.name + "'");
+                        }
                         for (const auto& f : outFaces) {
                             std::vector<IndexPoint> facePoints = f.region.enumerate();
                             if (facePoints.empty()) failAt(f.line, "output face region of '" + f.tensor + "' is empty");
@@ -1072,9 +1099,14 @@ namespace sw {
                     void checkCoverage(const TapDecl& tap, const std::vector<IndexPoint>& points,
                                        int line, const std::string& where) {
                         AffineDependency map = AffineDependency::map(tap.A, tap.b);
+                        // a read is in-domain if it lands inside the SOURCE variable's own domain
+                        // (which may be a per-equation restriction, e.g. accU's j < N) -- otherwise it
+                        // is a boundary that must be covered by an input face of that variable.
+                        const Domain& srcDom = spec.system.has(tap.source)
+                            ? spec.system.at(tap.source).domain : systemDomain;
                         for (const auto& p : points) {
                             IndexPoint q = map.apply(p);
-                            if (systemDomain.isInside(q)) continue;
+                            if (srcDom.isInside(q)) continue;
                             int hits = 0;
                             for (const auto& f : inFaces)
                                 if (f.var == tap.source && f.region.isInside(q)) ++hits;

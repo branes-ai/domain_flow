@@ -8,6 +8,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **SURE DSL — per-equation domains** and the **Gauss–Seidel** operator (issue #53): the SURE
+  parser (`include/dfa/sim/sure_parser.hpp`) now accepts an optional per-equation domain
+  restriction on an equation's LHS — `name(i,j,k | j <= i) = …` — intersecting that equation's
+  domain with the system domain (the coverage check and equation build honor it; the simulator
+  and legality already enumerated per-equation domains). This unlocks **Gauss–Seidel**
+  (`docs/SURE/gauss_seidel.sure`, `test_gauss_seidel_sure`, committed RDG + free schedule),
+  whose lower/upper sum split — `Σ_{j<i} A_ij x^k_j` (this sweep) and `Σ_{j>i} A_ij x^{k-1}_j`
+  (previous sweep) — becomes two reductions on complementary sub-domains (`accL` on `j<i`,
+  `accU` on `i<j<N`), so the `k`-vs-`k-1` choice is structural rather than a per-point
+  conditional. It's a free-schedule-only SARE (the lower reduction is a triangular substitution
+  wavefront, so no linear `τ` orders it) and converges to the exact `[1,1,1]` in fewer sweeps
+  than Jacobi. The *Stationary iteration* page now nests each method's Schedule + RDG under its
+  own `##` section, with Jacobi's (free + linear) and Gauss–Seidel's (free) animations. Dual-compiler.
+
+### Changed
+
+- **Stationary iteration (Jacobi) — plane-shift reformulation** (issue #53): `docs/SURE/stationary.sure`
+  now moves the residual divide **one plane up** (to the `j = N` update plane) so it reads the
+  completed reduction `acc(i,N-1,k)` as a translation `[0,+1,0]` instead of a `[0,0,0]` fusion at
+  the finishing cell, and reads the propagated operands one step back along their carries (the gemv
+  trick). This **breaks the zero-slack fusion**: Jacobi is now **linearly schedulable**
+  (`τ = [-1, 1, 2N]`, was free-only), the RDG drops from **two affine arcs to one** (the `xs→xs`
+  self-broadcast became a uniform `k`-carry; only the honest matrix-vector gather `xs→acc` stays
+  affine — a SARE, since the DSL can't feed a solved `x` back through a uniform pipeline), and peak
+  live memory falls ~5×. The docs page (`docs/SURE/stationary.md`) now embeds the RDG plus **both**
+  the free and linear wavefront animations; `test_stationary_sure` and the emit/RDG goldens were
+  updated to assert the new structure (linear `τ` legal, one affine arc). Dual-compiler, zero warnings.
+
+### Added
+
 - **Free-vs-linear comparison clip + README showcase**: a second offline render,
   `docs-site/public/videos/matmul-compare.mp4` (the side-by-side compare — free finishes and
   holds while linear keeps sweeping, the latency gap on one clock). It now leads the docs

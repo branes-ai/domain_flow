@@ -8,48 +8,61 @@
 // FULLY PARALLEL within a sweep. (Gauss-Seidel would instead read x^{k}_j for j < i, an
 // intra-sweep triangular wavefront that serializes the sweep; see stationary.md.)
 //
-// Index space (i,j,k): i = row / unknown (0..N-1), j = column / reduction (0..N-1),
-// k = iteration (0..K-1). Reading x^{k-1}_j across every row is the matrix-vector
-// GATHER: the taps xs(i,N-1,k-1) and xs(j,N-1,k-1) project onto the finished-solution
-// face j = N-1, so they are AFFINE -- Jacobi is a SARE (the honest broadcast of the
-// whole previous iterate), though a benign FORWARD one (each sweep reads only sweep k-1).
+// Index space (i,j,k): i = row / unknown (0..N-1), j = column / reduction (0..N), k =
+// iteration (0..K-1). j runs one plane PAST the reduction: j = 0..N-1 is the gemv reduction,
+// and j = N is the UPDATE plane.
 //
-// SCHEDULE -- free only. Like the triangular solve, each row's gemv reduction and its
-// residual divide FUSE at the finishing cell (i, N-1, k): xs there reads the completed
-// acc(i,N-1,k) at the same lattice point, a zero-slack self-dependence no linear tau can
-// order. The data-flow-earliest FREE schedule runs it: within a sweep every row solves
-// in parallel (Jacobi's parallelism is the wide wavefront); across sweeps the k-1
-// dependence serializes -- exactly the structure the schedule should show.
+// BREAKING THE ZERO-SLACK FUSION. Naively the residual divide would fire at the reduction's
+// finishing cell (i, N-1, k), reading the completed acc(i,N-1,k) at the SAME lattice point --
+// a [0,0,0] self-dependence no linear tau can order (two computations, one point, one time).
+// We move the update ONE PLANE UP, to j = N: xs(i,N,k) reads acc(i,N-1,k) via acc(i,j-1,k),
+// now a translation [0,+1,0] with slack. The other multiply-accumulate reads take their
+// operands one step back along each carry (am at k-1, held; bb/diag at j-1, propagated) --
+// the gemv trick -- so every dependence has slack >= 1 and the system is LINEARLY SCHEDULABLE.
 //
-// Run it:   dfactl --sure docs/SURE/stationary.sure            (free schedule)
+// SURE vs SARE. All arcs are translations EXCEPT one: the cross-sweep gather xs(j,N,k-1) in
+// the reduction reads x^{k-1}_j across every row -- the honest matrix-vector broadcast, an
+// AFFINE (i -> j) transpose. It cannot be pipelined into a uniform arc here because feeding a
+// solved x back through a boundary would require an input face to read a recurrence variable,
+// which the DSL forbids; so Jacobi is a SARE with exactly this one affine arc (down from two
+// in the fused form -- the xs->xs self-broadcast is now a uniform k-carry). It is a benign
+// FORWARD arc (a sweep reads only sweep k-1), so a linear schedule exists.
+//
+// SCHEDULE. Both legal: the FREE schedule is the parallel sweep (all N rows of a sweep finish
+// together -- Jacobi's wide wavefront -- then the k-1 dependence serializes sweep after sweep);
+// the LINEAR schedule tau = [-1, 1, 2N] wavefronts it as a plane (tau_i < 0 because the update
+// plane's i = N halo is an influx face, so rows fire staggered rather than all at once).
+//
+// Run it:   dfactl --sure docs/SURE/stationary.sure                 (free schedule)
+//           dfactl --sure docs/SURE/stationary.sure --schedule linear
 
 N = 3; K = 8;
 
-system ((i,j,k) | 0 <= i < N, 0 <= j < N, 0 <= k < K) {
-    am(i,j,k)   = am(i,j,k-1);                                             // A(i,j), held across sweeps (fed k=-1)
+system ((i,j,k) | 0 <= i < N, 0 <= j <= N, 0 <= k < K) {
+    am(i,j,k)   = am(i,j,k-1);                                              // A(i,j), held across sweeps (fed k=-1)
     bb(i,j,k)   = bb(i,j-1,k);                                             // b(i), propagated along +j (fed j=-1)
-    diag(i,j,k) = diag(i,j-1,k);                                          // A(i,i), propagated along +j (read locally)
-    acc(i,j,k)  = acc(i,j-1,k) + am(i,j,k) * xs(j,N-1,k-1);               // reduce sum_j A(i,j) x^{k-1}_j (affine tap x_j)
-    xs(i,j,k)   = xs(i,N-1,k-1) + (bb(i,j,k) - acc(i,j,k)) / diag(i,j,k);  // residual update; correct at j = N-1
+    diag(i,j,k) = diag(i,j-1,k);                                          // A(i,i), propagated along +j
+    acc(i,j,k)  = acc(i,j-1,k) + am(i,j,k-1) * xs(j,N,k-1);               // reduce sum_j A(i,j) x^{k-1}_j (affine gather)
+    xs(i,j,k)   = xs(i,j,k-1) + (bb(i,j-1,k) - acc(i,j-1,k)) / diag(i,j-1,k); // residual update; correct at j = N
 }
 
 // tensor confluences
-input  A[N][N] ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1)      : am(i,j,k)   = A[i][j];  // A held from k = -1
-input  B[N]    ((i,j,k) | 0 <= i < N, j = -1, 0 <= k < K)      : bb(i,j,k)   = B[i];      // b on the j = -1 face
-input  Diag[N] ((i,j,k) | 0 <= i < N, j = -1, 0 <= k < K)      : diag(i,j,k) = Diag[i];   // A(i,i) on the j = -1 face
-input          ((i,j,k) | 0 <= i < N, j = -1, 0 <= k < K)      : acc(i,j,k)  = 0;         // reduction seed
-input  X0[N]   ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1)      : xs(i,j,k)   = X0[i];      // initial guess x^{-1} = x^0
-output X[N]    ((i,j,k) | 0 <= i < N, j = N-1, K-1 <= k, k < K) : X[i] = xs(i,j,k);        // x after K sweeps (k=K-1)
+input  A[N][N+1] ((i,j,k) | 0 <= i < N, 0 <= j < N+1, k = -1)  : am(i,j,k)   = A[i][j];   // A (+ a phantom 0 column j=N) held from k=-1
+input            ((i,j,k) | i = N, 0 <= j <= N, -1 <= k < K)   : xs(i,j,k)   = 0;         // i=N halo: the reduction's j=N term is A*0, value unused
+input  B[N]      ((i,j,k) | 0 <= i < N, j = -1, 0 <= k < K)    : bb(i,j,k)   = B[i];      // b on the j = -1 face
+input  Diag[N]   ((i,j,k) | 0 <= i < N, j = -1, 0 <= k < K)    : diag(i,j,k) = Diag[i];   // A(i,i) on the j = -1 face
+input            ((i,j,k) | 0 <= i < N, j = -1, 0 <= k < K)    : acc(i,j,k)  = 0;         // reduction seed
+input  X0[N]     ((i,j,k) | 0 <= i < N, 0 <= j <= N, k = -1)   : xs(i,j,k)   = X0[i];     // initial guess x^{-1} = x^0
+output X[N]      ((i,j,k) | 0 <= i < N, j = N, K-1 <= k, k < K) : X[i] = xs(i,j,k);        // x after K sweeps (k=K-1)
 
-// no linear tau: the per-row reduction and its residual divide fuse at (i,N-1,k); the
-// free schedule is the sweep wavefront (parallel within a sweep, serial across sweeps).
+tau = [-1, 1, 14];   // linear wavefront (tau_k >= 2N clears the affine gather; 14 >= 2*N for the N<=6 catalog/viz sizes)
 
 // test bench:  strongly diagonally dominant A, exact solution x = [1,1,1].
 //   A = [[10,1,1],[1,10,1],[1,1,10]],  b = [12,12,12],  Diag = [10,10,10],  x0 = 0.
-//   K = 8 Jacobi sweeps converge to x = [1,1,1].
-data A    = { 10,  1,  1,
-               1, 10,  1,
-               1,  1, 10 };
+//   K = 8 Jacobi sweeps converge to x = [1,1,1]. (A carries a phantom 4th column of 0.)
+data A    = { 10,  1,  1, 0,
+               1, 10,  1, 0,
+               1,  1, 10, 0 };
 data B    = { 12, 12, 12 };
 data Diag = { 10, 10, 10 };
 data X0   = {  0,  0,  0 };
