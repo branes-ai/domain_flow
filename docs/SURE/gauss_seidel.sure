@@ -1,0 +1,60 @@
+// Gauss-Seidel iterative solver (issue #53): A x = b, K fixed sweeps.
+//
+// Gauss-Seidel uses the NEWEST components as soon as they are available:
+//   x^{k}_i = ( b_i - sum_{j<i} A(i,j) x^{k}_j - sum_{j>i} A(i,j) x^{k-1}_j ) / A(i,i).
+// The lower sum reads THIS sweep (x^{k}), the upper sum the PREVIOUS one (x^{k-1}). That
+// split -- and the row-i-waits-for-rows-<i sequencing it implies -- is what makes
+// Gauss-Seidel a triangular, serial sweep (cf. Jacobi's parallel sweep in stationary.sure).
+//
+// EXPRESSING THE SPLIT WITH PER-EQUATION DOMAINS. A single reduction can't choose x^{k}_j
+// vs x^{k-1}_j per column (the body has no j<i conditional). Instead we run TWO reductions,
+// each restricted to its own SUB-DOMAIN of the system domain -- the `name(i,j,k | ...)` form:
+//   accL(i,j,k | j < i)        reduces the LOWER columns, reading this sweep's solution xs(j,N,k);
+//   accU(i,j,k | i < j, j < N)  reduces the UPPER columns, reading last sweep's xs(j,N,k-1).
+// The k-vs-(k-1) choice is now STRUCTURAL (which variable), not a per-point test. The solve on
+// the update plane j = N adds the two partials: x^{k}_i = (b_i - accL(i,i-1,k) - accU(i,i+1,k))/A_ii.
+//
+// Index space (i,j,k): i = row/unknown (0..N-1), j = column/reduction (0..N; j=N is the update
+// plane), k = iteration (0..K-1). accL fires only on j<i, accU only on i<j<N.
+//
+// SCHEDULE -- free only. The lower reduction of row i reads xs(j,N,k) for j<i, produced by the
+// solves of rows j<i of the SAME sweep: a triangular substitution wavefront (the trsolve
+// pattern) layered inside each k-iteration. Row i cannot start until rows 0..i-1 finish, and
+// the reduce/divide fuse at the solve -- a zero-slack chain no linear tau can order. The
+// data-flow-earliest FREE schedule runs it. (Gauss-Seidel usually converges in FEWER sweeps
+// than Jacobi because it reuses fresh data -- here K=8 sweeps reach the exact x=[1,1,1].)
+//
+// RDG -- a SARE with four affine arcs: the two matrix-vector gathers (xs -> accL, xs -> accU)
+// and the two diagonal-adjacent solve reads (accL -> xs at j=i-1, accU -> xs at j=i+1).
+//
+// Run it:   dfactl --sure docs/SURE/gauss_seidel.sure            (free schedule)
+
+N = 3; K = 8;
+
+system ((i,j,k) | 0 <= i < N, 0 <= j <= N, 0 <= k < K) {
+    am(i,j,k)   = am(i,j,k-1);                                              // A(i,j), held across sweeps (fed k=-1)
+    bb(i,j,k)   = bb(i,j-1,k);                                             // b(i), propagated along +j (fed j=-1)
+    diag(i,j,k) = diag(i,j-1,k);                                          // A(i,i), propagated along +j
+    accL(i,j,k | j < i)        = accL(i,j-1,k) + am(i,j,k-1) * xs(j,N,k);   // LOWER: sum_{j<i} A(i,j) x^{k}_j
+    accU(i,j,k | i < j, j < N) = accU(i,j+1,k) + am(i,j,k-1) * xs(j,N,k-1); // UPPER: sum_{j>i} A(i,j) x^{k-1}_j
+    xs(i,j,k | j = N) = (bb(i,j-1,k) - accL(i,i-1,k) - accU(i,i+1,k)) / diag(i,j-1,k); // solve x^{k}_i on the j=N plane only
+}
+
+// tensor confluences
+input  A[N][N+1] ((i,j,k) | 0 <= i < N, 0 <= j < N+1, k = -1)  : am(i,j,k)   = A[i][j];   // A (+ phantom 0 column j=N) held from k=-1
+input  B[N]      ((i,j,k) | 0 <= i < N, j = -1, 0 <= k < K)    : bb(i,j,k)   = B[i];      // b on the j = -1 face
+input  Diag[N]   ((i,j,k) | 0 <= i < N, j = -1, 0 <= k < K)    : diag(i,j,k) = Diag[i];   // A(i,i) on the j = -1 face
+input            ((i,j,k) | 0 <= i < N, j = -1, 0 <= k < K)    : accL(i,j,k) = 0;         // lower reduction seed
+input            ((i,j,k) | 0 <= i < N, j = N, 0 <= k < K)     : accU(i,j,k) = 0;         // upper reduction seed (reduces -j)
+input  X0[N]     ((i,j,k) | 0 <= i < N, 0 <= j <= N, k = -1)   : xs(i,j,k)   = X0[i];     // initial guess x^{-1}
+output X[N]      ((i,j,k) | 0 <= i < N, j = N, K-1 <= k, k < K) : X[i] = xs(i,j,k);        // x after K sweeps
+
+// test bench:  strongly diagonally dominant A, exact solution x = [1,1,1].
+//   A = [[10,1,1],[1,10,1],[1,1,10]],  b = [12,12,12],  Diag = [10,10,10],  x0 = 0.
+//   K = 8 Gauss-Seidel sweeps reach x = [1,1,1] (faster than Jacobi). A carries a phantom 0 column.
+data A    = { 10,  1,  1, 0,
+               1, 10,  1, 0,
+               1,  1, 10, 0 };
+data B    = { 12, 12, 12 };
+data Diag = { 10, 10, 10 };
+data X0   = {  0,  0,  0 };
