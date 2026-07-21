@@ -37,7 +37,7 @@ system ((i,j,k) | 0 <= i < N, 0 <= j <= N, 0 <= k < K) {
     diag(i,j,k) = diag(i,j-1,k);                                          // A(i,i), propagated along +j
     accL(i,j,k | j < i)        = accL(i,j-1,k) + am(i,j,k-1) * xs(j,N,k);   // LOWER: sum_{j<i} A(i,j) x^{k}_j
     accU(i,j,k | i < j, j < N) = accU(i,j+1,k) + am(i,j,k-1) * xs(j,N,k-1); // UPPER: sum_{j>i} A(i,j) x^{k-1}_j
-    xs(i,j,k)   = (bb(i,j-1,k) - accL(i,i-1,k) - accU(i,i+1,k)) / diag(i,j-1,k); // solve x^{k}_i on the j=N plane
+    xs(i,j,k | j = N) = (bb(i,j-1,k) - accL(i,i-1,k) - accU(i,i+1,k)) / diag(i,j-1,k); // solve x^{k}_i on the j=N plane only
 }
 
 // tensor confluences

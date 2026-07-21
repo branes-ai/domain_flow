@@ -42,13 +42,14 @@ int main() {
         std::cout << "parsed structure (indices, free-only, 6 inputs, 1 output): "
                   << (ok ? "PASS" : "FAIL") << "\n";
 
-        // ---- per-equation domains restrict accL / accU below the full system domain ----
-        std::size_t full = spec.system.at("xs").domain.enumerate().size();       // spans the whole domain
+        // ---- per-equation domains restrict accL / accU / xs below the full system domain ----
+        std::size_t full = spec.system.at("am").domain.enumerate().size();       // unrestricted: whole domain
         std::size_t nL   = spec.system.at("accL").domain.enumerate().size();     // only j < i
         std::size_t nU   = spec.system.at("accU").domain.enumerate().size();     // only i < j < N
-        bool peq = (nL < full) && (nU < full) && (nL > 0) && (nU > 0);
-        std::cout << "per-equation domains restrict accL/accU (|accL|=" << nL << ", |accU|=" << nU
-                  << " < |xs|=" << full << "): " << (peq ? "PASS" : "FAIL") << "\n";
+        std::size_t nX   = spec.system.at("xs").domain.enumerate().size();       // only j = N (the update plane)
+        bool peq = (nL < full) && (nU < full) && (nX < full) && (nL > 0) && (nU > 0) && (nX > 0);
+        std::cout << "per-equation domains restrict accL/accU/xs (|accL|=" << nL << ", |accU|=" << nU
+                  << ", |xs|=" << nX << " < full=" << full << "): " << (peq ? "PASS" : "FAIL") << "\n";
         ok &= peq;
 
         // ---- run: X = x after K sweeps, verify it solves A x = b (exactly) ----

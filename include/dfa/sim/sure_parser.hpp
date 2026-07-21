@@ -1099,9 +1099,14 @@ namespace sw {
                     void checkCoverage(const TapDecl& tap, const std::vector<IndexPoint>& points,
                                        int line, const std::string& where) {
                         AffineDependency map = AffineDependency::map(tap.A, tap.b);
+                        // a read is in-domain if it lands inside the SOURCE variable's own domain
+                        // (which may be a per-equation restriction, e.g. accU's j < N) -- otherwise it
+                        // is a boundary that must be covered by an input face of that variable.
+                        const Domain& srcDom = spec.system.has(tap.source)
+                            ? spec.system.at(tap.source).domain : systemDomain;
                         for (const auto& p : points) {
                             IndexPoint q = map.apply(p);
-                            if (systemDomain.isInside(q)) continue;
+                            if (srcDom.isInside(q)) continue;
                             int hits = 0;
                             for (const auto& f : inFaces)
                                 if (f.var == tap.source && f.region.isInside(q)) ++hits;
