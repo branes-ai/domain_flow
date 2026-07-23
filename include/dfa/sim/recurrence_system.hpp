@@ -50,7 +50,16 @@ namespace sw {
                 std::map<std::string, std::vector<Equation<Value>>> eqs_;
             public:
                 RecurrenceSystem& add(Equation<Value> e) {
-                    eqs_[e.name].push_back(std::move(e));
+                    // branches of one variable must be DISJOINT: resolve(name,p) picks a single
+                    // branch, but the scheduler enumerates every branch, so an overlapping point
+                    // would be born/scheduled twice under the same key. Reject overlaps on add.
+                    auto& branches = eqs_[e.name];
+                    for (const auto& other : branches)
+                        for (const auto& p : e.domain.enumerate())
+                            if (other.domain.isInside(p))
+                                throw std::invalid_argument("RecurrenceSystem::add: equation '" + e.name +
+                                    "' has a branch whose domain overlaps an earlier branch");
+                    branches.push_back(std::move(e));
                     return *this;
                 }
                 bool has(const std::string& n) const { return eqs_.count(n) > 0; }

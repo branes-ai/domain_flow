@@ -18,8 +18,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   affine matrix-vector gather, the state is **pipelined** cell-to-cell (produced at the diagonal,
   broadcast up/down as a piecewise `xx`) and the reduction is **split** (`accL`/`accU`) so the
   diagonal solve reads adjacent columns — leaving **every dependence a constant displacement**
-  (`kind: SURE`, zero affine arcs), the property a regular spatial mapping needs. Both still solve
-  `Ax=b` to the exact `[1,1,1]`; the *Stationary iteration* page gains a **systolic SURE forms**
+  (`kind: SURE`, zero affine arcs), the property a regular spatial mapping needs. Both still
+  converge toward the exact `Ax=b` solution `[1,1,1]` (Jacobi within `1e-3`, Gauss–Seidel within
+  `1e-6`, at `K=8` sweeps); the *Stationary iteration* page gains a **systolic SURE forms**
   section contrasting them with the SARE forms. Dual-compiler, full suite green.
 
 - **SURE DSL — per-equation domains** and the **Gauss–Seidel** operator (issue #53): the SURE

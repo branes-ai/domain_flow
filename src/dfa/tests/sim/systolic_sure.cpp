@@ -63,11 +63,29 @@ static bool checkSpec(const std::string& file, const std::string& op, double con
     return ok;
 }
 
+// piecewise branches of one variable must be disjoint; RecurrenceSystem::add rejects overlaps.
+static bool checkOverlapRejected() {
+    RecurrenceSystem<double> s;
+    auto mk = [](const std::string& n, int lo, int hiEx) {
+        Domain d(1); d.axis(0, lo, hiEx);
+        return Equation<double>{ n, d, {},
+            [](const std::vector<double>&, const IndexPoint&) { return 0.0; },
+            [](const IndexPoint&) { return 0.0; } };
+    };
+    s.add(mk("v", 0, 5));                 // 0..4
+    bool threw = false;
+    try { s.add(mk("v", 3, 8)); }         // 3..7 -- overlaps 3,4
+    catch (const std::exception&) { threw = true; }
+    std::cout << "  overlapping branch domains are rejected: " << (threw ? "PASS" : "FAIL") << "\n";
+    return threw;
+}
+
 int main() {
     bool ok = true;
     try {
         ok &= checkSpec("jacobi_systolic.sure", "jacobi_systolic", 1e-3);        // Jacobi: slower
         ok &= checkSpec("gauss_seidel_systolic.sure", "gauss_seidel_systolic", 1e-6);  // GS: exact by K=8
+        ok &= checkOverlapRejected();
     } catch (const std::exception& e) {
         std::cout << "EXCEPTION: " << e.what() << "\n";
         ok = false;
