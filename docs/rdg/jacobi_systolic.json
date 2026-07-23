@@ -1,0 +1,24 @@
+{
+  "operator": "jacobi_systolic",
+  "rank": 3,
+  "indexNames": ["i","j","k"],
+  "kind": "SURE",
+  "variables": ["accL","accU","am","bb","diag","xx"],
+  "arcs": [
+    {"from":"accL","to":"accL","kind":"uniform","theta":[0,1,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,-1,0]}},
+    {"from":"am","to":"accL","kind":"uniform","theta":[0,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,0]}},
+    {"from":"xx","to":"accL","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"accU","to":"accU","kind":"uniform","theta":[0,-1,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,1,0]}},
+    {"from":"am","to":"accU","kind":"uniform","theta":[0,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,0]}},
+    {"from":"xx","to":"accU","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"am","to":"am","kind":"uniform","theta":[0,0,1],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,-1]}},
+    {"from":"bb","to":"bb","kind":"uniform","theta":[0,1,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,-1,0]}},
+    {"from":"diag","to":"diag","kind":"uniform","theta":[0,1,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,-1,0]}},
+    {"from":"xx","to":"xx","kind":"uniform","theta":[1,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[-1,0,0]}},
+    {"from":"xx","to":"xx","kind":"uniform","theta":[-1,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[1,0,0]}},
+    {"from":"bb","to":"xx","kind":"uniform","theta":[0,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,0]}},
+    {"from":"accL","to":"xx","kind":"uniform","theta":[0,1,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,-1,0]}},
+    {"from":"accU","to":"xx","kind":"uniform","theta":[0,-1,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,1,0]}},
+    {"from":"diag","to":"xx","kind":"uniform","theta":[0,0,0],"map":{"A":[[1,0,0],[0,1,0],[0,0,1]],"b":[0,0,0]}}
+  ]
+}

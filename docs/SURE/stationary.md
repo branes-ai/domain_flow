@@ -124,3 +124,12 @@ The free schedule is the **triangular substitution front**: row `i`'s lower sum 
 order — nested inside each `k` sweep. Contrast the wide, parallel Jacobi wavefront above.
 
 <div class="schedule-anim" data-src="schedules/gauss_seidel-free.json" data-height="380"></div>
+
+## Making them systolic
+
+Both specs above are **SAREs**: their matrix-vector reads reach across rows to a column's
+solution (an `i↦j` transpose), an *affine* arc. For a **regular spatial mapping** we want every
+dependence to be a constant displacement — a genuine **SURE**. That transformation (pipeline the
+state, split the reduction) is achievable for *both* methods, and is worked through — with the
+RDGs and animations of the resulting all-uniform forms — on its own page:
+[Systolic SURE transforms](systolic_transforms.md).

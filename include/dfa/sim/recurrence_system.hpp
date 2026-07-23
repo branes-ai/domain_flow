@@ -42,18 +42,39 @@ namespace sw {
             };
 
             template<typename Value = double>
+            // A variable may have MORE THAN ONE equation, each on a disjoint sub-domain -- a
+            // piecewise / conditional recurrence, e.g. a pipelined state routed differently for
+            // i>j, i<j, i=j.  eqs_[name] is the list of branches; resolve(name,p) picks the branch
+            // whose domain contains p, and coversAny(name,p) is the union membership test.
             class RecurrenceSystem {
-                std::map<std::string, Equation<Value>> eqs_;
+                std::map<std::string, std::vector<Equation<Value>>> eqs_;
             public:
                 RecurrenceSystem& add(Equation<Value> e) {
-                    if (eqs_.count(e.name))
-                        throw std::invalid_argument("RecurrenceSystem::add: duplicate equation name '" + e.name + "'");
-                    eqs_[e.name] = std::move(e);
+                    // branches of one variable must be DISJOINT: resolve(name,p) picks a single
+                    // branch, but the scheduler enumerates every branch, so an overlapping point
+                    // would be born/scheduled twice under the same key. Reject overlaps on add.
+                    auto& branches = eqs_[e.name];
+                    for (const auto& other : branches)
+                        for (const auto& p : e.domain.enumerate())
+                            if (other.domain.isInside(p))
+                                throw std::invalid_argument("RecurrenceSystem::add: equation '" + e.name +
+                                    "' has a branch whose domain overlaps an earlier branch");
+                    branches.push_back(std::move(e));
                     return *this;
                 }
-                const Equation<Value>& at(const std::string& n) const { return eqs_.at(n); }
                 bool has(const std::string& n) const { return eqs_.count(n) > 0; }
-                const std::map<std::string, Equation<Value>>& equations() const { return eqs_; }
+                // a representative branch (the first) -- for single-equation variables this is THE equation
+                const Equation<Value>& at(const std::string& n) const { return eqs_.at(n).front(); }
+                // the branch computing point p (its domain contains p), or nullptr if p is a boundary
+                const Equation<Value>* resolve(const std::string& n, const IndexPoint& p) const {
+                    auto it = eqs_.find(n);
+                    if (it == eqs_.end()) return nullptr;
+                    for (const auto& e : it->second) if (e.domain.isInside(p)) return &e;
+                    return nullptr;
+                }
+                // p lies in the domain of SOME branch of n (i.e. n is computed there, not a boundary)
+                bool coversAny(const std::string& n, const IndexPoint& p) const { return resolve(n, p) != nullptr; }
+                const std::map<std::string, std::vector<Equation<Value>>>& equations() const { return eqs_; }
             };
 
         }

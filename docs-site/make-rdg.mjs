@@ -33,6 +33,8 @@ const OPERATORS = [
   'lstsq',                                       // least squares via QR — the augmented-column pipeline
   'stationary',                                  // Jacobi stationary iteration (solvers)
   'gauss_seidel',                                // Gauss-Seidel stationary iteration (per-equation domains)
+  'jacobi_systolic',                             // Jacobi as a pure SURE (pipelined state)
+  'gauss_seidel_systolic',                       // Gauss-Seidel as a pure SURE (pipelined state)
   'cg',                                         // conjugate gradient (solvers)
   'eig_jacobi',                                 // symmetric eigensolver — one Jacobi rotation
   'eig_qr',                                     // symmetric eigensolver — one Householder tridiag step
