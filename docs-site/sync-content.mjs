@@ -103,6 +103,7 @@ const FILE_MAP = {
   'SURE/trsolve.md':                 'theory/trsolve.md',
   'SURE/lstsq.md':                   'theory/lstsq.md',
   'SURE/stationary.md':               'theory/stationary.md',
+  'SURE/systolic_transforms.md':      'theory/systolic-transforms.md',
   'SURE/cg.md':                      'theory/cg.md',
   'SURE/eig_jacobi.md':               'theory/eig_jacobi.md',
   'SURE/eig_qr.md':                   'theory/eig_qr.md',

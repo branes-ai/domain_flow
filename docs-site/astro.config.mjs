@@ -65,6 +65,7 @@ export default defineConfig({
             { label: 'Triangular solve', slug: 'theory/trsolve' },
             { label: 'Least squares via QR', slug: 'theory/lstsq' },
             { label: 'Stationary iteration', slug: 'theory/stationary' },
+            { label: 'Systolic SURE transforms', slug: 'theory/systolic-transforms' },
             { label: 'Conjugate Gradient', slug: 'theory/cg' },
             { label: 'Symmetric eigensolver (Jacobi)', slug: 'theory/eig_jacobi' },
             { label: 'Symmetric eigensolver (QR iteration)', slug: 'theory/eig_qr' },

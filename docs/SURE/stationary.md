@@ -125,35 +125,11 @@ order — nested inside each `k` sweep. Contrast the wide, parallel Jacobi wavef
 
 <div class="schedule-anim" data-src="schedules/gauss_seidel-free.json" data-height="380"></div>
 
-## The systolic SURE forms — uniform dataflow
+## Making them systolic
 
 Both specs above are **SAREs**: their matrix-vector reads reach across rows to a column's
-solution (an `i↦j` transpose), an *affine* arc. For a **regular spatial mapping** we want the
-opposite — every dependence a constant displacement (a nearest-neighbour wire), i.e. a genuine
-**SURE**. That is achievable for *both* methods, with two moves:
-
-1. **Pipeline the state.** Instead of gathering `x_j`, route it cell-to-cell: `xx(i,j,k)` holds
-   unknown `j`'s value at row `i`, produced at the diagonal `i=j` and **broadcast** to every row
-   — down for `i>j`, up for `i<j`. The reduction then reads its own neighbour (`xx(i-1,j,k)` /
-   `xx(i,j,k-1)`), a uniform displacement. This makes `xx` a **piecewise variable**: three
-   equations on the disjoint sub-domains `i>j`, `i<j`, `i=j`.
-2. **Split the reduction** into `accL` (columns `j<i`) and `accU` (columns `j>i`) so the diagonal
-   solve reads *adjacent* columns `accL(i,j-1,k)` / `accU(i,j+1,k)` — uniform `[0,±1,0]` — rather
-   than the completion column `N-1` (a varying, affine distance).
-
-The result is `kind: SURE`, **zero affine arcs** — all dataflow is uniform. (Gauss–Seidel's
-subtlety is the two sweeps: its **lower** sum reads *this* sweep's down-broadcast, its **upper**
-sum the *previous* sweep's up-broadcast — reading `xx(i,j,k-1)` delivers `x^{k-1}_j`, where
-routing the "previous iterate" forward in time directly would deliver only the *initial* `x^0`.)
-
-<div class="rdg" data-src="rdg/jacobi_systolic.json" data-height="560"></div>
-
-<div class="schedule-anim" data-src="schedules/jacobi_systolic-free.json" data-height="360"></div>
-
-<div class="rdg" data-src="rdg/gauss_seidel_systolic.json" data-height="560"></div>
-
-<div class="schedule-anim" data-src="schedules/gauss_seidel_systolic-free.json" data-height="360"></div>
-
-Specs: `docs/SURE/jacobi_systolic.sure`, `docs/SURE/gauss_seidel_systolic.sure`. These are still
-free-schedule-only in this framework (the per-row reduce-and-solve fuse), but the *dataflow* is
-fully uniform — the property a spatial array needs.
+solution (an `i↦j` transpose), an *affine* arc. For a **regular spatial mapping** we want every
+dependence to be a constant displacement — a genuine **SURE**. That transformation (pipeline the
+state, split the reduction) is achievable for *both* methods, and is worked through — with the
+RDGs and animations of the resulting all-uniform forms — on its own page:
+[Systolic SURE transforms](systolic-transforms.md).
