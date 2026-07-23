@@ -171,17 +171,27 @@ namespace {
         struct TapDump { std::string source; std::vector<std::vector<int>> A; std::vector<int> b; };
         struct VarDump { std::string name; std::vector<std::pair<IndexPoint, long>> pts; std::vector<TapDump> taps; };
         std::vector<VarDump> vars;
-        for (const auto& [name, eq] : sure.system.equations()) {
+        for (const auto& [name, branches] : sure.system.equations()) {
             VarDump vd; vd.name = name;
-            for (const auto& tap : eq.taps)
-                vd.taps.push_back({ tap.source, tap.map.matrix(), tap.map.offset() });
-            for (const auto& p : eq.domain.enumerate()) {
-                long t = sched.time(name, p);
-                vd.pts.emplace_back(p, t);
-                tmin = std::min(tmin, t); tmax = std::max(tmax, t);
-                for (std::size_t d = 0; d < rank && d < p.size(); ++d) {
-                    lo[d] = std::min(lo[d], static_cast<long>(p[d]));
-                    hi[d] = std::max(hi[d], static_cast<long>(p[d]));
+            // a variable may be piecewise (several branches on disjoint sub-domains) -- gather
+            // every branch's points and its (deduplicated) taps into one dump for the viewer
+            for (const auto& eq : branches) {
+                for (const auto& tap : eq.taps) {
+                    std::vector<std::vector<int>> A = tap.map.matrix();
+                    std::vector<int> b = tap.map.offset();
+                    bool dup = false;
+                    for (const auto& td : vd.taps)
+                        if (td.source == tap.source && td.A == A && td.b == b) { dup = true; break; }
+                    if (!dup) vd.taps.push_back({ tap.source, std::move(A), std::move(b) });
+                }
+                for (const auto& p : eq.domain.enumerate()) {
+                    long t = sched.time(name, p);
+                    vd.pts.emplace_back(p, t);
+                    tmin = std::min(tmin, t); tmax = std::max(tmax, t);
+                    for (std::size_t d = 0; d < rank && d < p.size(); ++d) {
+                        lo[d] = std::min(lo[d], static_cast<long>(p[d]));
+                        hi[d] = std::max(hi[d], static_cast<long>(p[d]));
+                    }
                 }
             }
             vars.push_back(std::move(vd));

@@ -1,0 +1,54 @@
+// Gauss-Seidel as a PURE SURE (issue #53) -- the systolic / uniform-dataflow form.
+//
+// gauss_seidel.sure writes GS with affine gathers (a SARE). This spec removes every affine
+// arc, exactly as jacobi_systolic.sure does, by PIPELINING the state and SPLITTING the
+// reduction so the solve reads adjacent columns. The one twist is the two sweeps:
+//   x^{k}_i = ( b_i - sum_{j<i} A(i,j) x^{k}_j - sum_{j>i} A(i,j) x^{k-1}_j ) / A(i,i).
+// The lower sum reads THIS sweep, the upper the PREVIOUS one. Both are made uniform by how
+// the piecewise state xx(i,j,k) is routed and read:
+//
+//   * The diagonal (i=j) produces x^k_i. It broadcasts DOWN (i>j) so the LOWER sum of a later
+//     row reads a just-produced x^k_j via xx(i-1,j,k), and UP (i<j) so that the NEXT sweep's
+//     UPPER sum can read x^k_j = x^{(k+1)-1}_j from the prior sweep's up-broadcast, xx(i,j,k-1).
+//   * accL reads xx(i-1,j,k)   -- this sweep's down-broadcast  (uniform [1,0,0])
+//   * accU reads xx(i,j,k-1)   -- last sweep's up-broadcast    (uniform [0,0,1])
+//
+// (A competing derivation routed the upper term as X(k-1,i,j) directly, which delivers the
+// INITIAL x^0_j, not x^{k-1}_j -- it never re-touches the diagonal. Reading the previous
+// sweep's up-broadcast fixes that.) The diagonal solve reads accL(i,j-1,k) / accU(i,j+1,k),
+// uniform on the i=j sub-domain where j-1==i-1.
+//
+// Result: RDG kind = SURE, 0 affine arcs. Free schedule only (the lower reduction is a
+// triangular substitution wavefront), but every dependence is a constant displacement.
+// Gauss-Seidel reuses fresh data, so it reaches the exact x=[1,1,1] faster than Jacobi.
+//
+// Run it:   dfactl --sure docs/SURE/gauss_seidel_systolic.sure
+
+N = 3; K = 8;
+
+system ((i,j,k) | 0 <= i < N, 0 <= j < N, 0 <= k < K) {
+    am(i,j,k)   = am(i,j,k-1);                                          // A(i,j) held across sweeps
+    bb(i,j,k)   = bb(i,j-1,k);                                          // b(i) propagated along +j
+    diag(i,j,k) = diag(i,j-1,k);                                        // A(i,i) propagated along +j
+    accL(i,j,k | j < i) = accL(i,j-1,k) + am(i,j,k) * xx(i-1,j,k);      // LOWER sum: THIS sweep's x^k_j (down-broadcast)
+    accU(i,j,k | j > i) = accU(i,j+1,k) + am(i,j,k) * xx(i,j,k-1);      // UPPER sum: LAST sweep's x^{k-1}_j (up-broadcast)
+    xx(i,j,k | i > j) = xx(i-1,j,k);                                    // broadcast x^k_j DOWN (lower reads)
+    xx(i,j,k | i < j) = xx(i+1,j,k);                                    // broadcast x^k_j UP (next sweep's upper reads)
+    xx(i,j,k | i = j) = (bb(i,j,k) - accL(i,j-1,k) - accU(i,j+1,k)) / diag(i,j,k);  // diagonal solve (adjacent, uniform)
+}
+
+input A[N][N] ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1)       : am(i,j,k)   = A[i][j];   // A on its (i,j) face
+input B[N]    ((i,j,k) | 0 <= i < N, j = -1, 0 <= k < K)       : bb(i,j,k)   = B[i];      // b on the j = -1 face
+input Diag[N] ((i,j,k) | 0 <= i < N, j = -1, 0 <= k < K)       : diag(i,j,k) = Diag[i];   // A(i,i) on the j = -1 face
+input         ((i,j,k) | 0 <= i < N, j = -1, 0 <= k < K)       : accL(i,j,k) = 0;         // lower reduction seed
+input         ((i,j,k) | 0 <= i < N, j = N,  0 <= k < K)       : accU(i,j,k) = 0;         // upper reduction seed (reduces -j)
+input X0[N]   ((i,j,k) | 0 <= i < N, 0 <= j < N, k = -1)       : xx(i,j,k)   = X0[j];     // initial guess x^{-1}_j
+output X[N]   ((i,j,k) | i = N-1, 0 <= j < N, K-1 <= k, k < K) : X[j] = xx(i,j,k);        // solution on the bottom row
+
+// strongly diagonally dominant system, exact solution x = [1,1,1].
+data A    = { 10,  1,  1,
+               1, 10,  1,
+               1,  1, 10 };
+data B    = { 12, 12, 12 };
+data Diag = { 10, 10, 10 };
+data X0   = {  0,  0,  0 };

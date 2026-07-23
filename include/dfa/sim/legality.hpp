@@ -45,21 +45,23 @@ namespace sw {
                                          const ISchedule& sched,
                                          std::size_t maxViolations = 16) {
                 LegalityReport rep;
-                for (const auto& [name, eq] : sys.equations()) {
-                    for (const auto& q : eq.domain.enumerate()) {
-                        long tc = sched.time(name, q);
-                        for (const auto& tap : eq.taps) {
-                            IndexPoint prod = tap.map.apply(q);
-                            if (!sys.has(tap.source)) { ++rep.unresolvedTaps; continue; }
-                            if (!sys.at(tap.source).domain.isInside(prod)) continue;  // boundary
-                            long tp = sched.time(tap.source, prod);
-                            long slack = tc - tp;
-                            ++rep.edgesChecked;
-                            rep.minSlack = std::min(rep.minSlack, slack);
-                            if (slack < 1) {
-                                rep.legal = false;
-                                if (rep.violations.size() < maxViolations)
-                                    rep.violations.push_back({ name, q, tap.source, prod, slack });
+                for (const auto& [name, branches] : sys.equations()) {
+                    for (const auto& eq : branches) {
+                        for (const auto& q : eq.domain.enumerate()) {
+                            long tc = sched.time(name, q);
+                            for (const auto& tap : eq.taps) {
+                                IndexPoint prod = tap.map.apply(q);
+                                if (!sys.has(tap.source)) { ++rep.unresolvedTaps; continue; }
+                                if (!sys.coversAny(tap.source, prod)) continue;  // boundary
+                                long tp = sched.time(tap.source, prod);
+                                long slack = tc - tp;
+                                ++rep.edgesChecked;
+                                rep.minSlack = std::min(rep.minSlack, slack);
+                                if (slack < 1) {
+                                    rep.legal = false;
+                                    if (rep.violations.size() < maxViolations)
+                                        rep.violations.push_back({ name, q, tap.source, prod, slack });
+                                }
                             }
                         }
                     }

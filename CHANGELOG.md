@@ -8,6 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **SURE DSL — piecewise variables + Jacobi/Gauss–Seidel as pure SUREs** (issue #53): a variable
+  may now have **more than one equation**, each on a disjoint sub-domain — a conditional/piecewise
+  recurrence, e.g. a pipelined state routed differently for `i>j`, `i<j`, `i=j`. `RecurrenceSystem`
+  stores a list of branches per name with `resolve(name,p)` / `coversAny(name,p)`; the simulator,
+  legality, RDG, coverage check, and schedule emit all dispatch by sub-domain. This makes it
+  possible to write **Jacobi and Gauss–Seidel as *pure* SUREs** (`docs/SURE/jacobi_systolic.sure`,
+  `gauss_seidel_systolic.sure`, `test_systolic_sure`, committed RDG + free schedule): instead of an
+  affine matrix-vector gather, the state is **pipelined** cell-to-cell (produced at the diagonal,
+  broadcast up/down as a piecewise `xx`) and the reduction is **split** (`accL`/`accU`) so the
+  diagonal solve reads adjacent columns — leaving **every dependence a constant displacement**
+  (`kind: SURE`, zero affine arcs), the property a regular spatial mapping needs. Both still solve
+  `Ax=b` to the exact `[1,1,1]`; the *Stationary iteration* page gains a **systolic SURE forms**
+  section contrasting them with the SARE forms. Dual-compiler, full suite green.
+
 - **SURE DSL — per-equation domains** and the **Gauss–Seidel** operator (issue #53): the SURE
   parser (`include/dfa/sim/sure_parser.hpp`) now accepts an optional per-equation domain
   restriction on an equation's LHS — `name(i,j,k | j <= i) = …` — intersecting that equation's

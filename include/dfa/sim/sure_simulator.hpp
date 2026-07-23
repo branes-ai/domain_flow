@@ -49,15 +49,17 @@ namespace sw {
                 // last-use (death) time of every computed value under a schedule
                 std::map<Key, long> deathTimes(const ISchedule& sched) const {
                     std::map<Key, long> death;
-                    for (const auto& [name, eq] : sys_.equations()) {
-                        for (const auto& q : eq.domain.enumerate()) {
-                            long tq = sched.time(name, q);
-                            for (const auto& t : eq.taps) {
-                                IndexPoint prod = t.map.apply(q);
-                                if (sys_.has(t.source) && sys_.at(t.source).domain.isInside(prod)) {
-                                    Key pk{ t.source, prod };
-                                    auto it = death.find(pk);
-                                    if (it == death.end() || tq > it->second) death[pk] = tq;
+                    for (const auto& [name, branches] : sys_.equations()) {
+                        for (const auto& eq : branches) {
+                            for (const auto& q : eq.domain.enumerate()) {
+                                long tq = sched.time(name, q);
+                                for (const auto& t : eq.taps) {
+                                    IndexPoint prod = t.map.apply(q);
+                                    if (sys_.coversAny(t.source, prod)) {
+                                        Key pk{ t.source, prod };
+                                        auto it = death.find(pk);
+                                        if (it == death.end() || tq > it->second) death[pk] = tq;
+                                    }
                                 }
                             }
                         }
@@ -75,8 +77,9 @@ namespace sw {
                 // regardless of schedule.
                 // ---------------------------------------------------------------
                 Value eval(const std::string& var, const IndexPoint& p) {
-                    const auto& eq = sys_.at(var);
-                    if (!eq.domain.isInside(p)) return eq.boundary(p);
+                    const Equation<Value>* eqp = sys_.resolve(var, p);
+                    if (!eqp) return sys_.at(var).boundary(p);   // outside every branch -> a boundary value
+                    const auto& eq = *eqp;
 
                     Key k{ var, p };
                     auto it = memo_.find(k);
@@ -113,8 +116,9 @@ namespace sw {
                     std::set<Key> active;   // recursion guard: cycle => illegal recurrence
                     std::function<long(const std::string&, const IndexPoint&)> visit =
                         [&](const std::string& var, const IndexPoint& p) -> long {
-                            const auto& eq = sys_.at(var);
-                            if (!eq.domain.isInside(p)) return 0;          // boundary ready at t=0
+                            const Equation<Value>* eqp = sys_.resolve(var, p);
+                            if (!eqp) return 0;                            // boundary ready at t=0
+                            const auto& eq = *eqp;
                             Key k{ var, p };
                             auto it = depth.find(k);
                             if (it != depth.end()) return it->second;
@@ -131,9 +135,10 @@ namespace sw {
                             sched.set(var, p, d);
                             return d;
                         };
-                    for (const auto& [name, eq] : sys_.equations())
-                        for (const auto& p : eq.domain.enumerate())
-                            visit(name, p);
+                    for (const auto& [name, branches] : sys_.equations())
+                        for (const auto& eq : branches)
+                            for (const auto& p : eq.domain.enumerate())
+                                visit(name, p);
                     return sched;
                 }
 
@@ -144,9 +149,10 @@ namespace sw {
                 // ---------------------------------------------------------------
                 LivenessReport analyzeMemory(const ISchedule& sched) const {
                     std::map<Key, long> birth;
-                    for (const auto& [name, eq] : sys_.equations())
-                        for (const auto& p : eq.domain.enumerate())
-                            birth[{ name, p }] = sched.time(name, p);
+                    for (const auto& [name, branches] : sys_.equations())
+                        for (const auto& eq : branches)
+                            for (const auto& p : eq.domain.enumerate())
+                                birth[{ name, p }] = sched.time(name, p);
 
                     std::map<Key, long> death = deathTimes(sched);
 
@@ -199,9 +205,10 @@ namespace sw {
                     }
 
                     std::map<long, std::vector<Key>> born;
-                    for (const auto& [name, eq] : sys_.equations())
-                        for (const auto& p : eq.domain.enumerate())
-                            born[sched.time(name, p)].push_back({ name, p });
+                    for (const auto& [name, branches] : sys_.equations())
+                        for (const auto& eq : branches)
+                            for (const auto& p : eq.domain.enumerate())
+                                born[sched.time(name, p)].push_back({ name, p });
 
                     std::map<Key, long> death = deathTimes(sched);
                     std::map<long, std::vector<Key>> dieAt;
@@ -216,14 +223,15 @@ namespace sw {
                     long peak = 0;
                     for (const auto& [t, keys] : born) {
                         for (const auto& k : keys) {
-                            const auto& eq = sys_.at(k.var);
+                            const Equation<Value>* eqp = sys_.resolve(k.var, k.p);
+                            const auto& eq = eqp ? *eqp : sys_.at(k.var);
                             std::vector<Value> tv;
                             tv.reserve(eq.taps.size());
                             for (const auto& tp : eq.taps) {
                                 IndexPoint prod = tp.map.apply(k.p);
-                                const auto& peq = sys_.at(tp.source);
-                                if (!peq.domain.isInside(prod)) {
-                                    tv.push_back(peq.boundary(prod));
+                                const Equation<Value>* peqp = sys_.resolve(tp.source, prod);
+                                if (!peqp) {
+                                    tv.push_back(sys_.at(tp.source).boundary(prod));
                                 } else {
                                     // Legality was validated up front, so the producer is
                                     // guaranteed resident; this is a defensive invariant.
