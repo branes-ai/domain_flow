@@ -78,7 +78,8 @@ namespace sw {
                 for (const auto& kv : sure.system.equations()) {
                     g.variables.push_back(kv.first);
                     const std::string& name = kv.first;
-                    for (const auto& tap : kv.second.taps) {
+                    for (const auto& eq : kv.second)            // a variable may have several branches
+                    for (const auto& tap : eq.taps) {
                         const std::vector<std::vector<int>> A = tap.map.matrix();
                         const std::vector<int> b = tap.map.offset();
                         bool dup = false;
