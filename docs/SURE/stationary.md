@@ -132,4 +132,4 @@ solution (an `i↦j` transpose), an *affine* arc. For a **regular spatial mappin
 dependence to be a constant displacement — a genuine **SURE**. That transformation (pipeline the
 state, split the reduction) is achievable for *both* methods, and is worked through — with the
 RDGs and animations of the resulting all-uniform forms — on its own page:
-[Systolic SURE transforms](systolic-transforms.md).
+[Systolic SURE transforms](systolic_transforms.md).
