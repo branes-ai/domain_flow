@@ -17,8 +17,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   static backdrop over the deduplicated point set; e.g. matmul's 15³ cube shows 3375 backdrop dots
   rather than 3×3375 jittered ones). Only the *fired* and *firing* points of checked variables
   carry colour on top; pending points and hidden variables show just the gray backdrop, so the
-  wavefront you care about stands out. Dependency/legality/tile overlay edges are filtered to the
-  visible variables too. (`docs-site/src/components/schedule-anim.js`, `src/styles/custom.css`.)
+  wavefront you care about stands out. (Tile mode is unchanged — colour encodes the tile block, so
+  there is no gray backdrop and pending points keep a dim tile colour.) Dependency/legality/tile
+  overlay edges are filtered to the visible variables too. (`docs-site/src/components/schedule-anim.js`,
+  `src/styles/custom.css`.)
 
 - **SURE DSL — piecewise variables + Jacobi/Gauss–Seidel as pure SUREs** (issue #53): a variable
   may now have **more than one equation**, each on a disjoint sub-domain — a conditional/piecewise
