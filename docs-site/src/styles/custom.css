@@ -90,6 +90,24 @@
   margin-right: 5px;
   vertical-align: middle;
 }
+/* per-variable check-mark control (issue #142): a clickable row inside the legend.
+   The .sa-legend sets pointer-events:none so it doesn't steal orbit drags — re-enable
+   it just on the toggles so the checkboxes are interactive. */
+:is(.schedule-anim, .schedule-compare) .sa-var {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  pointer-events: auto;
+  cursor: pointer;
+  user-select: none;
+}
+:is(.schedule-anim, .schedule-compare) .sa-var input {
+  width: 11px;
+  height: 11px;
+  margin: 0 3px 0 0;
+  cursor: pointer;
+  accent-color: #4fd1ff;
+}
 
 /* ── landing-page clip (issue #142) — the committed offline render on the splash page ── */
 .landing-clip {

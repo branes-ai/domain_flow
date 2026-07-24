@@ -165,6 +165,39 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   const baseColors = acts.map((a) =>
     tileMode ? tileColor(tileId(a.p)) : new THREE.Color(PALETTE[a.vi % PALETTE.length]));
   const WHITE = new THREE.Color(0xffffff);
+  // ── per-variable visibility (issue #142): with 3+ recurrences the coloured lattice
+  //    is dense. A check-mark control (built in mountAll) toggles each variable's
+  //    *activity wavefront*; when it's off, that variable's coloured dots disappear and
+  //    only the gray index-space backdrop (below) marks the point. Likewise pending
+  //    (not-yet-fired) points show only the backdrop — colour is reserved for the
+  //    fired/firing wavefront of the checked variables.
+  const varVisible = vars.map(() => true);
+
+  // ── index-space backdrop (issue #142): the *index space* is the SET of index points in
+  //    the domain of execution — one point per lattice site, not one per variable. The
+  //    activation spheres jitter apart per variable, so a site shared by K recurrences would
+  //    otherwise show K overlapping gray dots. Draw instead a SINGLE unjittered gray dot per
+  //    unique index point as a static backdrop; the activation mesh only lights the coloured
+  //    wavefront on top. (Suppressed in tile mode, where colour encodes the tile block and the
+  //    pending points keep a dim tile colour rather than falling back to gray.) ──────────────
+  let bg = null;
+  if (!tileMode) {
+    const uniq = new Map();                       // point-key → unjittered [x,y,z]
+    for (const a of acts) { const k = a.p.join(','); if (!uniq.has(k)) uniq.set(k, a.p); }
+    const indexPoints = [...uniq.values()];
+    if (indexPoints.length) {
+      bg = new THREE.InstancedMesh(
+        geo, new THREE.MeshLambertMaterial({ color: 0x565c68, transparent: true, opacity: 0.9 }),
+        indexPoints.length);
+      const d = new THREE.Object3D();
+      indexPoints.forEach((p, i) => {
+        d.position.set(p[0], p[1], p[2]); d.scale.setScalar(baseR * 0.5); d.updateMatrix();
+        bg.setMatrixAt(i, d.matrix);
+      });
+      bg.instanceMatrix.needsUpdate = true;
+      scene.add(bg);
+    }
+  }
 
   // ── τ-normal wavefront plane: a translucent quad whose normal is τ̂. Built once and
   //    oriented here; setFrame slides it ALONG τ̂ to the mean signature of the firing set,
@@ -231,22 +264,25 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
         // in which edges survive and how they're coloured. `from` is the consumer,
         // `to` the producer — the per-frame refill gradient (edges mode) brightens
         // the consumer end so the direction of data flow reads.
+        // cvi = the consumer's variable index, so the per-frame refill can drop edges
+        // whose variable's wavefront the viewer has toggled off (checkbox control).
+        const cvi = a.vi;
         if (tileMode) {
           const st = tileOf(acts[j].p);
           let lvl = 0;
           for (let d = 0; d < 3; d++) lvl = Math.max(lvl, Math.abs(consumerTile[d] - st[d]));
           if (lvl === 0) continue;                  // stays in the same tile — not cross-tile traffic
           edgeBuckets[a.t - tMin].push({
-            from: positions[i], to: positions[j], color: lvl === 1 ? HALO_COLOR : COLL_COLOR, level: lvl });
+            from: positions[i], to: positions[j], color: lvl === 1 ? HALO_COLOR : COLL_COLOR, level: lvl, cvi });
           if (lvl === 1) haloTotal++; else collTotal++;
         } else if (legalityMode) {                  // colour by slack Δt = t(cons) − t(prod)
           const dt = a.t - acts[j].t;
           const kind = dt <= 0 ? 2 : (dt === 1 ? 1 : 0);   // 2 = violation, 1 = tight, 0 = slack
           const color = kind === 2 ? VIOL_COLOR : (kind === 1 ? LEGAL_TIGHT : LEGAL_SLACK);
-          edgeBuckets[a.t - tMin].push({ from: positions[i], to: positions[j], color, level: kind });
+          edgeBuckets[a.t - tMin].push({ from: positions[i], to: positions[j], color, level: kind, cvi });
           if (kind === 2) violTotal++; else if (kind === 1) tightTotal++; else slackTotal++;
         } else {                                    // edges mode: every compute dependence
-          edgeBuckets[a.t - tMin].push({ from: positions[i], to: positions[j], color: DEP_COLOR, level: 0 });
+          edgeBuckets[a.t - tMin].push({ from: positions[i], to: positions[j], color: DEP_COLOR, level: 0, cvi });
           depTotal++;
         }
         if (++count >= EDGE_CAP) { edgeCapped = true; break; }
@@ -273,18 +309,22 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   function setFrame(f) {
     frame = Math.max(0, Math.min(frameCount - 1, Math.round(f)));
     const now = tMin + frame;
-    let firing = 0, fired = 0, sigSum = 0;
+    let firing = 0, fired = 0, shown = 0, sigSum = 0;
     for (let i = 0; i < acts.length; i++) {
       const t = acts[i].t;
+      const on = varVisible[acts[i].vi];
       let s;
-      if (t < now) {                       // already fired — solid, small, dim
-        s = baseR * 0.72; col.copy(baseColors[i]).multiplyScalar(0.7); fired++;
-      } else if (t === now) {              // the firing wavefront — bright, big
+      if (on) shown++;
+      if (on && t === now) {               // the firing wavefront — bright, big
         s = baseR * 1.8; col.copy(baseColors[i]).lerp(WHITE, 0.6); firing++;
         // accumulate the signature σ = τ·p of the firing set to place the τ-plane
         if (planeGrp) { const p = acts[i].p; sigSum += tau3.x * p[0] + tau3.y * p[1] + tau3.z * p[2]; }
-      } else {                             // pending — tiny, near-dark
+      } else if (on && t < now) {          // already fired — solid, small, dim
+        s = baseR * 0.72; col.copy(baseColors[i]).multiplyScalar(0.7); fired++;
+      } else if (tileMode) {               // tile mode: pending keeps a dim tile colour
         s = baseR * 0.5; col.copy(baseColors[i]).multiplyScalar(0.12);
+      } else {                             // pending, or a hidden variable — hidden; the gray
+        s = 0; col.copy(baseColors[i]);    // backdrop marks this index point (one dot per site)
       }
       dummy.position.set(positions[i][0], positions[i][1], positions[i][2]);
       dummy.scale.setScalar(s);
@@ -301,8 +341,11 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
       const bucket = edgeBuckets[frame];
       const pos = lineSeg.geometry.attributes.position.array;
       const lc = lineSeg.geometry.attributes.color.array;
+      let w = 0;                                   // packed edge count (hidden variables skipped)
       for (let n = 0; n < bucket.length; n++) {
-        const e = bucket[n], c = e.color, o = n * 6;
+        const e = bucket[n];
+        if (!varVisible[e.cvi]) continue;          // this variable's wavefront is toggled off
+        const c = e.color, o = w * 6;
         pos[o] = e.from[0]; pos[o + 1] = e.from[1]; pos[o + 2] = e.from[2];
         pos[o + 3] = e.to[0]; pos[o + 4] = e.to[1]; pos[o + 5] = e.to[2];
         // from = consumer, to = producer. In edges mode fade the producer end so the
@@ -314,8 +357,9 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
         if (tileMode) { if (e.level === 1) firingHalo++; else firingColl++; }
         else if (legalityMode) { if (e.level === 2) firingViol++; else if (e.level === 1) firingTight++; else firingSlack++; }
         else firingDep++;
+        w++;
       }
-      lineSeg.geometry.setDrawRange(0, bucket.length * 2);
+      lineSeg.geometry.setDrawRange(0, w * 2);
       lineSeg.geometry.attributes.position.needsUpdate = true;
       lineSeg.geometry.attributes.color.needsUpdate = true;
     }
@@ -342,7 +386,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
         `<div>step ${frame + 1} / ${frameCount}` +
         `&nbsp; latency ${data.latency ?? frameCount}</div>` +
         `<div>wavefront: <b>${firing}</b> firing (parallelism)</div>` +
-        `<div>fired ${fired} / ${acts.length}</div>` +
+        `<div>fired ${fired} / ${shown}</div>` +
         (planeMode ? `<div><span style="color:#4fd1ff">▬</span> wavefront plane ⟂ τ</div>` : '') +
         (tileMode ? `<div>tiles: ${nTiles[0]}×${nTiles[1]}×${nTiles[2]} (T=${tileSizes.join('×')})</div>` : '') +
         (lineSeg && tileMode ? `<div>cross-tile: <b style="color:#35c759">${firingHalo}</b> halo · ` +
@@ -409,6 +453,11 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
     edgesMode,
     planeMode,
     legalityMode,
+    varNames: vars.map((v) => String(v.name ?? '')),
+    // toggle a variable's activity wavefront (checkbox control); off → gray index dots
+    setVarVisible(vi, on) {
+      if (vi >= 0 && vi < varVisible.length) { varVisible[vi] = !!on; setFrame(frame); }
+    },
     setFrame,
     play() { playing = true; },
     pause() { playing = false; },
@@ -416,6 +465,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
     dispose() {
       cancelAnimationFrame(raf); ro.disconnect(); controls.dispose();
       geo.dispose(); inst.material.dispose(); inst.dispose();
+      if (bg) { bg.material.dispose(); bg.dispose(); }
       if (lineSeg) { lineSeg.geometry.dispose(); lineSeg.material.dispose(); }
       if (planeGrp) planeGrp.traverse((o) => { o.geometry?.dispose?.(); o.material?.dispose?.(); });
       renderer.dispose();
@@ -502,14 +552,18 @@ export async function mountAll(root = document) {
     } else if (Array.isArray(data.variables) && data.variables.length) {
       const leg = Object.assign(document.createElement('div'), { className: 'sa-legend' });
       const cols = ['#4fd1ff', '#ff9f0a', '#35c759', '#bf5af2', '#ffd60a', '#ff6482', '#64d2ff'];
-      // build each swatch from a text node — v.name comes from the fetched JSON (data-src
-      // can be an arbitrary URL), so it must never reach innerHTML
+      // each variable is a check-mark control: checked → its activity wavefront animates in
+      // colour, unchecked → its points fall back to gray index-space dots. The label text is
+      // a text node — v.name comes from the fetched JSON (data-src can be an arbitrary URL),
+      // so it must never reach innerHTML.
       data.variables.forEach((v, i) => {
-        const s = document.createElement('span');
+        const label = Object.assign(document.createElement('label'), { className: 'sa-var' });
+        const cb = Object.assign(document.createElement('input'), { type: 'checkbox', checked: true });
         const sw = document.createElement('i');
         sw.style.background = cols[i % cols.length];
-        s.append(sw, String(v.name ?? ''));
-        leg.append(s);
+        cb.addEventListener('change', () => viewer.setVarVisible(i, cb.checked));
+        label.append(cb, sw, document.createTextNode(String(v.name ?? '')));
+        leg.append(label);
       });
       // dependency-arrow overlay legend (issue #142): the gradient reads producer → consumer
       if (viewer.edgesMode) {
@@ -633,7 +687,17 @@ export async function mountCompareAll(root = document) {
     if (Array.isArray(first?.variables) && first.variables.length) {
       const leg = mk('sc-legend');
       const cols = ['#4fd1ff', '#ff9f0a', '#35c759', '#bf5af2', '#ffd60a', '#ff6482', '#64d2ff'];
-      first.variables.forEach((v, i) => leg.append(swatch(cols[i % cols.length], v.name)));
+      // per-variable check-mark control — toggles the variable's wavefront in BOTH panes at
+      // once (they share the recurrence), so a variable greys out on both sides together.
+      first.variables.forEach((v, i) => {
+        const label = Object.assign(document.createElement('label'), { className: 'sa-var' });
+        const cb = Object.assign(document.createElement('input'), { type: 'checkbox', checked: true });
+        const sw = document.createElement('i');
+        sw.style.background = cols[i % cols.length];
+        cb.addEventListener('change', () => { for (const v2 of viewers) v2.setVarVisible(i, cb.checked); });
+        label.append(cb, sw, document.createTextNode(String(v.name ?? '')));
+        leg.append(label);
+      });
       if (plane) leg.append(swatch('#4fd1ff', 'wavefront plane ⟂ τ'));
       if (edges) leg.append(swatch('#9db4d0', 'dependency'));
       if (legality) {
