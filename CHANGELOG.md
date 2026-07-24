@@ -8,6 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Schedule animation — per-variable check-mark controls + gray index space** (issue #142): with
+  3+ recurrence variables the coloured lattice reads as a dense blur. The legend of every
+  `schedule-anim` (and the shared legend of `schedule-compare`) is now a set of **check-mark
+  controls**, one per variable — checked shows that variable's **activity wavefront** in colour;
+  unchecked drops its points back to plain **gray index-space dots**. The index space itself is
+  simplified: only the *fired* and *firing* points of checked variables carry colour, while every
+  pending (not-yet-fired) point — and every point of an unchecked variable — renders as a simple
+  gray dot, so the wavefront of the variables you care about stands out. Dependency/legality/tile
+  overlay edges are filtered to the visible variables too. (`docs-site/src/components/schedule-anim.js`,
+  `src/styles/custom.css`.)
+
 - **SURE DSL — piecewise variables + Jacobi/Gauss–Seidel as pure SUREs** (issue #53): a variable
   may now have **more than one equation**, each on a disjoint sub-domain — a conditional/piecewise
   recurrence, e.g. a pipelined state routed differently for `i>j`, `i<j`, `i=j`. `RecurrenceSystem`
