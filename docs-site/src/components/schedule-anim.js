@@ -167,11 +167,37 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   const WHITE = new THREE.Color(0xffffff);
   // ── per-variable visibility (issue #142): with 3+ recurrences the coloured lattice
   //    is dense. A check-mark control (built in mountAll) toggles each variable's
-  //    *activity wavefront*; when it's off, that variable's points fall back to plain
-  //    GRAY index-space dots — as do the pending (not-yet-fired) points of the visible
-  //    ones — so only the fired/firing wavefront of the checked variables carries colour.
+  //    *activity wavefront*; when it's off, that variable's coloured dots disappear and
+  //    only the gray index-space backdrop (below) marks the point. Likewise pending
+  //    (not-yet-fired) points show only the backdrop — colour is reserved for the
+  //    fired/firing wavefront of the checked variables.
   const varVisible = vars.map(() => true);
-  const GRAY = new THREE.Color(0x6b7280);
+
+  // ── index-space backdrop (issue #142): the *index space* is the SET of index points in
+  //    the domain of execution — one point per lattice site, not one per variable. The
+  //    activation spheres jitter apart per variable, so a site shared by K recurrences would
+  //    otherwise show K overlapping gray dots. Draw instead a SINGLE unjittered gray dot per
+  //    unique index point as a static backdrop; the activation mesh only lights the coloured
+  //    wavefront on top. (Suppressed in tile mode, where colour encodes the tile block and the
+  //    pending points keep a dim tile colour rather than falling back to gray.) ──────────────
+  let bg = null;
+  if (!tileMode) {
+    const uniq = new Map();                       // point-key → unjittered [x,y,z]
+    for (const a of acts) { const k = a.p.join(','); if (!uniq.has(k)) uniq.set(k, a.p); }
+    const indexPoints = [...uniq.values()];
+    if (indexPoints.length) {
+      bg = new THREE.InstancedMesh(
+        geo, new THREE.MeshLambertMaterial({ color: 0x565c68, transparent: true, opacity: 0.9 }),
+        indexPoints.length);
+      const d = new THREE.Object3D();
+      indexPoints.forEach((p, i) => {
+        d.position.set(p[0], p[1], p[2]); d.scale.setScalar(baseR * 0.5); d.updateMatrix();
+        bg.setMatrixAt(i, d.matrix);
+      });
+      bg.instanceMatrix.needsUpdate = true;
+      scene.add(bg);
+    }
+  }
 
   // ── τ-normal wavefront plane: a translucent quad whose normal is τ̂. Built once and
   //    oriented here; setFrame slides it ALONG τ̂ to the mean signature of the firing set,
@@ -295,8 +321,10 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
         if (planeGrp) { const p = acts[i].p; sigSum += tau3.x * p[0] + tau3.y * p[1] + tau3.z * p[2]; }
       } else if (on && t < now) {          // already fired — solid, small, dim
         s = baseR * 0.72; col.copy(baseColors[i]).multiplyScalar(0.7); fired++;
-      } else {                             // pending, or a hidden variable — simple gray dot
-        s = baseR * 0.5; col.copy(GRAY);
+      } else if (tileMode) {               // tile mode: pending keeps a dim tile colour
+        s = baseR * 0.5; col.copy(baseColors[i]).multiplyScalar(0.12);
+      } else {                             // pending, or a hidden variable — hidden; the gray
+        s = 0; col.copy(baseColors[i]);    // backdrop marks this index point (one dot per site)
       }
       dummy.position.set(positions[i][0], positions[i][1], positions[i][2]);
       dummy.scale.setScalar(s);
@@ -437,6 +465,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
     dispose() {
       cancelAnimationFrame(raf); ro.disconnect(); controls.dispose();
       geo.dispose(); inst.material.dispose(); inst.dispose();
+      if (bg) { bg.material.dispose(); bg.dispose(); }
       if (lineSeg) { lineSeg.geometry.dispose(); lineSeg.material.dispose(); }
       if (planeGrp) planeGrp.traverse((o) => { o.geometry?.dispose?.(); o.material?.dispose?.(); });
       renderer.dispose();
