@@ -8,6 +8,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Schedule animation — convex-hull domains of computation** (issue #142): to visualize *large*
+  domains, where the per-point index cloud turns to mush, each **domain of computation** can now be
+  drawn as the **convex hull of its index set** — a translucent solid + wireframe — with the
+  activity wavefront sweeping *through* the shells. One hull is drawn **per distinct domain**, not
+  per variable: variables that share a domain (matmul's `a`,`b`,`c` all on the full cube; the
+  systolic `am`/`bb`/`diag`/`xx`) fold into a single hull rather than stacking coincident,
+  z-fighting copies. A single-owner domain takes that variable's colour, a shared domain a neutral
+  steel; a hull is visible while any of its variables is checked.
+  A **⬡ hulls / · points** control in the bar switches between the hull outlines and the index-point
+  backdrop (both toggleable; the per-variable checkboxes still isolate one domain, hiding its hull
+  too). Full-dimensional domains yield a proper solid (box / triangular prism / …); a rank-reduced
+  domain (a face or line) falls back to a bounding-box outline. Opt an embed into hull-first with a
+  bare `data-hull` attribute (single-view and `schedule-compare` both); the *Systolic SURE
+  transforms* page's two 6-variable animations now open in hull view. Suppressed in tile mode.
+  (`docs-site/src/components/schedule-anim.js`, `src/styles/custom.css`.)
+
 - **Schedule animation — per-variable check-mark controls + gray index space** (issue #142): with
   3+ recurrence variables the coloured lattice reads as a dense blur. The legend of every
   `schedule-anim` (and the shared legend of `schedule-compare`) is now a set of **check-mark
