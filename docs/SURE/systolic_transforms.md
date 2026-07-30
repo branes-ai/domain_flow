@@ -77,7 +77,14 @@ vector. `dfactl` reports `kind: SURE` — **zero affine arcs**.
 
 <div class="rdg" data-src="rdg/jacobi_systolic.json" data-height="560"></div>
 
-<div class="schedule-anim" data-src="schedules/jacobi_systolic-free.json" data-height="380"></div>
+The animation below opens in **hull view**: instead of one dot per index point, each recurrence
+variable's *domain of computation* is drawn as the convex hull of its index set (`accL`/`accU`
+the two triangular half-prisms, the propagated `am`/`bb`/`diag` and the pipelined `xx` filling
+the cube), and the activity wavefront sweeps *through* those shells. Toggle **⬡ hulls** / **· points**
+in the control bar, and use the per-variable checkboxes to isolate one domain — the hulls keep the
+picture legible at domain sizes where the point cloud turns to mush.
+
+<div class="schedule-anim" data-src="schedules/jacobi_systolic-free.json" data-height="380" data-hull></div>
 
 ## Gauss–Seidel — the two-sweep subtlety
 
@@ -97,7 +104,7 @@ Jacobi because it reuses fresh data.)
 
 <div class="rdg" data-src="rdg/gauss_seidel_systolic.json" data-height="560"></div>
 
-<div class="schedule-anim" data-src="schedules/gauss_seidel_systolic-free.json" data-height="380"></div>
+<div class="schedule-anim" data-src="schedules/gauss_seidel_systolic-free.json" data-height="380" data-hull></div>
 
 ## What "systolic" bought — and what it didn't
 

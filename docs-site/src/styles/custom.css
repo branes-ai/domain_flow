@@ -68,6 +68,32 @@
 .schedule-anim .sa-scrub {
   flex: 1;
 }
+/* hull / index-point display toggles (issue #142) — a small pair of checkboxes in the
+   control bar, next to reset-view. Kept compact so they don't crowd the scrubber. */
+:is(.schedule-anim, .schedule-compare) .sa-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  font-family: var(--sl-font-mono, monospace);
+  font-size: 11px;
+  color: #c9d1d9;
+  white-space: nowrap;
+}
+:is(.schedule-anim, .schedule-compare) .sa-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  user-select: none;
+}
+:is(.schedule-anim, .schedule-compare) .sa-opt input {
+  width: 12px;
+  height: 12px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: #4fd1ff;
+}
 .schedule-anim .sa-legend {
   position: absolute;
   top: 8px;

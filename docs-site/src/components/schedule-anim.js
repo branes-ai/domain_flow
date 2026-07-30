@@ -16,6 +16,7 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { ConvexGeometry } from 'three/addons/geometries/ConvexGeometry.js';
 
 // Per-variable colours — the "result" variable (last, e.g. matmul's c) reads green,
 // echoing the classic domain-flow linear-schedule picture.
@@ -74,6 +75,13 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
   //    mutually exclusive with the tile / edge overlays. ────────────────────────────────
   const legalityMode = !!options.legality && !tileMode;
   const edgesMode = !!options.edges && !tileMode && !legalityMode;
+  // ── convex-hull domains (issue #142): for LARGE domains the per-point index cloud is a
+  //    dense blur. Instead draw the convex HULL of each recurrence variable's domain of
+  //    computation — a translucent solid + wireframe — so the wavefront animates *through*
+  //    a clean shape and the index points can be hidden. `hull` seeds the initial mode; the
+  //    hull-vs-points display is toggleable at runtime (setHulls / setPoints). Meaningless in
+  //    tile mode (colour encodes the tile block, not the variable), so suppressed there. ────
+  const hullSeed = !!options.hull && !tileMode;
   // ── τ-normal wavefront plane (issue #142, Phase 3): a translucent plane normal to the
   //    scheduling vector τ, positioned at the firing wavefront and swept through the
   //    lattice as time advances — the classic domain-flow linear-schedule picture (points
@@ -197,6 +205,58 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
       bg.instanceMatrix.needsUpdate = true;
       scene.add(bg);
     }
+  }
+
+  // ── per-variable convex hulls (issue #142): the convex hull of each variable's domain of
+  //    computation, so a large domain reads as one clean shape rather than thousands of dots.
+  //    Built once from the variable's UNJITTERED index points; a full-dimensional domain
+  //    (a box / triangular prism / …) yields a proper solid, a rank-reduced one (a face, a
+  //    line) is degenerate for a 3-D hull, so we fall back to a bounding-box wireframe so the
+  //    domain is still outlined. Each hull is a translucent fill + brighter wireframe in the
+  //    variable's palette colour; visibility is gated by the hull toggle AND the per-variable
+  //    checkbox. Wavefront spheres are drawn on top, so activity propagates through the hull.
+  const hullGroups = vars.map(() => null);
+  if (!tileMode) {
+    // group activations by variable, dedup to the domain's distinct index points
+    const ptsByVar = vars.map(() => new Map());
+    for (const a of acts) { const m = ptsByVar[a.vi]; const k = a.p.join(','); if (!m.has(k)) m.set(k, a.p); }
+    vars.forEach((v, vi) => {
+      const pts = [...ptsByVar[vi].values()];
+      if (pts.length < 3) return;                 // too few points to outline anything meaningful
+      const color = new THREE.Color(PALETTE[vi % PALETTE.length]);
+      const grp = new THREE.Group();
+      grp.visible = false;                        // setFrame/setHulls decides — off until hull mode
+      let solid = null;
+      try {
+        // ConvexGeometry throws / yields empty on coplanar (rank-reduced) point sets
+        const cg = new ConvexGeometry(pts.map((p) => new THREE.Vector3(p[0], p[1], p[2])));
+        if (cg.getAttribute('position') && cg.getAttribute('position').count >= 3) solid = cg;
+        else cg.dispose();
+      } catch { solid = null; }
+      if (solid) {
+        grp.add(new THREE.Mesh(solid, new THREE.MeshLambertMaterial({
+          color, transparent: true, opacity: 0.14, side: THREE.DoubleSide, depthWrite: false })));
+        grp.add(new THREE.LineSegments(new THREE.EdgesGeometry(solid),
+          new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.85 })));
+      } else {
+        // degenerate domain (planar / linear): outline its axis-aligned bounding box instead
+        const b = new THREE.Box3();
+        for (const p of pts) b.expandByPoint(new THREE.Vector3(p[0], p[1], p[2]));
+        grp.add(new THREE.Box3Helper(b, color));
+      }
+      hullGroups[vi] = grp;
+      scene.add(grp);
+    });
+  }
+  // hulls on ⇒ index-point backdrop off, and vice-versa (both can be off): the hull IS the
+  // domain outline, so showing both is redundant clutter. Runtime toggles flip these.
+  let showHulls = hullSeed && hullGroups.some(Boolean);
+  let showPoints = !showHulls;
+  // apply the point/hull backdrop visibility (independent of the animation frame). A hull is
+  // shown only when hull mode is on AND its variable's checkbox is ticked.
+  function refreshBackdrops() {
+    if (bg) bg.visible = showPoints;
+    hullGroups.forEach((g, vi) => { if (g) g.visible = showHulls && varVisible[vi]; });
   }
 
   // ── τ-normal wavefront plane: a translucent quad whose normal is τ̂. Built once and
@@ -444,7 +504,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
 
   const ro = new ResizeObserver(resize);
   ro.observe(canvas);
-  resize(); fitView(); setFrame(0);
+  resize(); fitView(); setFrame(0); refreshBackdrops();
   raf = requestAnimationFrame(tick);
 
   return {
@@ -453,11 +513,17 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
     edgesMode,
     planeMode,
     legalityMode,
+    hasHulls: hullGroups.some(Boolean),
+    showHulls,
+    showPoints,
     varNames: vars.map((v) => String(v.name ?? '')),
-    // toggle a variable's activity wavefront (checkbox control); off → gray index dots
+    // toggle a variable's activity wavefront (checkbox control); off → hidden, backdrop marks it
     setVarVisible(vi, on) {
-      if (vi >= 0 && vi < varVisible.length) { varVisible[vi] = !!on; setFrame(frame); }
+      if (vi >= 0 && vi < varVisible.length) { varVisible[vi] = !!on; refreshBackdrops(); setFrame(frame); }
     },
+    // toggle the convex-hull domain outlines / the index-point backdrop (display controls)
+    setHulls(on) { showHulls = !!on; this.showHulls = showHulls; refreshBackdrops(); },
+    setPoints(on) { showPoints = !!on; this.showPoints = showPoints; refreshBackdrops(); },
     setFrame,
     play() { playing = true; },
     pause() { playing = false; },
@@ -466,6 +532,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
       cancelAnimationFrame(raf); ro.disconnect(); controls.dispose();
       geo.dispose(); inst.material.dispose(); inst.dispose();
       if (bg) { bg.material.dispose(); bg.dispose(); }
+      for (const g of hullGroups) if (g) g.traverse((o) => { o.geometry?.dispose?.(); o.material?.dispose?.(); });
       if (lineSeg) { lineSeg.geometry.dispose(); lineSeg.material.dispose(); }
       if (planeGrp) planeGrp.traverse((o) => { o.geometry?.dispose?.(); o.material?.dispose?.(); });
       renderer.dispose();
@@ -504,6 +571,10 @@ export async function mountAll(root = document) {
     // data-plane → draw the translucent τ-normal wavefront plane (issue #142, Phase 3).
     // A bare attribute turns it on; inert on free schedules (no τ). Composes with any mode.
     const plane = el.hasAttribute('data-plane');
+    // data-hull → start in convex-hull mode: outline each variable's domain of computation as a
+    // hull instead of the index-point cloud (issue #142), so large domains stay legible. A bare
+    // attribute seeds the mode; the hull/points display is toggleable at runtime either way.
+    const hull = el.hasAttribute('data-hull');
     el.style.height = `${height}px`;
 
     const canvas = document.createElement('canvas');
@@ -529,10 +600,33 @@ export async function mountAll(root = document) {
     let playing = false;
     const viewer = createScheduleViewer({
       canvas, hud, data,
-      options: { fps, tile, edges, plane, legality, onFrame: (i) => { if (playing) scrub.value = String(i); } },
+      options: { fps, tile, edges, plane, legality, hull, onFrame: (i) => { if (playing) scrub.value = String(i); } },
     });
     scrub.max = String(Math.max(0, viewer.frameCount - 1));
-    registerViewer(el, { setFrame: viewer.setFrame, frameCount: viewer.frameCount });
+    registerViewer(el, {
+      setFrame: viewer.setFrame, frameCount: viewer.frameCount,
+      hasHulls: viewer.hasHulls, setHulls: (v) => viewer.setHulls(v), setPoints: (v) => viewer.setPoints(v),
+    });
+
+    // display toggles: convex-hull outlines ⟷ index-point cloud. Only offered when at least
+    // one variable produced a hull (never in tile mode). The two are mutually informative, so
+    // they're independent checkboxes: hull-seeded embeds start hulls-on/points-off, the rest
+    // start points-on/hulls-off — either can be flipped live.
+    if (viewer.hasHulls) {
+      const disp = Object.assign(document.createElement('div'), { className: 'sa-toggle' });
+      const mk = (label, title, on, handler) => {
+        const lab = Object.assign(document.createElement('label'), { className: 'sa-opt', title });
+        const cb = Object.assign(document.createElement('input'), { type: 'checkbox', checked: on });
+        cb.addEventListener('change', () => handler(cb.checked));
+        lab.append(cb, document.createTextNode(label));
+        return lab;
+      };
+      disp.append(
+        mk('⬡ hulls', 'show convex hulls of the domains of computation', viewer.showHulls, (v) => viewer.setHulls(v)),
+        mk('· points', 'show the index-space points', viewer.showPoints, (v) => viewer.setPoints(v)),
+      );
+      bar.append(disp);
+    }
 
     // variable legend — suppressed in tile mode, where colour encodes the block
     // (one hue per tile) rather than the recurrence variable.
@@ -623,6 +717,7 @@ export async function mountCompareAll(root = document) {
     const plane = el.hasAttribute('data-plane');
     const edges = el.hasAttribute('data-edges');
     const legality = el.hasAttribute('data-legality');
+    const hull = el.hasAttribute('data-hull');       // seed both panes into convex-hull mode
     const srcs = [el.getAttribute('data-src-a'), el.getAttribute('data-src-b')].map(resolve);
 
     const mk = (cls) => Object.assign(document.createElement('div'), { className: cls });
@@ -663,7 +758,7 @@ export async function mountCompareAll(root = document) {
     const viewers = [];
     datas.forEach((data, i) => {
       if (!data) return;
-      const v = createScheduleViewer({ canvas: panes[i].canvas, hud: panes[i].hud, data, options: { fps: fps0, plane, edges, legality } });
+      const v = createScheduleViewer({ canvas: panes[i].canvas, hud: panes[i].hud, data, options: { fps: fps0, plane, edges, legality, hull } });
       v.pause();                                   // we drive frames from the shared clock
       viewers.push(v);
       const kind = data.schedule?.kind ?? '';
@@ -671,6 +766,25 @@ export async function mountCompareAll(root = document) {
       panes[i].head.textContent = `${data.operator ?? 'schedule'} · ${kind}${tau} · latency ${data.latency ?? v.frameCount}`;
     });
     if (!viewers.length) continue;
+
+    // shared hull/points display toggles — flip BOTH panes together (they share the recurrence).
+    // Offered only when a pane produced hulls; seeded by the same state the viewers started in.
+    if (viewers.some((v) => v.hasHulls)) {
+      const disp = mk('sa-toggle');
+      const opt = (label, title, on, handler) => {
+        const lab = Object.assign(document.createElement('label'), { className: 'sa-opt', title });
+        const cb = Object.assign(document.createElement('input'), { type: 'checkbox', checked: on });
+        cb.addEventListener('change', () => { for (const v of viewers) handler(v, cb.checked); });
+        lab.append(cb, document.createTextNode(label));
+        return lab;
+      };
+      const seed = viewers.find((v) => v.hasHulls);
+      disp.append(
+        opt('⬡ hulls', 'show convex hulls of the domains of computation', seed.showHulls, (v, on) => v.setHulls(on)),
+        opt('· points', 'show the index-space points', seed.showPoints, (v, on) => v.setPoints(on)),
+      );
+      bar.append(disp);
+    }
 
     // shared legend: variable colours (both panes share the palette), plus overlay hints.
     // A swatch's label may be a variable name from the fetched JSON, so build it from a
