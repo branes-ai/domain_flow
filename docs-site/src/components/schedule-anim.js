@@ -207,25 +207,36 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
     }
   }
 
-  // ── per-variable convex hulls (issue #142): the convex hull of each variable's domain of
-  //    computation, so a large domain reads as one clean shape rather than thousands of dots.
-  //    Built once from the variable's UNJITTERED index points; a full-dimensional domain
-  //    (a box / triangular prism / …) yields a proper solid, a rank-reduced one (a face, a
-  //    line) is degenerate for a 3-D hull, so we fall back to a bounding-box wireframe so the
-  //    domain is still outlined. Each hull is a translucent fill + brighter wireframe in the
-  //    variable's palette colour; visibility is gated by the hull toggle AND the per-variable
-  //    checkbox. Wavefront spheres are drawn on top, so activity propagates through the hull.
-  const hullGroups = vars.map(() => null);
+  // ── convex hulls of the DOMAINS of computation (issue #142): ONE hull per distinct domain,
+  //    not one per variable. Several recurrence variables normally share a single domain (e.g.
+  //    matmul's a, b, c all live on the full i×j×k cube; the systolic am/bb/diag/xx all fill the
+  //    same cube). Drawing a hull per variable stacked coincident shells whose coplanar faces and
+  //    duplicate edges z-fight — the flicker. So group variables by their domain (the exact index
+  //    -point set) and build ONE hull per group. A hull is visible when ANY of its member
+  //    variables is checked; a single-owner domain takes that variable's palette colour, a shared
+  //    domain a neutral steel (it isn't one variable). A full-dimensional domain yields a solid
+  //    (box / triangular prism); a rank-reduced one (a face / line) is degenerate for a 3-D hull,
+  //    so it falls back to a bounding-box outline. Wavefront spheres draw on top, so activity
+  //    propagates THROUGH the shell. ──────────────────────────────────────────────────────────
+  const hulls = [];                               // [{ grp, members:[vi,…] }] — one per distinct domain
   if (!tileMode) {
-    // group activations by variable, dedup to the domain's distinct index points
-    const ptsByVar = vars.map(() => new Map());
+    const ptsByVar = vars.map(() => new Map());   // vi → (pointKey → unjittered [x,y,z])
     for (const a of acts) { const m = ptsByVar[a.vi]; const k = a.p.join(','); if (!m.has(k)) m.set(k, a.p); }
+    // fold variables that compute over the identical index set into one domain group
+    const byDomain = new Map();                   // signature → { members:[vi], pts:[…] }
     vars.forEach((v, vi) => {
-      const pts = [...ptsByVar[vi].values()];
-      if (pts.length < 3) return;                 // too few points to outline anything meaningful
-      const color = new THREE.Color(PALETTE[vi % PALETTE.length]);
+      const m = ptsByVar[vi];
+      if (m.size < 3) return;                     // too few points to outline anything meaningful
+      const sig = [...m.keys()].sort().join(';');
+      const g = byDomain.get(sig);
+      if (g) g.members.push(vi);
+      else byDomain.set(sig, { members: [vi], pts: [...m.values()] });
+    });
+    const NEUTRAL = new THREE.Color(0x9db4d0);
+    for (const { members, pts } of byDomain.values()) {
+      const color = members.length === 1 ? new THREE.Color(PALETTE[members[0] % PALETTE.length]) : NEUTRAL;
       const grp = new THREE.Group();
-      grp.visible = false;                        // setFrame/setHulls decides — off until hull mode
+      grp.visible = false;                        // setHulls / refreshBackdrops decides
       let solid = null;
       try {
         // ConvexGeometry throws / yields empty on coplanar (rank-reduced) point sets
@@ -234,8 +245,11 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
         else cg.dispose();
       } catch { solid = null; }
       if (solid) {
+        // depthWrite:false + polygonOffset keep coplanar boundary faces of ADJACENT domains
+        // (e.g. accL's j<i and accU's j>i sharing the diagonal) from z-fighting the edges.
         grp.add(new THREE.Mesh(solid, new THREE.MeshLambertMaterial({
-          color, transparent: true, opacity: 0.14, side: THREE.DoubleSide, depthWrite: false })));
+          color, transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false,
+          polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 })));
         grp.add(new THREE.LineSegments(new THREE.EdgesGeometry(solid),
           new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.85 })));
       } else {
@@ -244,19 +258,19 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
         for (const p of pts) b.expandByPoint(new THREE.Vector3(p[0], p[1], p[2]));
         grp.add(new THREE.Box3Helper(b, color));
       }
-      hullGroups[vi] = grp;
+      hulls.push({ grp, members });
       scene.add(grp);
-    });
+    }
   }
   // hulls on ⇒ index-point backdrop off, and vice-versa (both can be off): the hull IS the
   // domain outline, so showing both is redundant clutter. Runtime toggles flip these.
-  let showHulls = hullSeed && hullGroups.some(Boolean);
+  let showHulls = hullSeed && hulls.length > 0;
   let showPoints = !showHulls;
-  // apply the point/hull backdrop visibility (independent of the animation frame). A hull is
-  // shown only when hull mode is on AND its variable's checkbox is ticked.
+  // apply the point/hull backdrop visibility (independent of the animation frame). A domain hull
+  // is shown when hull mode is on AND at least one of its member variables is still checked.
   function refreshBackdrops() {
     if (bg) bg.visible = showPoints;
-    hullGroups.forEach((g, vi) => { if (g) g.visible = showHulls && varVisible[vi]; });
+    for (const h of hulls) h.grp.visible = showHulls && h.members.some((vi) => varVisible[vi]);
   }
 
   // ── τ-normal wavefront plane: a translucent quad whose normal is τ̂. Built once and
@@ -513,7 +527,8 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
     edgesMode,
     planeMode,
     legalityMode,
-    hasHulls: hullGroups.some(Boolean),
+    hasHulls: hulls.length > 0,
+    hullCount: hulls.length,             // distinct domains of computation (deduped across variables)
     showHulls,
     showPoints,
     varNames: vars.map((v) => String(v.name ?? '')),
@@ -532,7 +547,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
       cancelAnimationFrame(raf); ro.disconnect(); controls.dispose();
       geo.dispose(); inst.material.dispose(); inst.dispose();
       if (bg) { bg.material.dispose(); bg.dispose(); }
-      for (const g of hullGroups) if (g) g.traverse((o) => { o.geometry?.dispose?.(); o.material?.dispose?.(); });
+      for (const h of hulls) h.grp.traverse((o) => { o.geometry?.dispose?.(); o.material?.dispose?.(); });
       if (lineSeg) { lineSeg.geometry.dispose(); lineSeg.material.dispose(); }
       if (planeGrp) planeGrp.traverse((o) => { o.geometry?.dispose?.(); o.material?.dispose?.(); });
       renderer.dispose();
@@ -605,7 +620,8 @@ export async function mountAll(root = document) {
     scrub.max = String(Math.max(0, viewer.frameCount - 1));
     registerViewer(el, {
       setFrame: viewer.setFrame, frameCount: viewer.frameCount,
-      hasHulls: viewer.hasHulls, setHulls: (v) => viewer.setHulls(v), setPoints: (v) => viewer.setPoints(v),
+      hasHulls: viewer.hasHulls, hullCount: viewer.hullCount,
+      setHulls: (v) => viewer.setHulls(v), setPoints: (v) => viewer.setPoints(v),
     });
 
     // display toggles: convex-hull outlines ⟷ index-point cloud. Only offered when at least
