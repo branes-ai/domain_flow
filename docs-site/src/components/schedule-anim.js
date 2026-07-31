@@ -22,6 +22,33 @@ import { ConvexGeometry } from 'three/addons/geometries/ConvexGeometry.js';
 // echoing the classic domain-flow linear-schedule picture.
 const PALETTE = [0x4fd1ff, 0xff9f0a, 0x35c759, 0xbf5af2, 0xffd60a, 0xff6482, 0x64d2ff];
 
+/**
+ * Affine (dimensional) rank of a set of 3-D lattice points: the dimension of the affine hull
+ * of the point set — 3 = full solid, 2 = coplanar (a face), 1 = collinear (a line), 0 = a single
+ * point. Used to decide whether a domain of computation can form a 3-D convex hull: ConvexGeometry
+ * (QuickHull) needs FOUR affinely-independent points, and on a coplanar/collinear set it either
+ * throws or returns a degenerate sliver — so `position.count` is not a reliable coplanarity test.
+ * We classify rank explicitly and only build a solid hull for rank 3; lower ranks get a bounding
+ * -box outline instead. Reduces incrementally (Gram–Schmidt) and early-exits once 3 independent
+ * directions are found, so it is O(points) with a tiny constant even for a full cube.
+ * @param {number[][]} pts array of [x,y,z]
+ * @returns {number} 0..3
+ */
+export function affineRank(pts) {
+  if (!pts || pts.length < 2) return 0;     // 0 or 1 point → affine dimension 0
+  const base = pts[0];
+  const basis = [];                         // independent direction vectors, at most 3
+  for (let i = 1; i < pts.length && basis.length < 3; i++) {
+    let v = [pts[i][0] - base[0], pts[i][1] - base[1], pts[i][2] - base[2]];
+    for (const b of basis) {                // remove the component along each existing basis dir
+      const d = (v[0] * b[0] + v[1] * b[1] + v[2] * b[2]) / (b[0] * b[0] + b[1] * b[1] + b[2] * b[2]);
+      v = [v[0] - d * b[0], v[1] - d * b[1], v[2] - d * b[2]];
+    }
+    if (v[0] * v[0] + v[1] * v[1] + v[2] * v[2] > 1e-9) basis.push(v);   // non-negligible residual → new dim
+  }
+  return basis.length;
+}
+
 // Escape values that originate in the fetched schedule JSON before they reach the
 // HUD's innerHTML — data-src may be an arbitrary (even https) URL, so a compromised
 // schedule must not be able to inject markup into the docs origin.
@@ -226,7 +253,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
     const byDomain = new Map();                   // signature → { members:[vi], pts:[…] }
     vars.forEach((v, vi) => {
       const m = ptsByVar[vi];
-      if (m.size < 3) return;                     // too few points to outline anything meaningful
+      if (m.size < 2) return;                     // a single point can't outline anything
       const sig = [...m.keys()].sort().join(';');
       const g = byDomain.get(sig);
       if (g) g.members.push(vi);
@@ -237,13 +264,20 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
       const color = members.length === 1 ? new THREE.Color(PALETTE[members[0] % PALETTE.length]) : NEUTRAL;
       const grp = new THREE.Group();
       grp.visible = false;                        // setHulls / refreshBackdrops decides
+      // classify the domain's affine rank FIRST: ConvexGeometry (QuickHull) needs 4 affinely
+      // -independent points, so only a rank-3 (full-dimensional) domain can form a solid hull.
+      // A rank-2 face / rank-1 line is coplanar — ConvexGeometry throws or yields a degenerate
+      // sliver there (position.count is not a reliable coplanarity test), so those, and the
+      // rank-3 hulls that still fail, fall back to a bounding-box outline. Many BLAS-1/2 domains
+      // are 1-D/2-D (dot, gemv, …), so this path is common, not a corner case.
       let solid = null;
-      try {
-        // ConvexGeometry throws / yields empty on coplanar (rank-reduced) point sets
-        const cg = new ConvexGeometry(pts.map((p) => new THREE.Vector3(p[0], p[1], p[2])));
-        if (cg.getAttribute('position') && cg.getAttribute('position').count >= 3) solid = cg;
-        else cg.dispose();
-      } catch { solid = null; }
+      if (affineRank(pts) >= 3) {
+        try {
+          const cg = new ConvexGeometry(pts.map((p) => new THREE.Vector3(p[0], p[1], p[2])));
+          if (cg.getAttribute('position') && cg.getAttribute('position').count >= 4) solid = cg;
+          else cg.dispose();
+        } catch { solid = null; }
+      }
       if (solid) {
         // depthWrite:false + polygonOffset keep coplanar boundary faces of ADJACENT domains
         // (e.g. accL's j<i and accU's j>i sharing the diagonal) from z-fighting the edges.
@@ -253,7 +287,9 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
         grp.add(new THREE.LineSegments(new THREE.EdgesGeometry(solid),
           new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.85 })));
       } else {
-        // degenerate domain (planar / linear): outline its axis-aligned bounding box instead
+        // rank < 3 domain (a plane / line), or a rank-3 hull that failed to build: outline the
+        // axis-aligned bounding box instead. For a coplanar/collinear set the box collapses to a
+        // flat rectangle / segment, which is exactly the domain's shape.
         const b = new THREE.Box3();
         for (const p of pts) b.expandByPoint(new THREE.Vector3(p[0], p[1], p[2]));
         grp.add(new THREE.Box3Helper(b, color));

@@ -9,7 +9,7 @@
     "schedules": "node make-schedules.mjs",
     "rdg": "node make-rdg.mjs",
     "video": "node make-video.mjs",
-    "test": "node test/rdg-no-overlap.mjs",
+    "test": "node test/rdg-no-overlap.mjs && node test/hull-rank.mjs",
     "dev": "node sync-content.mjs && astro dev",
     "build": "node sync-content.mjs && astro build",
     "preview": "astro preview",
