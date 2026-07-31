@@ -10,14 +10,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **Schedule animation — classify domain rank before building a convex hull** (issue #142,
   post-merge review of #156): the hull builder trusted `ConvexGeometry`'s output `position.count`
-  to detect a degenerate (coplanar/collinear) domain, but QuickHull needs *four* affinely
-  -independent points and on a rank-reduced set either throws or returns a garbage sliver — and
-  15 shipped schedules have 1-D/2-D domains (`dot`/`asum`/`nrm2` are lines, `gemv`/`axpy`/`trmv`/…
-  are planes). Now the **affine rank** of each domain's point set is computed first: only a rank-3
-  domain builds a solid hull; a rank-1/2 domain (and any rank-3 hull that still fails) falls back
-  to a bounding-box outline. Two-point domains are retained (the old `size < 3` guard dropped
-  them). Adds `affineRank` (exported, pure) and a `test/hull-rank.mjs` unit test over two-point,
-  collinear, planar, and full-3-D fixtures (wired into `npm test`).
+  to detect a degenerate (coplanar/collinear) domain, but QuickHull needs *four*
+  affinely-independent points and on a rank-reduced set either throws or returns a garbage sliver
+  — and 15 shipped schedules have 1-D/2-D domains (`dot`/`asum`/`nrm2` are lines,
+  `gemv`/`axpy`/`trmv`/… are planes). Now the **affine rank** of each domain's point set is
+  computed first: only a rank-3 domain builds a solid hull; a rank-0/1/2 domain (and any rank-3
+  hull that still fails) falls back to a bounding-box outline — a single-point (rank-0) domain,
+  whose box is zero-size, is marked with a small sphere so it stays visible. Adds `affineRank`
+  (exported, pure) and a `test/hull-rank.mjs` unit test over two-point, collinear, planar, and
+  full-3-D fixtures (wired into `npm test`).
 
 ### Added
 

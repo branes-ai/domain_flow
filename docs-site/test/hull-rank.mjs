@@ -14,7 +14,8 @@ import { affineRank } from '../src/components/schedule-anim.js';
 const cases = [
   // [label, points, expectedRank]
   ['empty',                     [],                                              0],
-  ['single point',              [[2, 3, 4]],                                     0],
+  ['single point (rank-0)',     [[2, 3, 4]],                                     0],
+  ['many coincident points',    [[1, 1, 1], [1, 1, 1], [1, 1, 1]],               0],
   ['two coincident points',     [[1, 1, 1], [1, 1, 1]],                          0],
   ['two distinct points (line)',[[0, 0, 0], [3, 0, 0]],                          1],
   ['three collinear',           [[0, 0, 0], [1, 0, 0], [2, 0, 0]],               1],

@@ -253,7 +253,7 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
     const byDomain = new Map();                   // signature → { members:[vi], pts:[…] }
     vars.forEach((v, vi) => {
       const m = ptsByVar[vi];
-      if (m.size < 2) return;                     // a single point can't outline anything
+      if (m.size === 0) return;                   // no activations → nothing to mark; keep rank-0+
       const sig = [...m.keys()].sort().join(';');
       const g = byDomain.get(sig);
       if (g) g.members.push(vi);
@@ -287,12 +287,22 @@ export function createScheduleViewer({ canvas, hud, data, options = {} }) {
         grp.add(new THREE.LineSegments(new THREE.EdgesGeometry(solid),
           new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.85 })));
       } else {
-        // rank < 3 domain (a plane / line), or a rank-3 hull that failed to build: outline the
-        // axis-aligned bounding box instead. For a coplanar/collinear set the box collapses to a
-        // flat rectangle / segment, which is exactly the domain's shape.
+        // rank < 3 domain (a plane / line / point), or a rank-3 hull that failed to build:
+        // outline the axis-aligned bounding box. For a coplanar/collinear set the box collapses
+        // to a flat rectangle / segment — exactly the domain's shape. A rank-0 domain (a single
+        // index point) gives a ZERO-size box whose Box3Helper is invisible, so mark it with a
+        // small sphere instead, so no domain silently vanishes in hull mode.
         const b = new THREE.Box3();
         for (const p of pts) b.expandByPoint(new THREE.Vector3(p[0], p[1], p[2]));
-        grp.add(new THREE.Box3Helper(b, color));
+        const size = b.getSize(new THREE.Vector3());
+        if (size.x === 0 && size.y === 0 && size.z === 0) {
+          const dot = new THREE.Mesh(new THREE.SphereGeometry(baseR * 0.7, 8, 6),
+            new THREE.MeshLambertMaterial({ color, transparent: true, opacity: 0.85 }));
+          dot.position.copy(b.getCenter(new THREE.Vector3()));
+          grp.add(dot);
+        } else {
+          grp.add(new THREE.Box3Helper(b, color));
+        }
       }
       hulls.push({ grp, members });
       scene.add(grp);
